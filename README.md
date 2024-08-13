@@ -17,7 +17,7 @@ We have meticulously crafted three distinct types for this component to cater to
   
     Furthermore we have developed numerous properties to enrich your user experience and streamline development. These properties offer fine-grained control over the appearance, behavior, and validation of the Input component, ensuring it seamlessly fits into your application's requirements.    
 Here are the refined details for each property along with its respective function:   
-  * **Visible**: A boolean value (true or false) that controls whether this input element is visible on the interface. Setting it to false will hide the input from the user.
+    * **Visible**: A boolean value (true or false) that controls whether this input element is visible on the interface. Setting it to false will hide the input from the user.
     * **Disabled**: A boolean value that determines whether this input is disabled or not. If set to true, the input becomes inactive and users cannot interact with it.
     * **Readonly**: A boolean flag that specifies whether the input is read-only. When set to true, users cannot modify the input's value but can still copy and select the text.
     * **Width**: Specifies the width of the input element. The minimum acceptable value is 60, allowing for flexible sizing to accommodate different design requirements.
