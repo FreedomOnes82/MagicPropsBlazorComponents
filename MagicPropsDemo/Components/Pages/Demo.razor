@@ -1,0 +1,18 @@
+﻿<h3>Demo</h3>
+
+<input @onfocus="HandleFocus" />
+@code {
+    [Parameter]
+    public EventCallback OnFocus { get; set; }
+
+    private void HandleFocus(FocusEventArgs e)
+    {
+        Console.WriteLine("focus");
+        if (OnFocus.HasDelegate)
+        {
+            OnFocus.InvokeAsync(e);
+        }
+        StateHasChanged();
+    }
+   
+}

@@ -1,0 +1,71 @@
+﻿@page "/checkboxgroupdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+@using MagicPropsComponents.Components.CheckboxGroup;
+@using MagicPropsComponents.ViewModels.SelectionGroup;
+
+
+<h3>Checkbox Group Demo</h3>
+<hr/>
+<div>
+    <span style="font-weight:bold;">Checkboxes displayed horizontally with normal button</span>
+    <br/>
+    <span style="padding-right:10px;"> Selected Value: @_value1</span>
+    <br/>
+    <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup @ref="_checkboxGroup" @bind-Value="_value1" DisplayInline="true" DisplayMode="DisplayModes.DefaultButton">
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.OutlineDanger" Value="Test1" Description="Test 1 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.Warning" Value="Test2" Description="Test 2 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.Dark" Value="Test3" Description="Test 3 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption Value="Test4" Description="Test 4 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+    </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
+</div>
+<hr/>
+<div>
+    <span style="font-weight:bold;">Checkboxes displayed vertically with toggle button</span>
+    <br />
+    <span style="padding-right:10px;"> Selected Value: @_value2</span>
+    <br />
+    <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup @ref="_checkboxGroup" @bind-Value="_value2" DisplayInline="false" DisplayMode="DisplayModes.ToggoleButton">
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.OutlineDanger" Value="Test1" Description="Test 1 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.Warning" Value="Test2" Description="Test 2 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.Dark" Value="Test3" Description="Test 3 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption Value="Test4" Description="Test 4 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+    </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
+</div>
+<hr />
+<div>
+    <span style="font-weight:bold;">Checkboxes displayed horizontally with switch button</span>
+    <br />
+    <span style="padding-right:10px;"> Selected Value: @_value3</span>
+    <br />
+    <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup @ref="_checkboxGroup" @bind-Value="_value3" DisplayInline="true" DisplayMode="DisplayModes.SwitchButton">
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.OutlineDanger" Value="Test1" Description="Test 1 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.Warning" Value="Test2" Description="Test 2 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption ButtonClass=" ToggoleButtonClasses.Dark" Value="Test3" Description="Test 3 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption Value="Test4" Description="Test 4 Desc"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+    </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
+</div>
+<hr />
+<div>
+    <span style="font-weight:bold;">Single Active Checkbox</span>
+    <br />
+    <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup @ref="_checkboxGroup" @bind-Value="_value4" DisplayInline="true" DisplayMode="DisplayModes.DefaultButton">
+      <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption Value="Test1" Description="This is active test"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+    </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
+</div>
+<hr />
+<div>
+    <span style="font-weight:bold;">Single Inactive Checkbox</span>
+    <br />
+    <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup @ref="_checkboxGroup" @bind-Value="_value5" DisplayInline="true" DisplayMode="DisplayModes.SwitchButton">
+        <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption Value="Test1" Description="This is inactive test" Disabled="true"></MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption>
+    </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
+</div>
+<br />
+@code {
+    private MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup _checkboxGroup;
+    private string _value1 { get; set; } = "Test1,Test2";
+    private string _value2 { get; set; } = "Test1,Test2";
+    private string _value3 { get; set; } = "Test1,Test2";
+    private string _value4 { get; set; } = "Test1";
+    private string _value5 { get; set; } = "Test1";
+}

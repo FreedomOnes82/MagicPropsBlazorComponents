@@ -1,0 +1,15 @@
+﻿.svg-default-shape {
+    fill: rgba(128,128,128,.2);
+    stroke: black;
+    stroke-width: 4;
+}
+.svg-pager-shape {
+    fill: none;
+    stroke: black;
+    stroke-width: 4;
+}
+.svg-pager-shape-disabled {
+    fill: rgba(128,128,128,.4);
+    stroke: rgba(128,128,128,.4);
+    stroke-width: 4;
+}

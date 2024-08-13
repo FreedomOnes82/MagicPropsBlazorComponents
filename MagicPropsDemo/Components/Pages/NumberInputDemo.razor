@@ -1,0 +1,67 @@
+﻿@page "/numberinputdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<head>
+    <style>
+        .my-custom-margin-bottom {
+                margin-bottom: 5px;
+            }
+        .my-custom-display-div{
+            display:flex;
+            align-items:center;
+        }
+    </style>
+    
+</head>
+
+<h3>Number Input Demo</h3>
+<hr />
+<div class="container">
+     <div class="row my-custom-margin-bottom d-flex align-items-center">
+         <div>
+            <input type="checkbox" @bind-value="_valueShowError" checked />
+            <lable>Show Error Message for inputs</lable>
+         </div>
+    </div>
+
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label for="txtNumber">Number: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput  Increment="3"  InputID="txtNumber"  MaxNumber="100" MinNumber="10"
+                                         Width="220" ShowErrorMsg="@_valueShowError" Title="Number" Value="10" />
+        </div>
+     </div>
+
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Number2: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3"  MaxNumber="100"  Required="true" 
+                                                             ErrorMsg="this is required"      Value="0"    Width="220" ShowErrorMsg="@_valueShowError"  />
+        </div>
+    </div>
+
+
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Number3: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3" MaxNumber="100" Visible="false"
+                                                                       Width="220" ShowErrorMsg="@_valueShowError" />
+        </div>
+    </div>
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.NumberInput.MPNumberInput Width="800" IsTitleFload="true" Title="Sample show up Title"
+                                                       ShowErrorMsg="@_valueShowError" Value="-1">
+        </MagicPropsComponents.Components.NumberInput.MPNumberInput>
+
+    </div>
+</div>
+
+
+@code {
+   private bool _valueShowError = true;
+}

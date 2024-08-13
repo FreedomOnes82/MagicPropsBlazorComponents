@@ -1,0 +1,18 @@
+﻿@if (Theme == Themes.Default)
+{
+    <link rel="stylesheet" href="_content/MagicPropsComponents/css/themes/default.css" type="text/css" />
+}
+
+
+@code {
+    [Parameter]
+    public Themes Theme
+    {
+        get; set;
+    } = Themes.Default;
+    public enum Themes
+    {
+        Default,
+        Dark
+    }
+}

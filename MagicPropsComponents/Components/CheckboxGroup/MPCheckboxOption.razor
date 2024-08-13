@@ -1,0 +1,79 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.Utilities.Extensions
+@using MagicPropsComponents.ViewModels.SelectionGroup
+
+<div class="form-check @(CheckboxGroup!.DisplayInline ? "form-check-inline":"") @(CheckboxGroup!.DisplayMode== DisplayModes.SwitchButton ? "form-switch":"")">
+    @if (IsOptionSelected(Value))
+    {
+        <input class="@GetInputCssClass()" type="checkbox" name="@CheckboxGroup.Name" id="@_id" @onchange="OnValueChanged" checked disabled="@Disabled">
+    }
+    else
+    {
+        <input class="@GetInputCssClass()" type="checkbox" name="@CheckboxGroup.Name" id="@_id" @onchange="OnValueChanged" disabled="@Disabled">
+    }
+    <label class="@GetLabelClass()" for="@_id">
+        @Description
+    </label>
+</div>
+@code {
+    [CascadingParameter(Name = "CheckboxGroup")]
+    public IMPCheckboxGroup? CheckboxGroup { get; set; }
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+    [Parameter]
+    public bool Disabled { get; set; }
+    [Parameter]
+    public string Description { get; set; } = string.Empty;
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [CascadingParameter(Name = "DisplayMode")]
+    public DisplayModes DisplayMode { get; set; } = DisplayModes.DefaultButton;
+    [Parameter]
+    public ToggoleButtonClasses ButtonClass { get; set; } = ToggoleButtonClasses.OutlineSuccess;
+    private string _id = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _id = "opt_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+
+    public void OnValueChanged(ChangeEventArgs e)
+    {
+        CheckboxGroup!.HandleValueChange(Value, (bool)e.Value!);
+    }
+
+    private bool IsOptionSelected(string vl)
+    {
+        return CheckboxGroup!.Value.Split(',').Any(x => x == vl);
+    }
+
+    private string GetToggleButtonClass()
+    {
+        return ButtonClass.GetDescription();
+    }
+
+    private string GetLabelClass()
+    {
+        string labelClass = string.Empty;
+
+        if (CheckboxGroup!.DisplayMode == DisplayModes.ToggoleButton)
+            labelClass = "btn " + GetToggleButtonClass();
+        else
+        {
+            labelClass = "form-check-label";
+        }
+        return labelClass;
+    }
+
+    private string GetInputCssClass()
+    {
+        string CssClass = string.Empty;
+
+        if (CheckboxGroup!.DisplayMode == DisplayModes.ToggoleButton)
+            CssClass = "btn-check";
+        else
+            CssClass = "form-check-input";
+        return CssClass;
+
+    }
+}

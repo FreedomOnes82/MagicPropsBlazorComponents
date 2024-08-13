@@ -1,0 +1,156 @@
+﻿@using MagicPropsComponents.ViewModels
+@using MagicPropsComponents.ViewModels.Modal
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+<div id="@clientId" class="modal" @ref=_modal>
+    <div class="modal-dialog modal-dialog-centered @GetModalSizeClass()">
+        <div class="modal-content" @ref=_content>
+            @if (HeaderVisible)
+            {
+                @if (HeaderTemplate != null)
+                {
+                    @HeaderTemplate
+                }
+                else
+                {
+                    <div class="modal-header">
+                        <h5 class="modal-title">@Title</h5>
+                        @if (CloseBtnVisible)
+                        {
+                            <button type="button" class="btn-close" @onclick="SwitchVisible"></button>
+                        }
+                    </div>
+                }
+            }
+            <div class="modal-body">
+                @if (BodyTemplate != null)
+                {
+                    @BodyTemplate
+                }
+                else
+                {
+                    <h3>This is Magic Props Test Modal!</h3>
+                }
+            </div>
+            @if (FooterVisible)
+            {
+                <div class="modal-footer">
+                    @if (FooterTemplate != null)
+                    {
+                        @FooterTemplate
+                    }
+                    else
+                    {
+                        @foreach (var button in FooterBottons)
+                        {
+                            <button type="button" class="btn @button.CssClass" @onclick="()=>ButtonClicked(button)">
+                                @button.Text
+                            </button>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@code {
+    private ElementReference? _modal;
+    private ElementReference? _content;
+    [Parameter]
+    public RenderFragment? HeaderTemplate { get; set; }
+    [Parameter]
+    public RenderFragment? BodyTemplate { get; set; }
+    [Parameter]
+    public RenderFragment? FooterTemplate { get; set; }
+
+    private bool _visible = false;
+    [Parameter]
+    public bool Visible
+    {
+        get => _visible;
+        set
+        {
+            if (_visible != value)
+            {
+                _visible = value;
+                _ = Task.Run(() => OnVisiableChanged(value));
+                VisibleChanged.InvokeAsync(value);
+                StateHasChanged();
+            }
+        }
+    }
+    [Parameter]
+    public EventCallback<bool> VisibleChanged { get; set; }
+
+    [Parameter]
+    public ModalSettings Size { get; set; } = ModalSettings.Normal;
+
+    [Parameter]
+    public string Title { get; set; } = "New Modal";
+    [Parameter]
+    public bool CloseBtnVisible { get; set; } = false;
+    [Parameter]
+    public bool HeaderVisible { get; set; } = true;
+    [Parameter]
+    public bool ClickOutsideToClose { get; set; } = false;
+    [Parameter]
+    public bool FooterVisible { get; set; } = true;
+    [Parameter]
+    public List<ModalButton> FooterBottons { get; set; } = new List<ModalButton>();
+    [Parameter]
+    public EventCallback<ModalButton> OnDialogButtonClicked { get; set; }
+
+    private string GetModalSizeClass()
+    {
+        switch (Size)
+        {
+            case ModalSettings.Normal: return "";
+            case ModalSettings.Small: return "modal-sm";
+            case ModalSettings.Large: return "modal-lg";
+            case ModalSettings.XLarge: return "modal-xl";
+            default: return "";
+        }
+    }
+
+    public async Task ButtonClicked(ModalButton btn)
+    {
+        if (btn.DismissModal)
+        {
+            await SwitchVisible();
+        }
+        await OnDialogButtonClicked.InvokeAsync(btn);
+    }
+
+    private string clientId { get; set; } = string.Empty;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (string.IsNullOrEmpty(clientId))
+            {
+                clientId = "modal_" + Guid.NewGuid().ToString().Replace("-", "");
+                await JSRuntime.InvokeVoidAsync("registerDotNetMethod", clientId, DotNetObjectReference.Create(this));
+            }
+        }
+    }
+
+    public async Task OnVisiableChanged(bool visible)
+    {
+        if (visible)
+        {
+            await JSRuntime.InvokeAsync<object>("MPModal.show", this.clientId, _modal, _content, ClickOutsideToClose);
+        }
+        else
+        {
+            await JSRuntime.InvokeAsync<object>("MPModal.hide", this.clientId, _modal);
+        }
+    }
+
+    [JSInvokable]
+    public async Task SwitchVisible()
+    {
+        Visible = !_visible;
+        await Task.Delay(10);
+    }
+
+}

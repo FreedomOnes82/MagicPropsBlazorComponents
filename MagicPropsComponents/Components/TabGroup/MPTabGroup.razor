@@ -1,0 +1,65 @@
+﻿@using Microsoft.JSInterop;
+@using MagicPropsComponents.Abstractions;
+@inject IJSRuntime JSRuntime;
+@implements IMPTabGroup;
+<CascadingValue Value="this" Name="MPTabGroup">
+    @if (ShowTabs && ChildContent != null)
+    {
+        <div class="tabContainer" id="@_clientId" role="tablist">
+            <div class="tab-header">
+                <div class="btn pre-btn">
+                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                </div>
+                <div class="tab-list-container">
+                    <ul class="nav nav-tabs tab-list-ul " role="tablist">
+                        <CascadingValue Value="true" Name="IsTabHeader">
+                            @ChildContent
+                        </CascadingValue>
+                        <CascadingValue Value="@NeedDeleteConfirm" Name="IsNeedDeleteConfirm"></CascadingValue>
+                    </ul>
+                </div>
+                <div class="btn nex-btn">
+                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <CascadingValue Value="false" Name="IsTabHeader">
+                    @ChildContent
+                </CascadingValue>
+            </div>
+        </div>
+    }
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public bool ShowTabs { get; set; } = true;
+    [Parameter]
+    public bool NeedDeleteConfirm { get; set; } = false;
+    private string _selectedTabHeadText = string.Empty;
+    [Parameter]
+    public string SelectedTabHeadText { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback<string> SelectedTabHeadTextChanged { get; set; }
+
+    private string _clientId { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _clientId = "tab_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+
+    public async Task LoadBtn()
+    {
+        if (ShowTabs && ChildContent != null)
+            await JSRuntime.InvokeVoidAsync("MPTabGroup.LoadHeaderBtnListener", _clientId);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await LoadBtn();
+    }
+}

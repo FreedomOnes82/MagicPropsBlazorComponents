@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/MagicPropsComponents
+/MagicPropsComponents/bin/Debug/net8.0
+/MagicPropsComponents/obj/Debug/net8.0
+/MagicPropsComponents/obj
+/MagicPropsDemo/bin/Debug/net8.0
+/MagicPropsDemo/obj/Debug/net8.0
+/MagicPropsDemo/obj

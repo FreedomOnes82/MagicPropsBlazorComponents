@@ -1,0 +1,131 @@
+﻿@using MagicPropsComponents.ViewModels.Modal
+@using MagicPropsComponents.Abstractions
+@if (IsTabHeader)
+{
+    <li class="nav-item @(CheckIsActive() ? "active":"")" role="presentation" style="display:inline-block" @onclick="Switch">
+        <span class="nav-link">
+            @if (HeaderTemplate != null)
+            {
+                @HeaderTemplate
+            }
+            else
+            {
+                @if (Icon != null)
+                {
+                    @Icon
+                }
+                @Header
+                @if (Closable)
+                {
+                    <button class="btn-close ms-3" @onclick="()=>BeginClose()" @onclick:stopPropagation="true" />
+                }
+            }
+        </span>
+    </li>
+}
+else
+{
+    <div class="tab-pane fade show" style="display:@(CheckIsActive()?"block":"none")">
+        @ChildContent
+    </div>
+}
+@if (IsNeedDeleteConfirm)
+{
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="@_showCloseModal" Title="Delete Tab" CloseBtnVisible="true" ClickOutsideToClose="false" FooterBottons="@closeModalBtns" OnDialogButtonClicked="OnCloseModalButtonClick">
+        <BodyTemplate>
+            Are you sure you want close @Header?
+        </BodyTemplate>
+    </MagicPropsComponents.Components.Modal.MPModal>
+}
+
+
+
+@code {
+    [Parameter]
+    public string ItemID { get; set; }
+
+    [CascadingParameter(Name = "IsTabHeader")]
+    public bool IsTabHeader { get; set; }
+    [CascadingParameter(Name = "IsNeedDeleteConfirm")]
+    public bool IsNeedDeleteConfirm { get; set; }
+    [CascadingParameter(Name = "MPTabGroup")]
+    public IMPTabGroup IMPTabGroup { get; set; }
+    [Parameter]
+    public string Header { get; set; } = string.Empty;
+    [Parameter]
+    public RenderFragment? Icon { get; set; }
+
+    [Parameter]
+    public RenderFragment? HeaderTemplate { get; set; }
+
+    [Parameter] public bool Active { get; set; }
+    [Parameter] public EventCallback<bool> OnAfterActivateTab { get; set; }
+
+    [Parameter] public EventCallback<string> OnCloseTab { get; set; }
+
+    [Parameter] public bool Closable { get; set; }
+
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    private bool _showCloseModal = false;
+    public List<ModalButton> closeModalBtns { get; set; } = new List<ModalButton>
+    {
+        new ModalButton() { CssClass = "btn-primary", DismissModal = true, Text = "Ok" },
+        new ModalButton() { CssClass = "btn-secondary", DismissModal = true, Text = "Cancel" }
+    };
+    protected override void OnInitialized()
+    {
+        if (HeaderTemplate != null && IMPTabGroup != null && !string.IsNullOrEmpty(IMPTabGroup.SelectedTabHeadText))
+        {
+            throw new Exception("If you use HeaderTemplate, active status depend on 'Active' instead of 'SelectedTabHeadText'");
+        }
+        if (HeaderTemplate == null && (IMPTabGroup == null || string.IsNullOrEmpty(IMPTabGroup.SelectedTabHeadText)))
+        {
+            throw new Exception("If you use Header, 'SelectedTabHeadText' is necessary attributes");
+        }
+    }
+
+    private void BeginClose()
+    {
+        if (IsNeedDeleteConfirm)
+        {
+            _showCloseModal = true;
+            StateHasChanged();
+        }
+        else
+        {
+            if (OnCloseTab.HasDelegate)
+                OnCloseTab.InvokeAsync(Header);
+        }
+    }
+    private void OnCloseModalButtonClick(ModalButton button)
+    {
+        if (button.Text == "Ok")
+        {
+            _showCloseModal = false;
+            if (OnCloseTab.HasDelegate)
+                OnCloseTab.InvokeAsync(Header);
+        }
+    }
+    private void Switch()
+    {
+        IMPTabGroup.SelectedTabHeadTextChanged.InvokeAsync(Header);
+        OnAfterActivateTab.InvokeAsync(true);
+    }
+    private bool CheckIsActive()
+    {
+        if (HeaderTemplate != null)
+        {
+            return Active;
+        }
+        if (IMPTabGroup != null)
+        {
+            if (Header == IMPTabGroup.SelectedTabHeadText) return true;
+            else return false;
+        }
+        else
+        {
+            return Active;
+        }
+    }
+}

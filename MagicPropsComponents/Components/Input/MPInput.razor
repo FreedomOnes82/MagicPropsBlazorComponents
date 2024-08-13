@@ -1,0 +1,188 @@
+﻿@using System.Text.RegularExpressions
+@using MagicPropsComponents.ViewModels.Shared
+@using MagicPropsComponents.ViewModels.Input
+@if (Visible)
+{
+    <div class="@(TitleFloat?"mp-input-container":"")" id="@_clientId">
+        <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" style="width:@(Width.ToString())px;@(TitleFloat?"margin-top: 15px;":"")">
+            @if (LeftAppend != null)
+            {
+                <div class="mp-input-btn">
+                    @LeftAppend
+                </div>
+            }
+            @if (Readonly && Disabled)
+            {
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText" readonly disabled
+                       autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
+            }
+            else if (Readonly)
+            {
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText" readonly
+                       autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
+            }
+            else if (Disabled)
+            {
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText" disabled
+                       autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
+            }
+            else
+            {
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText"
+                       autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
+            }
+
+            @if (Clearable)
+            {
+                <div class="mp-input-btn" @onclick="()=>{if(Readonly||Disabled) return; Value = string.Empty;}">
+                    <i class="fa fa-close"></i>
+                </div>
+            }
+            @if (RightAppend != null)
+            {
+                <div class="mp-input-btn">
+                    @RightAppend
+                </div>
+            }
+        </div>
+        @if (TitleFloat && !string.IsNullOrEmpty(Title))
+        {
+            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide") @(Disabled?"disabled":"") " style="display:@(isFocused||!string.IsNullOrEmpty(_value)||FixedTitle?"flex":"none")">
+                <label for="@InputID">
+                    @Title
+                </label>
+            </div>
+        }
+    </div>
+    <span class="mp-input-errmsg-hide @(ShowErrorMsg&&!CheckIsValid()?"mp-input-errmsg-show":"")">@(string.IsNullOrEmpty(_errmsg) ? ("Your input does not comply with the rules.") : _errmsg) </span>
+}
+
+
+@code {
+    [Parameter]
+    public RenderFragment LeftAppend { get; set; }
+    [Parameter]
+    public RenderFragment RightAppend { get; set; }
+    [Parameter]
+    public bool Visible { get; set; } = true;
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+    [Parameter]
+    public bool Readonly { get; set; } = false;
+    [Parameter]
+    public int Width { get; set; } = 220;
+    [Parameter]
+    public bool AutoFocus { get; set; } = false;
+    [Parameter]
+    public string Placeholder { get; set; } = string.Empty;
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [Parameter]
+    public string InputID { get; set; } = string.Empty;
+    [Parameter]
+    public InputType InputType { get; set; }
+    [Parameter]
+    public bool Clearable { get; set; } = false;
+    [Parameter]
+    public string Value
+    {
+        get => _value;
+        set
+        {
+            if (_value != value)
+            {
+                _value = value;
+                ValueChanged.InvokeAsync(_value);
+                StateHasChanged();
+            }
+        }
+    }
+    private string _value { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+    [Parameter]
+    public bool TitleFloat { get; set; }
+    [Parameter]
+    public bool FixedTitle { get; set; }
+    [Parameter]
+    public bool Required { get; set; }
+    [Parameter]
+    public bool ShowErrorMsg { get; set; }
+    [Parameter]
+    public string RuleErrorMsg { get; set; } = string.Empty;
+    [Parameter]
+    public string RequireErrorMsg { get; set; } = string.Empty;
+    [Parameter]
+    public string Rules { get; set; } = string.Empty;
+
+    [Parameter]
+    public Action? OnFocus { get; set; }
+    [Parameter]
+    public Action? OnBlur { get; set; }
+
+    private string _clientId = string.Empty;
+    private string _errmsg = string.Empty;
+    protected override void OnInitialized()
+    {
+        if (Width < 60) Width = 60;
+        _clientId = "mpinput_" + Guid.NewGuid().ToString().Replace("-", "");
+        if (string.IsNullOrEmpty(InputID))
+        {
+            InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
+        }
+        _errmsg = RuleErrorMsg;
+    }
+
+    private bool isFocused { get; set; }
+    private bool afterFisrtFocus = false;
+    private bool isFocustrigger = false;
+    private void HandleFocus(FocusEventArgs e)
+    {
+        Console.WriteLine("focus");
+        isFocused = true;
+        if (OnFocus != null)
+        {
+            OnFocus.Invoke();
+        }
+        StateHasChanged();
+    }
+    private void HandleBlur(FocusEventArgs e)
+    {
+        Console.WriteLine("Blur");
+        afterFisrtFocus = true;
+        isFocused = false;
+        if (OnBlur != null)
+        {
+            OnBlur.Invoke();
+        }
+       StateHasChanged();
+    }
+    private string GetInputType()
+    {
+        switch (InputType)
+        {
+            case InputType.Text: return "text";
+            case InputType.Password: return "password";
+            case InputType.Number: return "number";
+            default: return "text";
+        }
+    }
+    private bool CheckIsValid()
+    {
+        if (!afterFisrtFocus) return true;
+        if (Required && string.IsNullOrEmpty(Value))
+        {
+            _errmsg = !string.IsNullOrEmpty(RequireErrorMsg) ? RequireErrorMsg : (string.IsNullOrEmpty(Title) ? "This field" : Title) + " is required";
+            return false;
+        }
+        if (!string.IsNullOrEmpty(Rules) && !string.IsNullOrEmpty(Value))
+        {
+            _errmsg = RuleErrorMsg;
+            return Regex.IsMatch(Value, Rules);
+        }
+        return true;
+    }
+
+    private string PlaceholderText => FixedTitle ? Placeholder : (TitleFloat ? (isFocused ? Placeholder : Title) : Placeholder);
+
+}

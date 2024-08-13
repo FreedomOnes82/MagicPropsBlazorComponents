@@ -1,0 +1,167 @@
+﻿@page "/inputdemo"
+@using MagicPropsComponents.ViewModels.Input
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<head>
+    <style>
+        .my-custom-margin-bottom {
+                margin-bottom: 5px;
+            }
+        .my-custom-display-div{
+            display:flex;
+            align-items:center;
+        }
+    </style>
+    
+</head>
+
+<h3>Input Demo</h3>
+<hr />
+<div class="container">
+     <div class="row my-custom-margin-bottom d-flex align-items-center">
+         <div>
+            <input type="checkbox" @bind-value="_valueShowError" checked />
+            <lable>Show Error Message for inputs</lable>
+         </div>
+    </div>
+    <div class="row my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label for="txtfirstname">First Name: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+            <MagicPropsComponents.Components.Input.MPInput Clearable="false" Required="true" AutoFocus="true" InputID="txtfirstname"
+            RequireErrorMsg="Please enter first name!" Placeholder="John" ShowErrorMsg="_valueShowError" @bind-Value="_firstNameValue" />
+        </div>
+    </div
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Middle Name: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+           <MagicPropsComponents.Components.Input.MPInput Clearable="false" Required="false" Width="110" Placeholder="M" ShowErrorMsg="false" />
+       </div>
+    </div>
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Last Name: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+           <MagicPropsComponents.Components.Input.MPInput Clearable="false" Required="true" 
+            RequireErrorMsg="Please enter last name!" ShowErrorMsg="_valueShowError" Title="Last Name"/>
+       </div>
+    </div>
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Email: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+           <MagicPropsComponents.Components.Input.MPInput Clearable="true" Required="true" Rules="@_rules" TitleFloat="false" FixedTitle="false"
+                                      Width="350" Placeholder="example@group.com" RuleErrorMsg="Please enter a valid Email" 
+                                      ShowErrorMsg="_valueShowError" Title="Email" />
+        </div>
+    </div>
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Number: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+           <MagicPropsComponents.Components.Input.MPInput  TitleFloat="false" FixedTitle="false" InputType="InputType.Number"
+                                      Placeholder="0"  ShowErrorMsg="_valueShowError" Title="Number" />
+        </div>
+    </div>
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Password: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+           <MagicPropsComponents.Components.Input.MPInput TitleFloat="false" FixedTitle="false" InputType="@(_showPwd ? InputType.Text : InputType.Password)" InputID="txtPassword"
+                                      ShowErrorMsg="_valueShowError" Rules="@_pwdRules"  RuleErrorMsg="@_invalidPwdAlert">
+                <RightAppend>
+                    <i id="btnShowPwd" class="@(_showPwd ? "fa fa-eye" : "fa fa-eye-slash")" @onclick="ToggleShowPwd"></i>
+                </RightAppend>
+           </MagicPropsComponents.Components.Input.MPInput>
+        </div>
+    </div>
+   
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.Input.MPInput Width="500" Clearable="true" TitleFloat="true" Title="Search Sample" 
+                                               Placeholder="Search" ShowErrorMsg="@_valueShowError" ValueChanged="@ChangeSearchValue" >
+            <LeftAppend>
+                <i class="fa fa-search" @onclick="SearchFunciton"></i>
+            </LeftAppend>
+        </MagicPropsComponents.Components.Input.MPInput>
+        <span style="color:palevioletred">@_searchAlert</span>
+    </div>
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.Input.MPInput Width="500"  Clearable="true" TitleFloat="true" FixedTitle="true" Title="Description"
+                                            ShowErrorMsg="@_valueShowError">
+        </MagicPropsComponents.Components.Input.MPInput>
+    </div>
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.Input.MPInput Width="800" TitleFloat="true" Title="Sample show up more icons" 
+              ShowErrorMsg="@_valueShowError">
+            <RightAppend>
+                <i class="fa fa-plus"></i> <i class="fa fa-edit ms-2"></i>
+            </RightAppend>
+        </MagicPropsComponents.Components.Input.MPInput>
+    </div>
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.Input.MPInput Width="800"  TitleFloat="false" Title="Sample for Onfous and Onblur" 
+              ShowErrorMsg="@_valueShowError" OnBlur="OnBlurFuncion" OnFocus="OnFocusFuncion" Placeholder="Sample for Onfous and Onblur">
+        </MagicPropsComponents.Components.Input.MPInput>
+        <span style="color:palevioletred">@_triggerAlert</span>
+    </div>
+
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.Input.MPInput Width="800" TitleFloat="true" Title="Sample for Readonly"  Readonly
+              ShowErrorMsg="@_valueShowError" Value="Value for Readonly textbox">
+        </MagicPropsComponents.Components.Input.MPInput>
+    </div>
+
+     <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.Input.MPInput Width="800" TitleFloat="true" Title="Sample for Disabled"  Disabled
+              ShowErrorMsg="@_valueShowError">
+        </MagicPropsComponents.Components.Input.MPInput>
+    </div>
+</div>
+
+
+@code {
+    private string _rules = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+    private string _pwdRules = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=]).{8,}$";
+    private string _invalidPwdAlert = @"The password must contain at least 8 characters, including at least 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character (special character set is !@#$%^&*()_+-=).";
+    private string _firstNameValue = "John";
+    private string _value1 = "aaa@a.com";
+    private string _searchAlert = String.Empty;
+    private string _triggerAlert = String.Empty;
+    private bool _valueShowError = true;
+    private bool _value2Required = false;
+    private bool _showPwd = false;
+
+
+
+    private void ToggleShowPwd()
+    {
+        _showPwd = !_showPwd;  
+    }
+
+    private void SearchFunciton()
+    {
+        _searchAlert = "Click the Search Button Here to Initiate Advanced Search Functionality in Practical Applications";
+    }
+    private void ChangeSearchValue()
+    {
+         _searchAlert = String.Empty;
+    }
+
+    private void OnFocusFuncion()
+    {
+        _triggerAlert = "Focus on the input 'Sample for Onfous and Onblur'";
+        StateHasChanged();
+    }
+    private void OnBlurFuncion()
+    {
+       _triggerAlert = String.Empty;
+        StateHasChanged();
+    }
+
+}

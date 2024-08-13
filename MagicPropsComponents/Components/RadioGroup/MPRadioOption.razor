@@ -1,0 +1,69 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.Utilities.Extensions
+@using MagicPropsComponents.ViewModels.SelectionGroup
+
+<div class="form-check  @(RadioGroup!.DisplayInline ? "form-check-inline":"")  @(RadioGroup!.DisplayMode== DisplayModes.SwitchButton ? "form-switch":"")">
+    @if (Value == RadioGroup.Value)
+    {
+        <input class="@GetRadioCssClass()" type="radio" name="@RadioGroup.Name" id="@_id" @onclick="OnValueSelected" checked>
+    }
+    else
+    {
+        <input class="@GetRadioCssClass()" type="radio" name="@RadioGroup.Name" id="@_id" @onclick="OnValueSelected">
+    }
+
+    <label class="@GetLabelClass()" for="@_id">
+        @Description
+    </label>
+</div>
+@code {
+    [CascadingParameter(Name = "RadioGroup")]
+    public IMPRadioGroup? RadioGroup { get; set; }
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+    [Parameter]
+    public string Description { get; set; } = string.Empty;
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [CascadingParameter(Name = "DisplayMode")]
+    public DisplayModes DisplayMode { get; set; } = DisplayModes.DefaultButton;
+    [Parameter]
+    public ToggoleButtonClasses ButtonClass { get; set; } = ToggoleButtonClasses.OutlineSuccess;
+    private string _id = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        _id = "opt_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+
+    public void OnValueSelected()
+    {
+        RadioGroup!.SetValue(Value);
+    }
+
+    private string GetToggleButtonClass()
+    {
+        return ButtonClass.GetDescription();
+    }
+
+    private string GetLabelClass()
+    {
+        string labelClass = string.Empty;
+        if (RadioGroup!.DisplayMode == DisplayModes.DefaultButton)
+            labelClass = "form-check-label";
+        if (RadioGroup.DisplayMode == DisplayModes.ToggoleButton)
+            labelClass = "btn " + GetToggleButtonClass();
+        return labelClass;
+    }
+
+    private string GetRadioCssClass()
+    {
+        string radioCssClass = string.Empty;
+        if (RadioGroup!.DisplayMode == DisplayModes.ToggoleButton)
+            radioCssClass = "btn-check";
+        else
+            radioCssClass = "form-check-input";
+        return radioCssClass;
+
+    }
+}

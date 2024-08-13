@@ -1,0 +1,191 @@
+﻿@page "/tabgroupdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+@using MagicPropsComponents.Components.TabGroup
+
+<h3>Tab Group Demo</h3>
+<hr />
+<div style="padding-bottom:5px;">
+    <span style="font-weight:bold">Tabs with close button and add button to operate</span>
+    <br />
+    <button class="btn btn-primary" @onclick="AddTabGroup1">Add Tab</button>
+</div>
+<div style="width:1200px">
+    <MagicPropsComponents.Components.TabGroup.MPTabGroup @ref="tabGroup1" @bind-SelectedTabHeadText="@selectedTab1Header">
+        @foreach (var tab in Tabs1)
+        {
+            <MagicPropsComponents.Components.TabGroup.MPTabOption Header="@tab.HeaderText" ItemID="@tab.HeaderText" Closable="true" OnCloseTab="HandleDeleteTab">
+                @tab.Content
+            </MagicPropsComponents.Components.TabGroup.MPTabOption>
+        }
+
+    </MagicPropsComponents.Components.TabGroup.MPTabGroup>
+</div>
+
+<hr />
+<br />
+
+<div style="padding-bottom:2px;">
+    <span style="font-weight:bold">Tabs displayed on a single page in a static manner</span>
+</div>
+<div style="width:1200px">
+    <MagicPropsComponents.Components.TabGroup.MPTabGroup @ref="tabGroup2" @bind-SelectedTabHeadText="@selectedTab2Header">
+        @foreach (var tab in Tabs2)
+        {
+            <MagicPropsComponents.Components.TabGroup.MPTabOption Header="@tab.HeaderText" ItemID="@tab.HeaderText" Closable="false">
+                @tab.Content
+            </MagicPropsComponents.Components.TabGroup.MPTabOption>
+        }
+
+    </MagicPropsComponents.Components.TabGroup.MPTabGroup>
+</div>
+
+<hr />
+<br />
+
+
+@code {
+    private string selectedTab1Header = "Tab1";
+    private string selectedTab2Header = "Tab2";
+    private MagicPropsComponents.Components.TabGroup.MPTabGroup tabGroup1;
+    private MagicPropsComponents.Components.TabGroup.MPTabGroup tabGroup2;
+    protected override async Task OnInitializedAsync()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            AddTabGroup1();
+            AddTabGroup2();
+        }
+        //load some other page into the tab 
+        Tabs2[1].Content = builder =>
+             {
+                 builder.OpenComponent<CheckboxGroupDemo>(0);
+                 builder.CloseComponent();
+             };
+        Tabs2[2].Content = builder =>
+                {
+                    builder.OpenComponent<RadioGroupDemo>(0);
+                    builder.CloseComponent();
+                };
+        await Task.Delay(50);
+        selectedTab1 = Tabs1.FirstOrDefault().HeaderText;
+        selectedTab2 = Tabs2.FirstOrDefault().HeaderText;
+    }
+
+    private string _value = string.Empty;
+    private DateTime _selected = DateTime.Today;
+    private int index1 = 1;
+    private int index2 = 1;
+    private string selectedTab1 { get; set; } = string.Empty;
+    private string selectedTab2 { get; set; } = string.Empty;
+    private async void AddTabGroup1()
+    {
+        var aa = "This is tab content--" + "Tab" + index1;
+
+        Tabs1.Add(new TabModel
+            {
+                HeaderText = "Tab" + index1,
+                Content = builder =>
+                {
+                    builder.OpenElement(0, "div");
+                    builder.AddContent(1, aa);
+                    builder.CloseElement();
+                }
+            });
+        selectedTab1Header = "Tab" + index1;
+        index1++;
+        if (tabGroup1 != null)
+            await tabGroup1.LoadBtn();
+    }
+    private async void AddTabGroup2()
+    {
+        var aa = "This is tab content--" + "Tab" + index2;
+        var bb = "This is another content for test for tab: " + index2;
+        var headerText = "Tab" + index2;
+        Boolean showBB = false;
+        if (index2 % 2 == 0)
+        {
+            showBB = true;
+        }
+        switch (index2)
+        {
+            case 1:
+                headerText = "Basic Info";
+                aa = "This section within the Basic Info tab showcases detailed content, which typically involves incorporating input fields for capturing fundamental information. However, given its demonstrative nature, we've opted to simply include placeholder comments here as an illustrative example.";
+                break;
+            case 2:
+                headerText = "Checkbox Info";
+                break;
+            case 3:
+                headerText = "Radio Info";
+                break;
+            default:
+                aa = "This is tab content--" + "Tab" + index2;
+                headerText = "Tab" + index2;
+                break;
+        }
+
+        Tabs2.Add(new TabModel
+            {
+                HeaderText = headerText,
+                Content = builder =>
+                {
+                    builder.OpenElement(0, "div");
+                    builder.AddContent(1, aa);
+                    builder.CloseElement();
+                    if (showBB)
+                    {
+                        builder.OpenElement(0, "div");
+                        builder.AddContent(1, bb);
+                        builder.CloseElement();
+                    } 
+                }
+            });
+        // make the first tab as default selected tab here
+        selectedTab2Header = "Basic Info";
+       // selectedTab2Header = headerText;
+        index2++;
+        if (tabGroup2 != null)
+            await tabGroup2.LoadBtn();
+    }
+    public List<TabModel> Tabs1 { get; set; } = new List<TabModel>();
+    public List<TabModel> Tabs2 { get; set; } = new List<TabModel>();
+    public class TabModel
+    {
+        public string HeaderText { get; set; } = string.Empty;
+        public RenderFragment Content { get; set; }
+    }
+    private void HandleDeleteTab(string tabHeader)
+    {
+        var deleteItem = Tabs1.FirstOrDefault(x => x.HeaderText == tabHeader);
+        if (deleteItem != null)
+        {
+            if (deleteItem.HeaderText == selectedTab1Header)
+            {
+                var index = Tabs1.IndexOf(deleteItem);
+                if (Tabs1.Count > 1)
+                {
+                    if (index > 0)
+                    { 
+                        selectedTab1Header = Tabs1[index - 1].HeaderText;
+                        Tabs1.Remove(deleteItem);
+                    }
+                    else
+                    {
+                        selectedTab1Header = Tabs1[index + 1].HeaderText;
+                        Tabs1.Remove(deleteItem);
+                    }
+                }
+                else
+                {
+                    Tabs1.Remove(deleteItem);
+                }
+            }
+            else
+            {
+                Tabs1.Remove(deleteItem);
+            }
+        }
+
+    }
+}
+

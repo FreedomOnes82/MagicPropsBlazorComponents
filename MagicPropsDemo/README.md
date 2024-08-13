@@ -1,7 +1,4 @@
-# Magic Props Blazor Components
-This is a versatile Blazor component that you can seamlessly integrate into your project, offering a multitude of customizable settings.
-
-**Blazor Components Demos**
+﻿**Blazor Components using Demos**
 
 This Demo project shows up the demos how we use the blazor components we developed.
 The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons and more.
@@ -142,4 +139,3 @@ This component is designed to display a flexible or static group of tabs on the 
     * **Closable**:  To identify whether a tab can be closed or not, a True or False value is used. Setting this to True allows the tab to be closed, while False disables the closing functionality.
    * **ChildContent**: Permits the seamless integration of HTML code or elements, which can be appended to the individual option. This feature enhances the flexibility and customizability of the tab option, allowing for the inclusion of additional information, styling, or interactive elements alongside this option.
     
-

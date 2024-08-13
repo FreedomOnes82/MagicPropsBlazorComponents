@@ -1,0 +1,88 @@
+﻿@page "/popupdemo";
+@using MagicPropsComponents.ViewModels.Popup
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+
+<button class="mb-3" id="@_cusTriggerId">Custom AnchorPoint Trigger</button>
+<MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_cusTriggerId" AnchorPointX="400" AnchorPointY="200" Toward="GetToward()" BorderRadius="2">
+    <h3>Custom AnchorPoint(x:400,y:200)</h3>
+</MagicPropsComponents.Components.Popup.MPPopup>
+
+<br />
+<button class="me-3" @onclick="SwitchToward">Click to change Toward</button>@GetToward()
+<br />
+<button class="mt-2 me-3" @onclick="SwitchAnchorPoint">Click to change AnchorPointType</button>@GetAnchorPointType()
+<br />
+
+
+<div style="width:200px;height:200px;background-color:grey;margin-top:300px;margin-left:300px;" id="@_triggerId"> <a>This is Trigger</a></div>
+<MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_triggerId" AnchorPointType="GetAnchorPointType()"  @bind-Visible=_showPopup OnlyControlByVisible="false"
+ Toward="GetToward()" BorderRadius="2">
+    <h3>This is Test Popup</h3>
+</MagicPropsComponents.Components.Popup.MPPopup>
+@code {
+    private string _cusTriggerId = string.Empty;
+    private string _triggerId { get; set; } = string.Empty;
+    private bool _showPopup { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(_triggerId))
+        {
+            _triggerId = Guid.NewGuid().ToString().Replace("-", "");
+            _cusTriggerId = "cus_"+Guid.NewGuid().ToString().Replace("-", "");
+           
+        }
+        base.OnInitialized();
+    }
+
+    private int flag1 = 0;
+    private void SwitchToward()
+    {
+        flag1 += 1;
+        if (flag1 == 8) flag1 = 0;
+    }
+    private PopupToward GetToward()
+    {
+        switch (flag1)
+        {
+            case 0: return PopupToward.TopLeft;
+            case 1: return PopupToward.TopRight;
+            case 2: return PopupToward.TriggerTopCenter;
+            case 3: return PopupToward.BottomLeft;
+            case 4: return PopupToward.BottomRight;
+            case 5: return PopupToward.TriggerBottomCenter;
+            case 6: return PopupToward.TriggerLeftCenter;
+            case 7: return PopupToward.TriggerRightCenter;
+            default: return PopupToward.TopRight;
+        }
+    }
+    private int flag2 = 0;
+    private void SwitchAnchorPoint()
+    {
+        flag2 += 1;
+        if (flag2 == 5) flag2 = 0;
+    }
+    private AnchorPointType GetAnchorPointType()
+    {
+        switch (flag2)
+        {
+            case 0: return AnchorPointType.TriggerLeftTop;
+            case 1: return AnchorPointType.TriggerLeftBottom;
+            case 2: return AnchorPointType.TriggerRightTop;
+            case 3: return AnchorPointType.TriggerRightBottom;
+            case 4: return AnchorPointType.TriggerCenter;
+            default: return AnchorPointType.TriggerLeftBottom;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(10);
+            _showPopup = true;
+        }
+
+    }
+
+}

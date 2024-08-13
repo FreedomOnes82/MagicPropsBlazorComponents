@@ -1,0 +1,71 @@
+﻿@page "/radiogroupdemo";
+@using MagicPropsComponents.Components.RadioGroup;
+@using MagicPropsComponents.ViewModels.SelectionGroup;
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+
+<h3>Radio Group Demo</h3>
+<hr />
+
+<div>
+    <span style="padding-right:10px;">Display Mode:</span><MPRadioGroup DisplayInline="true" DisplayMode="MagicPropsComponents.ViewModels.SelectionGroup.DisplayModes.DefaultButton" @bind-Value="_strIsDisplayInline">
+        <MPRadioOption Value="Inline" Description="Display inline"></MPRadioOption>
+        <MPRadioOption Value="Vertical" Description="Vertical"></MPRadioOption>
+    </MPRadioGroup>
+    <br />
+    <span style="padding-right:10px;">Button Mode:    </span> 
+    <MPRadioGroup DisplayInline="true" Name="Buttons" DisplayMode="MagicPropsComponents.ViewModels.SelectionGroup.DisplayModes.DefaultButton" @bind-Value="_strDisplayMode">
+        <MPRadioOption Value="radio" Description="Radio button"></MPRadioOption>
+        <MPRadioOption Value="button" Description="Toggle button"></MPRadioOption>
+        <MPRadioOption Value="switch" Description="Switch button"></MPRadioOption>
+    </MPRadioGroup>
+</div>
+<p> 
+    <hr />
+    <span style="padding-right:10px;"> Selected Value: @_value</span>
+    <br />
+    <MPRadioGroup @ref="_mPRadioButtonsGroup" DisplayInline="@(_strIsDisplayInline == "Inline")" DisplayMode="GetDisplayMode()" @bind-Value="@_value">
+        <MPRadioOption Value="Test1" Description="Test 1 Desc"></MPRadioOption>
+        <MPRadioOption Value="Test2" Description="Test 2 Desc"></MPRadioOption>
+        <MPRadioOption Value="Test3" Description="Test 3 Desc"></MPRadioOption>
+        <MPRadioOption Value="Test4" Description="Test 4 Desc"></MPRadioOption>
+</MPRadioGroup>
+
+<hr />
+    <span style="padding-right:10px;"> Radio group with datasource </span>
+    <br/>
+    <MPRadioGroup @ref="_mPRBBindSource" DisplayInline="@(_strIsDisplayInline == "Inline")" Datasource="_options" DisplayMode="GetDisplayMode()" >
+
+    </MPRadioGroup>
+</p>
+
+@code {
+    private Dictionary<string, string> _options { get; set; } = new Dictionary<string, string> ();
+    private MagicPropsComponents.Components.RadioGroup.MPRadioGroup _mPRadioButtonsGroup;
+    private MagicPropsComponents.Components.RadioGroup.MPRadioGroup _mPRBBindSource;
+    private string _strIsDisplayInline = "Inline";
+    private string _strDisplayMode = "radio";
+    private MagicPropsComponents.ViewModels.SelectionGroup.DisplayModes GetDisplayMode()
+    {
+        switch (_strDisplayMode)
+        {
+            case "switch":
+                return DisplayModes.SwitchButton;
+            case "button":
+                return DisplayModes.ToggoleButton;
+            default:
+                return DisplayModes.DefaultButton;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _options.Add("100","100 $");
+        _options.Add("200","200 $");
+        _options.Add("300","300$");
+    }
+
+    private string _value { get; set; } = "Test2";
+
+}
+
+

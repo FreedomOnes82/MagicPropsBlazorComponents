@@ -1,0 +1,89 @@
+﻿@*
+    This is MPCheckboxGroup used in conjunction with MPCheckboxOption for multiple options.
+*@
+@using MagicPropsComponents.Abstractions;
+@using MagicPropsComponents.ViewModels.SelectionGroup
+@implements IMPCheckboxGroup;
+<CascadingValue Value="DisplayMode" Name="DisplayMode">
+    <CascadingValue Value="this" Name="CheckboxGroup">
+        @if (ChildContent != null)
+            @ChildContent
+        else
+        if (Datasource != null)
+            foreach (var opt in Datasource)
+            {
+                <MPCheckboxOption Description="@opt.Value" Value="@opt.Key"></MPCheckboxOption>
+
+            }
+
+    </CascadingValue>
+</CascadingValue>
+
+
+@code {
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public string Name { get; set; } = string.Empty;
+    private string _value = string.Empty;
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+    [Parameter]
+    public bool DisplayInline { get; set; } = false;
+    [Parameter]
+    public DisplayModes DisplayMode { get; set; } = DisplayModes.ToggoleButton;
+    [Parameter]
+    public Dictionary<string, string>? Datasource { get; set; }
+    [Parameter]
+    public string Value
+    {
+        get
+        {
+            return _value;
+        }
+        set
+        {
+            if (_value == value) return;
+            _value = value;
+            ValueChanged.InvokeAsync(_value);
+        }
+    }
+
+    private List<string> _selectedValues = new List<string>();
+    public void HandleValueChange(string value, bool isSelected)
+    {
+        if (isSelected)
+        {
+            if (!_selectedValues.Any(x => x == value))
+                _selectedValues.Add(value);
+        }
+        else
+        {
+            if (_selectedValues.Any(x => x == value))
+                _selectedValues.Remove(value);
+        }
+        Value = string.Join(',', _selectedValues);
+    }
+
+    public void SetValue(string value)
+    {
+        this.Value = value;
+    }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(Name))
+            Name = "RG_" + Guid.NewGuid().ToString().Replace("-", "");
+        if (Datasource != null && ChildContent != null)
+            throw new Exception("We can only either specify Datasource or Content!");
+        if (Value.IndexOf(',') > 0)
+            _selectedValues = Value.Split(",").ToList();
+    }
+
+    public string GetValue()
+    {
+        return this.Value;
+    }
+}

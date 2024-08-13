@@ -1,0 +1,82 @@
+﻿@page "/modaldemo"
+@using MagicPropsComponents.ViewModels.Modal
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<h3>Modal Demo</h3>
+<hr />
+<div>
+    <p>Click this button to show up a Modal in an XLarge size, featuring solely a header section without any footer buttons for your review.</p>
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show1" CloseBtnVisible=true Size="ModalSettings.XLarge" FooterVisible=false Title="This is Test Modal" ClickOutsideToClose=false>
+        <BodyTemplate>
+            <h3>This Modal hide the footer, while presenting the modal in an XLarge size with the title "This is Test Modal" and close button.</h3>
+        </BodyTemplate>
+    </MagicPropsComponents.Components.Modal.MPModal>
+    <button class="btn btn-primary" @onclick="SwitchShow1">Click to Review</button>
+</div>
+<br />
+<hr />
+<div>
+    <p>Click this button to show up a Modal in a Small size, featuring solely a footer section without header for your review.</p>
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show2" CloseBtnVisible=true Size="ModalSettings.Small" HeaderVisible=false FooterBottons="@dialogButtons2" OnDialogButtonClicked="ClickBtn2">
+        <BodyTemplate>
+            <h5>Hide Header, Small Size Modal with buttons "Keep" and "Close", click "Close" to close modal</h5>
+        </BodyTemplate>
+    </MagicPropsComponents.Components.Modal.MPModal>
+    <button class="btn btn-primary" @onclick="SwitchShow2">Click to Review</button>
+</div>
+<br />
+<hr />
+
+<div>
+    <p>Click this button to show up a Modal in a Large size, featuring both header and footer sections but without close button in header for your review.</p>
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show3" FooterBottons="@dialogButtons3" Size="ModalSettings.Large" OnDialogButtonClicked="ClickBtn3" ClickOutsideToClose=true>
+        <BodyTemplate>
+            <h3>Hide Close button in header, Close button in footer</h3>
+            <h3 style="color:red">Allow clicking outside to hide modal</h3>
+        </BodyTemplate>
+    </MagicPropsComponents.Components.Modal.MPModal>
+    <button class="btn btn-primary" @onclick="SwitchShow3">Click to Review</button>
+</div>
+
+<br />
+<hr />
+
+@code {
+    private bool show1 { get; set; } = false;
+    private bool show2 { get; set; } = false;
+    private bool show3 { get; set; } = false;
+    private void SwitchShow1()
+    {
+        show1 = !show1;
+    }
+    private void SwitchShow2()
+    {
+        show2 = !show2;
+    }
+    private void SwitchShow3()
+    {
+        show3 = !show3;
+    }
+    public List<ModalButton> dialogButtons2 = new List<ModalButton>()
+    { 
+        new ModalButton() { CssClass = "btn btn-primary", DismissModal = false, Text = "Keep" },
+        new ModalButton() { CssClass = "btn btn-secondary", DismissModal = true, Text = "Close" }
+    };
+    private void ClickBtn2(ModalButton btn)
+    {
+        if (btn.Text == "Keep")
+            Console.WriteLine("................Keep Modal2.................");
+        else Console.WriteLine("................Close Modal2.................");
+    }
+    public List<ModalButton> dialogButtons3 = new List<ModalButton>()
+    { 
+        //new ModalButton() { CssClass = "btn btn-primary", DismissModal = false, Text = "Keep it" },
+        new ModalButton(){CssClass = "btn btn-secondary", DismissModal = true, Text = "Close" }
+    };
+    private void ClickBtn3(ModalButton btn)
+    {
+        if (btn.Text == "Keep")
+            Console.WriteLine("................Keep Modal3.................");
+        else Console.WriteLine("................Close Modal3.................");
+    }
+}
+

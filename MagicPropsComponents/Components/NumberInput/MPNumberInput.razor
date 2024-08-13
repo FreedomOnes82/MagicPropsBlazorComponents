@@ -1,0 +1,130 @@
+﻿@using System.Text.RegularExpressions
+@using Microsoft.JSInterop
+@using System.Globalization
+@inject IJSRuntime JSRuntime
+@if (Visible)
+{
+    <div class="@(IsTitleFload?"mp-input-container":"")" id="@_clientId">
+        <div class="mp-input-outline @(CheckIsValid()?"":"mp-input-err")" tabindex="0" style="width:@(Width.ToString())px;@(IsTitleFload?"margin-top: 15px;":"")">
+            <input class="mp-within-input" @bind-value="@_value" readonly="@ReadOnly" @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
+            <div class="mp-input-btn">
+                <i class="fa fa-angle-up" @onclick="()=>DataOperate(true)" aria-hidden="true"></i>
+                <i class="fa fa-angle-down ms-3" @onclick="()=>DataOperate(false)" aria-hidden="true"></i>
+            </div>
+        </div>
+        @if (IsTitleFload && !string.IsNullOrEmpty(Title))
+        {
+            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(isFocused||!string.IsNullOrEmpty(_inputValue)?"flex":"none")">@Title</div>
+        }
+    </div>
+    <span class="mp-input-errmsg-hide @(!CheckIsValid()&&ShowErrorMsg?"mp-input-errmsg-show":"")">@(string.IsNullOrWhiteSpace(ErrorMsg) ? ("Must between " + MinNumber + "-" + MaxNumber) : ErrorMsg) </span>
+}
+
+
+@code {
+
+    [Parameter]
+    public decimal Value
+    {
+        get => _value ?? 0;
+        set
+        {
+            if (_value != value)
+            {
+                _value = value;
+                _inputValue = value.ToString(CultureInfo.InvariantCulture);
+                ValueChanged.InvokeAsync(value);
+                StateHasChanged();
+            }
+        }
+    }
+    [Parameter]
+    public bool IsTitleFload { get; set; }
+    [Parameter]
+    public bool Visible { get; set; } = true;
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [Parameter]
+    public string InputID { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback<decimal> ValueChanged { get; set; }
+    private string _inputValue = "0";
+    private decimal? _value;
+    [Parameter]
+    public decimal Increment { get; set; } = decimal.One;
+    [Parameter]
+    public bool Required { get; set; } = true;
+    [Parameter]
+    public bool ReadOnly { get; set; } = false;
+    [Parameter]
+    public bool ShowErrorMsg { get; set; } = false;
+    [Parameter]
+    public string ErrorMsg { get; set; } = string.Empty;
+    [Parameter]
+    public int? Width { get; set; }
+    [Parameter]
+    public decimal MinNumber { get; set; } = decimal.MinValue;
+    [Parameter]
+    public decimal MaxNumber { get; set; } = decimal.MaxValue;
+
+    private string _clientId = string.Empty;
+    protected override void OnInitialized()
+    {
+        _clientId = "mpnumberinput_" + Guid.NewGuid().ToString().Replace("-", "");
+        if (string.IsNullOrEmpty(InputID))
+        {
+            InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
+        }
+        if (Width == null || Width < 100) Width = 100;
+    }
+
+    private void DataOperate(bool isIncrese)
+    {
+        if (isIncrese)
+        {
+            Value += Increment;
+        }
+        else
+        {
+            Value -= Increment;
+        }
+    }
+
+    private bool CheckIsValid()
+    {
+        if (Required && string.IsNullOrEmpty(_value.ToString())) return false;
+        if (Value < MinNumber || Value > MaxNumber)
+            return false;
+        return true;
+    }
+
+    private bool isFocused = false;
+    private void HandleFocus(FocusEventArgs e)
+    {
+        isFocused = true;
+        StateHasChanged();
+    }
+    private void HandleBlur(FocusEventArgs e)
+    {
+        isFocused = false;
+        StateHasChanged();
+    }
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        var input = e.Value?.ToString() ?? string.Empty;
+
+        if (decimal.TryParse(input, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out decimal result))
+        {
+            _inputValue = input;
+            _value = result;
+            ValueChanged.InvokeAsync(_value.Value);
+        }
+        else
+        {
+            _inputValue = _value?.ToString(CultureInfo.InvariantCulture) ?? "0";
+        }
+
+        StateHasChanged();
+    }
+}
