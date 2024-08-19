@@ -11,12 +11,14 @@ The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons an
 1. First you need to download our componnet project  
 ![image](./Public_Images/Download_Components.png)   
 
-2. Include thsi project in our own solution and build it   
+2. Include this project in your own solution and build it   
 ![image](./Public_Images/Include_and_build_it_in_Project.png)   
 
 3. Add this project into dependencies of your own project 
 ![image](./Public_Images/Add_The_Project_In_Your_Dependencies.png) 
 
 4. Then you can use the related components  
-![image](./Public_Images/Using_Componnent_Sample.png)  
+![image](./Public_Images/Using_Componnent_Sample.png)
+
+If you encounter any difficulties while utilizing the associated component, please kindly download our demo project. It will provide a clear demonstration of how we effectively employ the components, serving as a valuable reference for you.
 
