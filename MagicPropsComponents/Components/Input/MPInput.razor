@@ -116,9 +116,9 @@
     public string Rules { get; set; } = string.Empty;
 
     [Parameter]
-    public Action? OnFocus { get; set; }
+    public EventCallback OnFocus { get; set; }
     [Parameter]
-    public Action? OnBlur { get; set; }
+    public EventCallback OnBlur { get; set; }
 
     private string _clientId = string.Empty;
     private string _errmsg = string.Empty;
@@ -140,9 +140,9 @@
     {
         Console.WriteLine("focus");
         isFocused = true;
-        if (OnFocus != null)
+        if (OnFocus.HasDelegate)
         {
-            OnFocus.Invoke();
+            OnFocus.InvokeAsync();
         }
         StateHasChanged();
     }
@@ -151,9 +151,9 @@
         Console.WriteLine("Blur");
         afterFisrtFocus = true;
         isFocused = false;
-        if (OnBlur != null)
+        if (OnBlur.HasDelegate)
         {
-            OnBlur.Invoke();
+            OnBlur.InvokeAsync();
         }
        StateHasChanged();
     }

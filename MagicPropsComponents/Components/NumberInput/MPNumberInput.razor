@@ -4,20 +4,28 @@
 @inject IJSRuntime JSRuntime
 @if (Visible)
 {
-    <div class="@(IsTitleFload?"mp-input-container":"")" id="@_clientId">
-        <div class="mp-input-outline @(CheckIsValid()?"":"mp-input-err")" tabindex="0" style="width:@(Width.ToString())px;@(IsTitleFload?"margin-top: 15px;":"")">
-            <input class="mp-within-input" @bind-value="@_value" readonly="@ReadOnly" @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
+    <div class="@(!string.IsNullOrEmpty(Title)?"mp-input-container":"")" id="@ClientID">
+        <div class="mp-input-outline @(CheckIsValid()?"":"mp-input-err")" tabindex="0" style="width:@(Width==null?"auto":Width<100?"100px":Width.ToString()+"px");@(!string.IsNullOrEmpty(Title)?"margin-top: 15px;":"")">
+            @if (ReadOnly)
+            {
+                <input class="mp-within-input" value="@GetDisplayText()" readonly @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
+            }
+            else
+            {
+                <input class="mp-within-input" value="@GetDisplayText()" @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
+            }
+
             <div class="mp-input-btn">
                 <i class="fa fa-angle-up" @onclick="()=>DataOperate(true)" aria-hidden="true"></i>
                 <i class="fa fa-angle-down ms-3" @onclick="()=>DataOperate(false)" aria-hidden="true"></i>
             </div>
         </div>
-        @if (IsTitleFload && !string.IsNullOrEmpty(Title))
+        @if (!string.IsNullOrEmpty(Title))
         {
-            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(isFocused||!string.IsNullOrEmpty(_inputValue)?"flex":"none")">@Title</div>
+            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(!string.IsNullOrEmpty(Title)?"flex":"none")">@Title</div>
         }
     </div>
-    <span class="mp-input-errmsg-hide @(!CheckIsValid()&&ShowErrorMsg?"mp-input-errmsg-show":"")">@(string.IsNullOrWhiteSpace(ErrorMsg) ? ("Must between " + MinNumber + "-" + MaxNumber) : ErrorMsg) </span>
+    <span class="mp-input-errmsg-hide @(!CheckIsValid()&&ShowErrorMsg?"mp-input-errmsg-show":"")" title="@_errmsg">@_errmsg </span>
 }
 
 
@@ -33,19 +41,23 @@
             {
                 _value = value;
                 _inputValue = value.ToString(CultureInfo.InvariantCulture);
+                if (CheckIsValid() && AfterVerified.HasDelegate)
+                {
+                    AfterVerified.InvokeAsync(true);
+                }
+                else if (!CheckIsValid() && AfterVerified.HasDelegate)
+                {
+                    AfterVerified.InvokeAsync(false);
+                }
                 ValueChanged.InvokeAsync(value);
                 StateHasChanged();
             }
         }
     }
     [Parameter]
-    public bool IsTitleFload { get; set; }
-    [Parameter]
     public bool Visible { get; set; } = true;
     [Parameter]
     public string Title { get; set; } = string.Empty;
-    [Parameter]
-    public string InputID { get; set; } = string.Empty;
     [Parameter]
     public EventCallback<decimal> ValueChanged { get; set; }
     private string _inputValue = "0";
@@ -59,23 +71,35 @@
     [Parameter]
     public bool ShowErrorMsg { get; set; } = false;
     [Parameter]
-    public string ErrorMsg { get; set; } = string.Empty;
+    public string RangeErrorMsg { get; set; } = string.Empty;
+    [Parameter]
+    public string RequiredErrorMsg { get; set; } = string.Empty;
     [Parameter]
     public int? Width { get; set; }
     [Parameter]
-    public decimal MinNumber { get; set; } = decimal.MinValue;
+    public string? Format { get; set; }
     [Parameter]
-    public decimal MaxNumber { get; set; } = decimal.MaxValue;
-
-    private string _clientId = string.Empty;
+    public decimal Minimum { get; set; } = decimal.MinValue;
+    [Parameter]
+    public decimal Maximum { get; set; } = decimal.MaxValue;
+    [Parameter]
+    public EventCallback OnFocus { get; set; }
+    [Parameter]
+    public EventCallback OnBlur { get; set; }
+    [Parameter]
+    public EventCallback<bool> AfterVerified { get; set; }
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+    [Parameter]
+    public string InputID { get; set; } = string.Empty;
     protected override void OnInitialized()
     {
-        _clientId = "mpnumberinput_" + Guid.NewGuid().ToString().Replace("-", "");
+        if (string.IsNullOrEmpty(ClientID))
+            ClientID = "mpnumberinput_" + Guid.NewGuid().ToString().Replace("-", "");
         if (string.IsNullOrEmpty(InputID))
         {
             InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
         }
-        if (Width == null || Width < 100) Width = 100;
     }
 
     private void DataOperate(bool isIncrese)
@@ -89,24 +113,47 @@
             Value -= Increment;
         }
     }
-
+    private string _errmsg = string.Empty;
     private bool CheckIsValid()
     {
-        if (Required && string.IsNullOrEmpty(_value.ToString())) return false;
-        if (Value < MinNumber || Value > MaxNumber)
+        if (!afterFisrtFocus) return true;
+        if (Required && string.IsNullOrEmpty(_value.ToString()))
+        {
+            _errmsg = !string.IsNullOrEmpty(RequiredErrorMsg) ? RequiredErrorMsg : (string.IsNullOrEmpty(Title) ? "This field" : Title) + " is required";
             return false;
+        }
+        if (Value < Minimum)
+        {
+            _errmsg = !string.IsNullOrEmpty(RangeErrorMsg) ? RangeErrorMsg : "Minimum is " + Minimum;
+            return false;
+        }
+        else if (Value > Maximum)
+        {
+            _errmsg = !string.IsNullOrEmpty(RangeErrorMsg) ? RangeErrorMsg : ("Maximum is " + Maximum);
+            return false;
+        }
         return true;
     }
 
     private bool isFocused = false;
     private void HandleFocus(FocusEventArgs e)
     {
+        afterFisrtFocus = true;
         isFocused = true;
+        if (OnFocus.HasDelegate)
+        {
+            OnFocus.InvokeAsync();
+        }
         StateHasChanged();
     }
+    private bool afterFisrtFocus = false;
     private void HandleBlur(FocusEventArgs e)
     {
         isFocused = false;
+        if (OnBlur.HasDelegate)
+        {
+            OnBlur.InvokeAsync();
+        }
         StateHasChanged();
     }
 
@@ -126,5 +173,17 @@
         }
 
         StateHasChanged();
+    }
+
+    private string GetDisplayText()
+    {
+        if (Format != null && string.IsNullOrEmpty(Format))
+        {
+            return _value?.ToString(Format) ?? string.Empty;
+        }
+        else
+        {
+            return _value?.ToString() ?? "0";
+        }
     }
 }

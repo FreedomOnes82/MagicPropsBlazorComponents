@@ -28,8 +28,8 @@
             <label for="txtNumber">Number: </label>
         </div>
         <div class="col-sm-10 my-custom-display-div">
-            <MagicPropsComponents.Components.NumberInput.MPNumberInput  Increment="3"  InputID="txtNumber"  MaxNumber="100" MinNumber="10"
-                                         Width="220" ShowErrorMsg="@_valueShowError" Title="Number" Value="10" />
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput  Increment="3"  InputID="txtNumber"  Maximum="100" Minimum="10"
+                                         Width="220" ShowErrorMsg="@_valueShowError" Value="10" />
         </div>
      </div>
 
@@ -38,8 +38,8 @@
             <label>Number2: </label>
         </div>
         <div class="col-sm-10 my-custom-display-div">
-            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3"  MaxNumber="100"  Required="true" 
-                                                             ErrorMsg="this is required"      Value="0"    Width="220" ShowErrorMsg="@_valueShowError"  />
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3" Maximum="100" Required="true"
+                                                                       RequiredErrorMsg="this is required" Value="0"    Width="220" ShowErrorMsg="@_valueShowError"  />
         </div>
     </div>
 
@@ -49,12 +49,12 @@
             <label>Number3: </label>
         </div>
         <div class="col-sm-10 my-custom-display-div">
-            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3" MaxNumber="100" Visible="false"
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3" Maximum="100" Visible="false"
                                                                        Width="220" ShowErrorMsg="@_valueShowError" />
         </div>
     </div>
     <div class="row  my-custom-margin-bottom d-flex align-items-center">
-        <MagicPropsComponents.Components.NumberInput.MPNumberInput Width="800" IsTitleFload="true" Title="Sample show up Title"
+        <MagicPropsComponents.Components.NumberInput.MPNumberInput Width="800" Title="Sample show up Title"
                                                        ShowErrorMsg="@_valueShowError" Value="-1">
         </MagicPropsComponents.Components.NumberInput.MPNumberInput>
 

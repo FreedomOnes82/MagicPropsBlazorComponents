@@ -45,16 +45,20 @@ Here are the refined details for each property along with its respective functio
     * **Readonly**: A boolean flag that specifies whether the input is read-only. When set to true, users cannot modify the input's value but can still copy and select the text.
     * **Width**: Specifies the width of the input element. The minimum acceptable value is 60, allowing for flexible sizing to accommodate different design requirements.
     * **Title**: Defines the title attribute for the input element, which can be displayed as a tooltip when the user hovers over the input.
-    * **InputID**: A unique identifier (id) for this input, allowing for specific targeting and styling via CSS or JavaScript.
+    * **InputID**: A unique identifier (id) for the input inside the component, allowing for specific targeting and styling via CSS or JavaScript,especially using as "for" with label before input.
+    * **ClientID**: A unique identifier (id) for this component, allowing for specific targeting and styling via CSS or JavaScript.
     * **Value**: Sets the initial or current value of the input element. This can be used to pre-populate the input with data or to manage its state programmatically.
-    * **IsTitleFloat**: A boolean property that controls whether the title of the input should be displayed on the left side of the input box dynamically, only when the input contains a value. This enhances user experience by providing context when the user starts typing.
     * **Required**: A boolean attribute that indicates whether the input field is required for form submission. If set to true, the form cannot be submitted without a value in this input, and an error message may be displayed if the requirement is not met.
     * **ShowErrorMsg**: A boolean attribute that controls whether error messages should be displayed visually on the page when validation fails. If set to false, error indications may still be present, but in a less obtrusive manner, such as through styling changes only.
-    * **ErrorMsg**: A string that defines the custom error message to display when the input fails to meet the specified validation rules. This message is displayed in place of a generic error message.
+    * **RangeErrorMsg**: A string that defines the custom error message to display when the input fails to meet range rules. This message is displayed in place of a generic error message.
+    * **RequireErrorMsg**: A string that defines a custom error message specifically for required inputs when no value is provided. This allows for more tailored feedback to the user.   
     * **ValueChanged**: A function that can be assigned to this property. When the value of the input changes, this function is automatically triggered, allowing for dynamic updates or validation checks.
     * **Increment**: This refers to the specified numerical amount that is added to the input number each time a button on the right is clicked. For example, if the increment value is set to 5, clicking the button will result in an addition of 5 to the current number, each and every time it is pressed.
-    * **MinNumber**: This is the lowest number that can be entered or displayed in the number input field. It sets the lower boundary for the acceptable range of values.
-    * **MaxNumber**: Conversely, this represents the highest number that can be entered or displayed within the number input field. It establishes the upper boundary for the valid range of values.
+    * **Minimum**: This is the lowest number that can be entered or displayed in the number input field. It sets the lower boundary for the acceptable range of values.
+    * **Maximum**: Conversely, this represents the highest number that can be entered or displayed within the number input field. It establishes the upper boundary for the valid range of values.
+    * **OnFocus**: A function that executes when the input element gains focus. This can be used to perform actions such as displaying additional instructions or clearing the input's value.
+    * **OnBlur**: A function that executes when the input element loses focus. This is useful for validating the input's value, clearing temporary UI elements, or performing other cleanup tasks.
+   
 
 3. Modal  
    The Modal is use a seriel setting to show up differnt modal popups, here are the details about each setting:  
