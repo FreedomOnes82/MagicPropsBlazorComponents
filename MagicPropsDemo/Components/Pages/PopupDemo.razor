@@ -2,27 +2,54 @@
 @using MagicPropsComponents.ViewModels.Popup
 @rendermode @(new InteractiveServerRenderMode(prerender:false) )
 
-<button class="mb-3" id="@_cusTriggerId">Custom AnchorPoint Trigger</button>
-<MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_cusTriggerId" AnchorPointX="400" AnchorPointY="200" Toward="GetToward()" BorderRadius="2">
-    <h3>Custom AnchorPoint(x:400,y:200)</h3>
-</MagicPropsComponents.Components.Popup.MPPopup>
-
+<h3>Popup Demo</h3>
+<hr />
+<div>
+    <p>Click this button to show up Popup</p>
+    <button class="btn btn-primary" id="btnTrigger">Click to Review</button>
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="btnTrigger" AnchorPointType="AnchorPointType.TriggerRightTop"
+                                                   Visible="true" Toward="PopupToward.BottomRight" BorderRadius="2" Width="200" Height="150">
+        <h3>Test Popup trigger by Button</h3>
+    </MagicPropsComponents.Components.Popup.MPPopup>
+</div>
 <br />
-<button class="me-3" @onclick="SwitchToward">Click to change Toward</button>@GetToward()
+<hr />
+<div>
+    <p>Click this link to show up Popup</p>
+    <a class="link-info" id="linkId">Link Trigger</a>
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="linkId" AnchorPointType="AnchorPointType.TriggerCenter"
+                                                   Visible="false" Toward="PopupToward.TopLeft" BorderRadius="5" ClientID="linkPopup">
+        <h3>Link trigger Popup</h3>
+    </MagicPropsComponents.Components.Popup.MPPopup>
+</div>
 <br />
-<button class="mt-2 me-3" @onclick="SwitchAnchorPoint">Click to change AnchorPointType</button>@GetAnchorPointType()
+<hr />
+<div>
+    <p>Click this div to show up Popup</p>
+    <div style="width:200px;height:100px;background-color:grey;margin-top:10px;margin-left:10px;" id="@_triggerId"> 
+        Div trigger
+    </div>
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_triggerId" AnchorPointType="AnchorPointType.TriggerRightBottom" 
+                                                   Toward="PopupToward.TopRight" BorderRadius="2">
+        <h3>Div Test Popup</h3>
+    </MagicPropsComponents.Components.Popup.MPPopup>
+</div>
 <br />
+<hr />
+
+<div>
+    <p>Click this button to see popup base on Custom AnchorPoint(x:600,y:200)</p>
+    <button class="mb-3" id="@_cusTriggerId">Custom AnchorPoint Trigger</button>
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_cusTriggerId" AnchorPointX="600" AnchorPointY="200" Toward="GetToward()" BorderRadius="2">
+        <h3>Custom AnchorPoint(x:600,y:200)</h3>
+    </MagicPropsComponents.Components.Popup.MPPopup>
+</div>
 
 
-<div style="width:200px;height:200px;background-color:grey;margin-top:300px;margin-left:300px;" id="@_triggerId"> <a>This is Trigger</a></div>
-<MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_triggerId" AnchorPointType="GetAnchorPointType()"  @bind-Visible=_showPopup OnlyControlByVisible="false"
- Toward="GetToward()" BorderRadius="2">
-    <h3>This is Test Popup</h3>
-</MagicPropsComponents.Components.Popup.MPPopup>
 @code {
     private string _cusTriggerId = string.Empty;
     private string _triggerId { get; set; } = string.Empty;
-    private bool _showPopup { get; set; }
+    private bool _showPopup { get; set; } = true;
 
     protected override void OnInitialized()
     {
@@ -36,11 +63,7 @@
     }
 
     private int flag1 = 0;
-    private void SwitchToward()
-    {
-        flag1 += 1;
-        if (flag1 == 8) flag1 = 0;
-    }
+   
     private PopupToward GetToward()
     {
         switch (flag1)
@@ -57,11 +80,7 @@
         }
     }
     private int flag2 = 0;
-    private void SwitchAnchorPoint()
-    {
-        flag2 += 1;
-        if (flag2 == 5) flag2 = 0;
-    }
+   
     private AnchorPointType GetAnchorPointType()
     {
         switch (flag2)
@@ -73,16 +92,6 @@
             case 4: return AnchorPointType.TriggerCenter;
             default: return AnchorPointType.TriggerLeftBottom;
         }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await Task.Delay(10);
-            _showPopup = true;
-        }
-
     }
 
 }

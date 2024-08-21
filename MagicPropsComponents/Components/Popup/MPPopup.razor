@@ -7,7 +7,7 @@
 <CascadingValue Value="this" Name="MPPopup">
 
 
-    <div class="popup" @ref="_popupModelEle" style="@GetStyle()" id="@_popupEleID">
+    <div class="popup" @ref="_popupModelEle" style="@GetStyle()" id="@ClientID">
         @if (ShowCloseButton)
         {
             <div style="height:20px;width:100%;display:flex;justify-content: right;padding-right: 10px;margin-bottom: 10px;">
@@ -33,7 +33,8 @@
     public int? Height { get; set; }
     [Parameter]
     public string TriggerEleID { get; set; } = string.Empty;
-    private string _popupEleID { get; set; } = string.Empty;
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
 
     [Parameter]
     public bool ShowCloseButton { get; set; } = false;
@@ -77,21 +78,14 @@
             }
         }
     }
-    [Parameter]
-    public bool OnlyControlByVisible { get; set; } = false;
 
     [Parameter]
     public EventCallback<bool> VisibleChanged { get; set; }
 
     [Parameter]
-    public Action? OnAfterPopupRender { get; set; }
+    public EventCallback OnAfterPopupRender { get; set; }
     [Parameter]
-    public Action? OnAfterHidePopup { get; set; }
-
-    [Parameter]
-    public Func<Task>? OnAfterHidePopupAsync { get; set; }
-    [Parameter]
-    public Func<Task>? OnAfterPopupRenderAsync { get; set; }
+    public EventCallback OnAfterHidePopup { get; set; }
 
     [JSInvokable]
     public async Task SetPopupVisible()
@@ -101,24 +95,17 @@
     }
     public async Task OnVisiableChanged(bool visible)
     {
+       // Console.WriteLine(TriggerEleID + "_" + visible);
         if (visible)
         {
-            await JSRuntime.InvokeAsync<object>("MPPOPUP.showById", _popupModelEle, TriggerEleID, Toward.GetDescription(), AnchorPointX, AnchorPointY, AnchorPointType.GetDescription(), _popupEleID, PopupShadowSettings, Spacing, OnlyControlByVisible);
+             await JSRuntime.InvokeAsync<object>("MPPOPUP.showById", _popupModelEle, TriggerEleID, Toward.GetDescription(), AnchorPointX, AnchorPointY, AnchorPointType.GetDescription(), ClientID, PopupShadowSettings, Spacing );
         }
         else
         {
-            await JSRuntime.InvokeAsync<object>("MPPOPUP.hide", _popupEleID, _popupModelEle);
-
-            if (OnAfterHidePopup != null || OnAfterHidePopupAsync != null)
+             await JSRuntime.InvokeAsync<object>("MPPOPUP.hide", ClientID, _popupModelEle);
+            if (OnAfterHidePopup.HasDelegate)
             {
-                if (OnAfterHidePopup != null)
-                {
-                    OnAfterHidePopup.Invoke();
-                }
-                if (OnAfterHidePopupAsync != null)
-                {
-                    await OnAfterHidePopupAsync.Invoke();
-                }
+                await OnAfterHidePopup.InvokeAsync();
                 StateHasChanged();
             }
         }
@@ -154,11 +141,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _popupEleID = "popup_" + Guid.NewGuid().ToString().Replace("-", "");
-        await JSRuntime.InvokeVoidAsync("registerDotNetMethod", _popupEleID, DotNetObjectReference.Create(this));
+        if (string.IsNullOrEmpty(ClientID)) ClientID = "popup_" + Guid.NewGuid().ToString().Replace("-", "");
+        await JSRuntime.InvokeVoidAsync("registerDotNetMethod", ClientID, DotNetObjectReference.Create(this));
         if (!string.IsNullOrEmpty(TriggerEleID))
         {
-            await JSRuntime.InvokeAsync<object>("MPPOPUP.initialTriggerEventById", this.TriggerEleID, _popupEleID, OnlyControlByVisible);
+            await JSRuntime.InvokeAsync<object>("MPPOPUP.initialTriggerEventById", this.TriggerEleID, ClientID);
         }
         else
         {
@@ -172,16 +159,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (OnAfterPopupRender != null || OnAfterPopupRenderAsync != null)
+        if (Visible && OnAfterPopupRender.HasDelegate)//only refresh/execute when popup is visible
         {
-            if (OnAfterPopupRender != null)
-            {
-                OnAfterPopupRender.Invoke();
-            }
-            if (OnAfterPopupRenderAsync != null)
-            {
-                await OnAfterPopupRenderAsync.Invoke();
-            }
+            await OnAfterPopupRender.InvokeAsync();
             StateHasChanged();
         }
     }

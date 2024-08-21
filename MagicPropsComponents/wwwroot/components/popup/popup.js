@@ -1,10 +1,10 @@
 ﻿var MPPOPUP = (function () {
-    function showById(popupElement, targetElementId, toward, anchorPointX, anchorPointY, anchorPointType, popupElementId, boxShadowSettings, spacing, onlyControlByVisible) {
+    function showById(popupElement, targetElementId, toward, anchorPointX, anchorPointY, anchorPointType, popupElementId, boxShadowSettings, spacing) {
         var targetElement = document.getElementById(targetElementId);
-        show(popupElement, targetElement, toward, anchorPointX, anchorPointY, anchorPointType, popupElementId, boxShadowSettings, spacing, onlyControlByVisible)
+        show(popupElement, targetElement, toward, anchorPointX, anchorPointY, anchorPointType, popupElementId, boxShadowSettings, spacing, false)
         return null
     }
-    function show(popupElement, targetElement, toward, anchorPointX, anchorPointY, anchorPointType, popupElementId, boxShadowSettings, spacing, onlyControlByVisible) {
+    function show(popupElement, targetElement, toward, anchorPointX, anchorPointY, anchorPointType, popupElementId, boxShadowSettings, spacing) {
         const targetRect = targetElement.getBoundingClientRect();
         popupElement.style.display = "block";
         popupElement.style.visibility = 'hidden';
@@ -54,48 +54,89 @@
         popupElement.style.boxShadow = boxShadowSettings
         popupElement.style.visibility = '';
 
-        var newDiv = document.createElement("div");
-        newDiv.className = "mp-backdrop";
-        document.body.appendChild(newDiv);
-
         var hideFuntion = async function (e) {
-            e.stopPropagation();
             await window.getDotNetRef(popupElementId).invokeMethodAsync('SetPopupInvisible');
             popupElement.style.display = "none";
-            backDropEleList[popupElementId] = null;
-            if (document.body.contains(newDiv))
-                document.body.removeChild(newDiv);
+            popupElement.style.visibility = 'hidden';
+            if (clickFunc[popupElementId]) {
+                document.removeEventListener('click', clickFunc[popupElementId]);
+                clickFunc[popupElementId] = null;
+            }
+            if (hideFunc[popupElementId]) {
+                window.removeEventListener('resize', hideFunc[popupElementId]);
+                hideFunc[popupElementId] = null;
+            }
+            if (wheelFunc[popupElementId]) {
+                document.removeEventListener('wheel', wheelFunc[popupElementId]);
+                wheelFunc[popupElementId] = null;
+            }
+            if (isVisible[popupElementId])
+                isVisible[popupElementId] = false;
         }
-        if (!onlyControlByVisible) { newDiv.addEventListener('click', hideFuntion); }
-        newDiv.addEventListener('wheel', hideFuntion, { passive: true });
-        //popupElement.addEventListener('wheel', hideFuntion, { passive: true });
+        var listener = async function (event) {
+            if (event.target == targetElement || targetElement.contains(event.target)) {
+                if (isVisible[popupElementId]) {
+                    await hideFuntion(event);
+                } else {
+                    return;
+                }
+            }
+            else if (event.target == popupElement || popupElement.contains(event.target)) {
+                return;
+            } else {
+                await hideFuntion(event);
+            }
+        }
+        document.addEventListener('click', listener);
+        clickFunc[popupElementId] = listener
+        const wheelFunction = async function (event) {
+            event.stopPropagation();
+            if (event.target != popupElement && (popupElement && !popupElement.contains(event.target))) {
+                await hideFuntion(event);
+            }
+        };
+        document.addEventListener('wheel', wheelFunction);
+
+        hideFunc[popupElementId] = hideFuntion;
+        wheelFunc[popupElementId] = wheelFunction
         window.addEventListener('resize', hideFuntion);
-        backDropEleList[popupElementId] = newDiv;
+        isVisible[popupElementId] = true;
     }
     function hide(popupElementId, popupEle) {
         popupEle.style.display = "none";
-        $(popupEle).removeClass("popup-active");
-        if (backDropEleList[popupElementId] && document.body.contains(backDropEleList[popupElementId])) {
-            document.body.removeChild(backDropEleList[popupElementId]);
-            backDropEleList[popupElementId] = null;
+        popupEle.style.visibility = 'hidden';
+        //$(popupEle).removeClass("popup-active");
+        if (clickFunc[popupElementId]) {
+            document.removeEventListener('click', clickFunc[popupElementId]);
+            clickFunc[popupElementId] = null;
         }
+        if (wheelFunc[popupElementId]) {
+            document.removeEventListener('wheel', wheelFunc[popupElementId]);
+            wheelFunc[popupElementId] = null;
+        }
+        if (hideFunc[popupElementId]) {
+            window.removeEventListener('resize', hideFunc[popupElementId]);
+            hideFunc[popupElementId] = null;
+        }
+        if (isVisible[popupElementId])
+            isVisible[popupElementId] = false;
     }
-    var backDropEleList = [];
-    function initialTriggerEventById(triggerElementId, popupElementId, onlyControlByVisible) {
+    var hideFunc = [];
+    var clickFunc = [];
+    var wheelFunc = [];
+    let isVisible = [];
+    function initialTriggerEventById(triggerElementId, popupElementId) {
         var triggerElement = document.getElementById(triggerElementId);
-
-        if (!onlyControlByVisible) {
-            document.addEventListener('click', async function (event) {
-                if (event.target == triggerElement || (triggerElement && triggerElement.contains(event.target))) {
-                    try {
-                        await window.getDotNetRef(popupElementId).invokeMethodAsync('SetPopupVisible');
-                    } catch (e) {
-                        console.error(e);
-                    }
+        document.addEventListener('click', async function (event) {
+            if (event.target == triggerElement || (triggerElement && triggerElement.contains(event.target))) {
+                try {
+                    await window.getDotNetRef(popupElementId).invokeMethodAsync('SetPopupVisible');
+                    //event.stopPropagation();
+                } catch (e) {
+                    console.error(e);
                 }
-            })
-        }
-
+            }
+        })
     }
     function GetAnchorPoint(triggerElement, anchorPointX, anchorPointY, anchorPointType) {
         var triggerRect = triggerElement.getBoundingClientRect();
