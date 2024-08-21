@@ -8,11 +8,11 @@
         <div class="mp-input-outline @(CheckIsValid()?"":"mp-input-err")" tabindex="0" style="width:@(Width==null?"auto":Width<100?"100px":Width.ToString()+"px");@(!string.IsNullOrEmpty(Title)?"margin-top: 15px;":"")">
             @if (ReadOnly)
             {
-                <input class="mp-within-input" value="@GetDisplayText()" readonly @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
+                <input class="mp-within-input" @bind-value="_inputValue" readonly id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
             }
             else
             {
-                <input class="mp-within-input" value="@GetDisplayText()" @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
+                <input class="mp-within-input" @bind-value="_inputValue" @oninput="HandleInput" id="@InputID" @onfocus="HandleFocus" @onblur="HandleBlur" />
             }
 
             <div class="mp-input-btn">
@@ -22,7 +22,11 @@
         </div>
         @if (!string.IsNullOrEmpty(Title))
         {
-            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(!string.IsNullOrEmpty(Title)?"flex":"none")">@Title</div>
+            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(!string.IsNullOrEmpty(Title)?"flex":"none")">
+                <label for="@InputID">
+                    @Title
+                </label>
+            </div>
         }
     </div>
     <span class="mp-input-errmsg-hide @(!CheckIsValid()&&ShowErrorMsg?"mp-input-errmsg-show":"")" title="@_errmsg">@_errmsg </span>
@@ -76,8 +80,6 @@
     public string RequiredErrorMsg { get; set; } = string.Empty;
     [Parameter]
     public int? Width { get; set; }
-    [Parameter]
-    public string? Format { get; set; }
     [Parameter]
     public decimal Minimum { get; set; } = decimal.MinValue;
     [Parameter]
@@ -136,24 +138,26 @@
     }
 
     private bool isFocused = false;
-    private void HandleFocus(FocusEventArgs e)
+    private async Task HandleFocus(FocusEventArgs e)
     {
         afterFisrtFocus = true;
         isFocused = true;
         if (OnFocus.HasDelegate)
         {
-            OnFocus.InvokeAsync();
+            await OnFocus.InvokeAsync();
         }
+        await JSRuntime.InvokeVoidAsync("MPNumberInput.addListener", InputID, Increment);
         StateHasChanged();
     }
     private bool afterFisrtFocus = false;
-    private void HandleBlur(FocusEventArgs e)
+    private async Task HandleBlur(FocusEventArgs e)
     {
         isFocused = false;
         if (OnBlur.HasDelegate)
         {
-            OnBlur.InvokeAsync();
+            await OnBlur.InvokeAsync();
         }
+        await JSRuntime.InvokeVoidAsync("MPNumberInput.removeListener", InputID);
         StateHasChanged();
     }
 
@@ -173,17 +177,5 @@
         }
 
         StateHasChanged();
-    }
-
-    private string GetDisplayText()
-    {
-        if (Format != null && string.IsNullOrEmpty(Format))
-        {
-            return _value?.ToString(Format) ?? string.Empty;
-        }
-        else
-        {
-            return _value?.ToString() ?? "0";
-        }
     }
 }
