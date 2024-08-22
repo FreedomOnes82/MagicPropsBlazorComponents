@@ -11,7 +11,7 @@
         @if (ShowCloseButton)
         {
             <div style="height:20px;width:100%;display:flex;justify-content: right;padding-right: 10px;margin-bottom: 10px;">
-                <i class="fa fa-close" @onclick="SetPopupInvisible"></i>
+                <i class="fa fa-close" @onclick="async() => { await OnVisiableChanged(false); }"></i>
             </div>
         }
         @if (ChildContent != null)
@@ -64,52 +64,43 @@
 
     private bool _visiable = false;
     [Parameter]
-    public bool Visible
-    {
-        get => _visiable;
-        set
-        {
-            if (_visiable != value)
-            {
-                _visiable = value;
-                _ = Task.Run(() => OnVisiableChanged(value));
-                VisibleChanged.InvokeAsync(value);
-                StateHasChanged();
-            }
-        }
-    }
+    public bool Visible { get; set; }
 
     [Parameter]
     public EventCallback<bool> VisibleChanged { get; set; }
-
     [Parameter]
     public EventCallback OnAfterPopupRender { get; set; }
     [Parameter]
     public EventCallback OnAfterHidePopup { get; set; }
 
-    [JSInvokable]
-    public async Task SetPopupVisible()
+    protected override async Task OnParametersSetAsync()
     {
-        Visible = true;
-        await Task.Delay(10);
+        if (Visible != _visiable)
+        {
+            _visiable = Visible;
+            await VisibleChanged.InvokeAsync(Visible);
+            await OnVisiableChanged(Visible);
+        }
     }
+
+    [JSInvokable]
     public async Task OnVisiableChanged(bool visible)
     {
-       // Console.WriteLine(TriggerEleID + "_" + visible);
         if (visible)
         {
-             await JSRuntime.InvokeAsync<object>("MPPOPUP.showById", _popupModelEle, TriggerEleID, Toward.GetDescription(), AnchorPointX, AnchorPointY, AnchorPointType.GetDescription(), ClientID, PopupShadowSettings, Spacing );
+            await JSRuntime.InvokeAsync<object>("MPPOPUP.showById", _popupModelEle, TriggerEleID, Toward.GetDescription(), AnchorPointX, AnchorPointY, AnchorPointType.GetDescription(), ClientID, PopupShadowSettings, Spacing);
         }
         else
         {
-             await JSRuntime.InvokeAsync<object>("MPPOPUP.hide", ClientID, _popupModelEle);
+            await JSRuntime.InvokeAsync<object>("MPPOPUP.hide", ClientID, _popupModelEle);
             if (OnAfterHidePopup.HasDelegate)
             {
                 await OnAfterHidePopup.InvokeAsync();
-                StateHasChanged();
+                //StateHasChanged();
             }
         }
     }
+
     private string GetStyle()
     {
         var style = "border:" + BorderSettings + ";";
@@ -132,28 +123,17 @@
         return style;
     }
 
-    [JSInvokable]
-    public async Task SetPopupInvisible()
-    {
-        Visible = false;
-        await Task.Delay(10);
-    }
-
     protected override async Task OnInitializedAsync()
     {
         if (string.IsNullOrEmpty(ClientID)) ClientID = "popup_" + Guid.NewGuid().ToString().Replace("-", "");
         await JSRuntime.InvokeVoidAsync("registerDotNetMethod", ClientID, DotNetObjectReference.Create(this));
         if (!string.IsNullOrEmpty(TriggerEleID))
         {
-            await JSRuntime.InvokeAsync<object>("MPPOPUP.initialTriggerEventById", this.TriggerEleID, ClientID);
+            await JSRuntime.InvokeAsync<object>("MPPOPUP.initialTriggerEventById", this.TriggerEleID, ClientID, Visible);
         }
         else
         {
             throw new Exception("TriggerEleID is required.");
-        }
-        if (Visible)
-        {
-            await OnVisiableChanged(true);
         }
     }
 

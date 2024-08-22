@@ -17,7 +17,7 @@
 <div>
     <p>Click this link to show up Popup</p>
     <a class="link-info" id="linkId">Link Trigger</a>
-    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="linkId" AnchorPointType="AnchorPointType.TriggerCenter"
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="linkId" AnchorPointType="AnchorPointType.TriggerRightBottom"
                                                    Visible="false" Toward="PopupToward.TopLeft" BorderRadius="5" ClientID="linkPopup">
         <h3>Link trigger Popup</h3>
     </MagicPropsComponents.Components.Popup.MPPopup>
@@ -26,11 +26,11 @@
 <hr />
 <div>
     <p>Click this div to show up Popup</p>
-    <div style="width:200px;height:100px;background-color:grey;margin-top:10px;margin-left:10px;" id="@_triggerId"> 
+    <div style="width:200px;height:100px;background-color:#0dcaf0;margin-top:10px;margin-left:10px;" id="@_triggerId">
         Div trigger
     </div>
-    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_triggerId" AnchorPointType="AnchorPointType.TriggerRightBottom" 
-                                                   Toward="PopupToward.TopRight" BorderRadius="2">
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_triggerId" AnchorPointType="AnchorPointType.TriggerCenter" 
+                                                   Toward="PopupToward.TopRight" BorderRadius="2" @bind-Visible=_showPopup>
         <h3>Div Test Popup</h3>
     </MagicPropsComponents.Components.Popup.MPPopup>
 </div>
@@ -49,7 +49,7 @@
 @code {
     private string _cusTriggerId = string.Empty;
     private string _triggerId { get; set; } = string.Empty;
-    private bool _showPopup { get; set; } = true;
+    private bool _showPopup { get; set; } = false;
 
     protected override void OnInitialized()
     {
@@ -90,7 +90,7 @@
             case 2: return AnchorPointType.TriggerRightTop;
             case 3: return AnchorPointType.TriggerRightBottom;
             case 4: return AnchorPointType.TriggerCenter;
-            default: return AnchorPointType.TriggerLeftBottom;
+            default: return AnchorPointType.TriggerCenter;
         }
     }
 

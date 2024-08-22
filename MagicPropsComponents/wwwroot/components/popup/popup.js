@@ -55,7 +55,7 @@
         popupElement.style.visibility = '';
 
         var hideFuntion = async function (e) {
-            await window.getDotNetRef(popupElementId).invokeMethodAsync('SetPopupInvisible');
+            await window.getDotNetRef(popupElementId).invokeMethodAsync('OnVisiableChanged', false);
             popupElement.style.display = "none";
             popupElement.style.visibility = 'hidden';
             if (clickFunc[popupElementId]) {
@@ -130,7 +130,7 @@
         document.addEventListener('click', async function (event) {
             if (event.target == triggerElement || (triggerElement && triggerElement.contains(event.target))) {
                 try {
-                    await window.getDotNetRef(popupElementId).invokeMethodAsync('SetPopupVisible');
+                    await window.getDotNetRef(popupElementId).invokeMethodAsync('OnVisiableChanged', true);
                     //event.stopPropagation();
                 } catch (e) {
                     console.error(e);
