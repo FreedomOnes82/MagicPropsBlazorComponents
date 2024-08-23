@@ -2,7 +2,7 @@
 @using MagicPropsComponents.ViewModels.Popup
 @using Microsoft.JSInterop
 @using MagicPropsComponents.Abstractions
-@implements IMPPopup
+@implements IDisposable
 @inject IJSRuntime JSRuntime
 <CascadingValue Value="this" Name="MPPopup">
 
@@ -65,27 +65,30 @@
     private bool _visiable = false;
     [Parameter]
     public bool Visible { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> VisibleChanged { get; set; }
     [Parameter]
     public EventCallback OnAfterPopupRender { get; set; }
     [Parameter]
     public EventCallback OnAfterHidePopup { get; set; }
 
-    protected override async Task OnParametersSetAsync()
+    void IDisposable.Dispose()
     {
-        if (Visible != _visiable)
-        {
-            _visiable = Visible;
-            await VisibleChanged.InvokeAsync(Visible);
-            await OnVisiableChanged(Visible);
-        }
+        JSRuntime.InvokeAsync<object>("MPPOPUP.dispose", TriggerEleID);
     }
 
     [JSInvokable]
-    public async Task OnVisiableChanged(bool visible)
+    public async Task Show()
     {
+        await OnVisiableChanged(true);
+    }
+    [JSInvokable]
+    public async Task Hide()
+    {
+        await OnVisiableChanged(false);
+    }
+
+    private async Task OnVisiableChanged(bool visible)
+    {
+        _visiable = visible;
         if (visible)
         {
             await JSRuntime.InvokeAsync<object>("MPPOPUP.showById", _popupModelEle, TriggerEleID, Toward.GetDescription(), AnchorPointX, AnchorPointY, AnchorPointType.GetDescription(), ClientID, PopupShadowSettings, Spacing);
@@ -96,7 +99,6 @@
             if (OnAfterHidePopup.HasDelegate)
             {
                 await OnAfterHidePopup.InvokeAsync();
-                //StateHasChanged();
             }
         }
     }
@@ -125,11 +127,12 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _visiable = Visible;
         if (string.IsNullOrEmpty(ClientID)) ClientID = "popup_" + Guid.NewGuid().ToString().Replace("-", "");
         await JSRuntime.InvokeVoidAsync("registerDotNetMethod", ClientID, DotNetObjectReference.Create(this));
         if (!string.IsNullOrEmpty(TriggerEleID))
         {
-            await JSRuntime.InvokeAsync<object>("MPPOPUP.initialTriggerEventById", this.TriggerEleID, ClientID, Visible);
+            await JSRuntime.InvokeAsync<object>("MPPOPUP.initialTriggerEventById", this.TriggerEleID, ClientID);
         }
         else
         {
@@ -139,7 +142,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Visible && OnAfterPopupRender.HasDelegate)//only refresh/execute when popup is visible
+        if (firstRender && Visible)
+        {
+            await Show();
+        }
+        if (_visiable && OnAfterPopupRender.HasDelegate)//only refresh/execute when popup is visible
         {
             await OnAfterPopupRender.InvokeAsync();
             StateHasChanged();

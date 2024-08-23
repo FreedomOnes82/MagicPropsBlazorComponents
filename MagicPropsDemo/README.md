@@ -162,7 +162,7 @@ This component is designed to display a flexible or static group of tabs on the 
    * **AnchorPointY**: Y value for Anchor Point if you would not use vertext of trigger as anchor point.
    * **Toward**: The direction of the popup's appearance or positioning determined based on the anchor point, the value can be PopupToward.TopLeft,PopupToward.TopRight,PopupToward.BottomLeft,PopupToward.BottomRight,PopupToward.TriggerTopCenter,PopupToward.TriggerBottomCenter,PopupToward.TriggerLeftCenter and PopupToward.TriggerRightCenter.   
    * **Visible**: property to control the popup shows up or not.
-   * **VisibleChanged**: A function that can be assigned to this property. When the value of the visible changes, this function is automatically triggered, allowing for dynamic updates or validation checks or anything else you want to do.
    * **OnAfterHidePopup**: A function that can be assigned to this property to handle event trigger when hide popup.
    * **OnAfterPopupRender:**: A function that can be assigned to this property to handle event trigger when popup appear.Only refresh/execute when popup is visible.
-  
+   * **Show**: A function used to show the popup.
+   * **Hide**: A function used to hide the popup.

@@ -55,23 +55,7 @@
         popupElement.style.visibility = '';
 
         var hideFuntion = async function (e) {
-            await window.getDotNetRef(popupElementId).invokeMethodAsync('OnVisiableChanged', false);
-            popupElement.style.display = "none";
-            popupElement.style.visibility = 'hidden';
-            if (clickFunc[popupElementId]) {
-                document.removeEventListener('click', clickFunc[popupElementId]);
-                clickFunc[popupElementId] = null;
-            }
-            if (hideFunc[popupElementId]) {
-                window.removeEventListener('resize', hideFunc[popupElementId]);
-                hideFunc[popupElementId] = null;
-            }
-            if (wheelFunc[popupElementId]) {
-                document.removeEventListener('wheel', wheelFunc[popupElementId]);
-                wheelFunc[popupElementId] = null;
-            }
-            if (isVisible[popupElementId])
-                isVisible[popupElementId] = false;
+            await window.getDotNetRef(popupElementId).invokeMethodAsync('Hide');
         }
         var listener = async function (event) {
             if (event.target == targetElement || targetElement.contains(event.target)) {
@@ -102,10 +86,10 @@
         window.addEventListener('resize', hideFuntion);
         isVisible[popupElementId] = true;
     }
-    function hide(popupElementId, popupEle) {
-        popupEle.style.display = "none";
-        popupEle.style.visibility = 'hidden';
-        //$(popupEle).removeClass("popup-active");
+    function hide(popupElementId, popupElement) {
+        popupElement.style.display = "none";
+        popupElement.style.visibility = 'hidden';
+
         if (clickFunc[popupElementId]) {
             document.removeEventListener('click', clickFunc[popupElementId]);
             clickFunc[popupElementId] = null;
@@ -121,22 +105,31 @@
         if (isVisible[popupElementId])
             isVisible[popupElementId] = false;
     }
+
+    function dispose(triggerElementId) {
+        if (triggerFunc[triggerElementId]) {
+            document.removeEventListener('click', triggerFunc[triggerElementId])
+            console.log("release");
+        }
+    }
+    var triggerFunc = [];
     var hideFunc = [];
     var clickFunc = [];
     var wheelFunc = [];
     let isVisible = [];
     function initialTriggerEventById(triggerElementId, popupElementId) {
         var triggerElement = document.getElementById(triggerElementId);
-        document.addEventListener('click', async function (event) {
+        const triggerToShow = async function (event) {
             if (event.target == triggerElement || (triggerElement && triggerElement.contains(event.target))) {
                 try {
-                    await window.getDotNetRef(popupElementId).invokeMethodAsync('OnVisiableChanged', true);
-                    //event.stopPropagation();
+                    await window.getDotNetRef(popupElementId).invokeMethodAsync('Show');
                 } catch (e) {
                     console.error(e);
                 }
             }
-        })
+        }
+        triggerFunc[triggerElementId] = triggerToShow;
+        document.addEventListener('click', triggerToShow)
     }
     function GetAnchorPoint(triggerElement, anchorPointX, anchorPointY, anchorPointType) {
         var triggerRect = triggerElement.getBoundingClientRect();
@@ -159,6 +152,7 @@
     return {
         showById: showById,
         hide: hide,
-        initialTriggerEventById: initialTriggerEventById
+        initialTriggerEventById: initialTriggerEventById,
+        dispose: dispose
     };
 })();
