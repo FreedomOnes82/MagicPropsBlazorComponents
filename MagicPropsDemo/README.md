@@ -125,7 +125,7 @@ This component mirrors the functionality of a Radio Group but tailored for check
 6. Tab Group  
 This component is designed to display a flexible or static group of tabs on the page, providing you with the freedom to choose based on your preferences.
      Here are the key properties related to the tab group component (Including MPTabGroup and MPTabOption), which provide customization options for both its display and functionality:  
-     **MPTabGroup**:    
+    **MPTabGroup**:    
     * **ChildContent**: Permits the seamless integration of HTML code or elements, which can be appended to the individual items within the group, typically achieved through the use of MPTabOption or similar components. This feature enhances the flexibility and customizability of the tab group, allowing for the inclusion of additional information, styling, or interactive elements alongside each option.
     * **ShowTabs**:  To identify whether the tabs should be displayed or not, a Boolean value (True or False) is used, with the default value typically set to True to ensure that the tabs are shown by default.
     * **NeedDeleteConfirm**: The setting utilizes a True or False value to specify whether a confirmation popup should appear when attempting to delete a tab from the group.
@@ -161,8 +161,28 @@ This component is designed to display a flexible or static group of tabs on the 
    * **AnchorPointX**: X value for Anchor point if you would not use vertext of trigger as anchor point.
    * **AnchorPointY**: Y value for Anchor Point if you would not use vertext of trigger as anchor point.
    * **Toward**: The direction of the popup's appearance or positioning determined based on the anchor point, the value can be PopupToward.TopLeft,PopupToward.TopRight,PopupToward.BottomLeft,PopupToward.BottomRight,PopupToward.TriggerTopCenter,PopupToward.TriggerBottomCenter,PopupToward.TriggerLeftCenter and PopupToward.TriggerRightCenter.   
-   * **Visible**: property to control the popup shows up or not.
+   * **Visible**: A boolean value (true or false) to control the popup shows up or not.
    * **OnAfterHidePopup**: A function that can be assigned to this property to handle event trigger when hide popup.
    * **OnAfterPopupRender:**: A function that can be assigned to this property to handle event trigger when popup appear.Only refresh/execute when popup is visible.
    * **Show**: A function used to show the popup.
    * **Hide**: A function used to hide the popup.
+
+   
+8. Timeline  
+   A timeline is a component designed to elegantly showcase events in a clear, sequential order, enabling users to effortlessly follow the progression of milestones and occurrences.  
+    Here are the key properties related to the timeline component (Including MPTimeline and MPTimelineItem), which provide customization options for both its display and functionality:  
+    **MPTimeline**:    
+    * **ChildContent**: Permits the seamless integration of HTML code or elements, which can be appended to the individual items within timeline, typically achieved through the use of MPTimelineItem or similar components.
+    * **ClientId**:Configuration for id for each teimeline.
+    * **Color**:Configuration for color using for such as border and process line for timeline.
+    * **ItemBgColor**:Configuration for background color using for each timeline item for timeline.  
+    * **Size**: Setting for the size for this timeline, it can be "Size.Small","Size.Large" and "Size.Medium".  
+    * **Visible**: A boolean value (true or false) to control the timeline shows up or not.  
+    * **Vertical**: A boolean value (true or false) to control the timeline is displayed vertically or horizontally.
+    * **ItemCount**: The total number item for this timeline.
+     
+    **MPTimelineItem**:  
+    * **HeaderTemplate**: Allows for the inclusion of HTML code or elements that are appended to the header of the timeline item.
+    * **BodyTemplate**: Allows for the inclusion of HTML code or elements that are appended to the body of the timeline item.
+    * **ItemIndex**: Configuration for index of this timeline item in the timeline.
+  

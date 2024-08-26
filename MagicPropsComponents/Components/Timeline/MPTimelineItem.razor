@@ -1,0 +1,190 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.ViewModels.Shared
+
+<div style="@(GetItemStyle())">
+    <div style="@(GetDescriptionContainerStyle())">
+        @if (ItemIndex == 0 || ItemIndex % 2 == 0)
+        {
+            <div style="@(GetDescriptionContentStyle())">
+                <div style="margin:10px;">
+                    @HeaderTemplate
+                </div>
+                <div style="display: flex;flex-direction: column;margin: 10px;color: #574966;line-height: 40px;">
+                    @BodyTemplate
+                </div>
+            </div>
+        }
+    </div>
+    <div style="@(GetGapContainerStyle())">
+        <div style="@GetGapNodeStyle()">
+        </div>
+        <div style="@GetGapTailStyle() @((ItemIndex < TimeLine!.ItemCount - 1)?"":"border-width:0px;")">
+        </div>
+    </div>
+    <div style="@(GetDescriptionContainerStyle())">
+        @if (ItemIndex != 0 && ItemIndex % 2 != 0)
+        {
+            <div style="@(GetDescriptionContentStyle())">
+                <div style="margin:10px;">
+                    @HeaderTemplate
+                </div>
+                <div style="display: flex;flex-direction: column;margin: 10px;color: #574966;line-height: 40px;">
+                    @BodyTemplate
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [CascadingParameter(Name = "MPTimeline")]
+    public IMPTimeline? TimeLine { get; set; }
+    [Parameter]
+    public RenderFragment? HeaderTemplate { get; set; }
+    [Parameter]
+    public RenderFragment? BodyTemplate { get; set; }
+    [Parameter]
+    public int ItemIndex { get; set; }
+    private bool IsFirstSide()
+    {
+        if (ItemIndex == 0) return true;
+        return ItemIndex % 2 == 0;
+    }
+    private string GetItemStyle()
+    {
+        if (TimeLine!.Vertical)
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: return "width:600px;height:200px;display:flex;";
+                case Size.Medium: return "width:900px;height:300px;display:flex;";
+                case Size.Large: return "width:1200px;height:400px;display:flex;";
+                default: return "width:900px;height:450px;display:flex;";
+            }
+        }
+        else
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: return "width:300px;height:600px;";
+                case Size.Medium: return "width:450px;height:900px;";
+                case Size.Large: return "width:600px;height:1200px;";
+                default: return "width:450px;height:900px;";
+            }
+        }
+    }
+    private string GetDescriptionContainerStyle()
+    {
+        if (TimeLine!.Vertical)
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: return "padding:10px;width:48%;height:100%;";
+                case Size.Medium: return "padding:15px;width:48%;height:100%;";
+                case Size.Large: return "padding:20px;width:48%;height:100%;";
+                default: return "padding:15px;width:48%;height:100%;";
+            }
+        }
+        else
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: return "padding:10px;width:100%;height:48%;position:relative;";
+                case Size.Medium: return "padding:15px;width:100%;height:48%;position:relative;";
+                case Size.Large: return "padding:20px;width:100%;height:48%;position:relative;";
+                default: return "padding:15px;width:100%;height:48%;position:relative;";
+            }
+        }
+    }
+    private string GetGapContainerStyle()
+    {
+        if (TimeLine!.Vertical)
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: return "width:4%;height:100%;";
+                case Size.Medium: return "width:4%;height:100%;";
+                case Size.Large: return "width:4%;height:100%;";
+                default: return "width:4%;height:100%;";
+            }
+        }
+        else
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: return "width:100%;height:4%;display:flex;align-items: center;";
+                case Size.Medium: return "width:100%;height:4%;display:flex;align-items: center;";
+                case Size.Large: return "width:100%;height:4%;display:flex;align-items: center;";
+                default: return "width:100%;height:4%;display:flex;align-items: center;";
+            }
+        }
+    }
+    private string GetDescriptionContentStyle()
+    {
+        string result = string.Empty;
+        if (TimeLine!.Vertical)
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: result = "padding:10px;border-radius: 20px;border: 3px solid " + TimeLine!.Color + ";"; break;
+                case Size.Medium: result = "padding:15px;border-radius: 20px;border: 4px solid " + TimeLine!.Color + ";"; break;
+                case Size.Large: result = "padding:20px;border-radius: 30px;border: 5px solid " + TimeLine!.Color + ";"; break;
+                default: result = "padding:15px;border-radius: 20px;border: 4px solid " + TimeLine!.Color + ";"; break;
+            }
+            if (ItemIndex <= 0 || ItemIndex % 2 == 0) result += "border-top-right-radius: 0px;right: 0;background-color:" + TimeLine!.ItemBgColor + ";";
+            else result += "border-top-left-radius: 0px;background-color:" + TimeLine!.ItemBgColor + ";";
+        }
+        else
+        {
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: result = "padding:10px;margin-bottom:10px;border-radius: 20px;border: 3px solid " + TimeLine!.Color + ";"; break;
+                case Size.Medium: result = "padding:15px;margin-bottom:15px;border-radius: 20px;border: 4px solid " + TimeLine!.Color + ";"; break;
+                case Size.Large: result = "padding:20px;margin-bottom:20px;border-radius: 30px;border: 5px solid " + TimeLine!.Color + ";"; break;
+                default: result = "padding:15px;margin-bottom:15px;border-radius: 20px;border: 4px solid " + TimeLine!.Color + ";"; break;
+            }
+            if (ItemIndex <= 0 || ItemIndex % 2 == 0) result += "border-bottom-left-radius: 0px;bottom:0;position:absolute;background-color:" + TimeLine!.ItemBgColor + ";";
+            else result += "border-top-left-radius: 0px;position:absolute;background-color:" + TimeLine!.ItemBgColor + ";";
+        }
+        return result;
+    }
+    private string GetGapNodeStyle()
+    {
+        string result = "position: relative;border-radius: 50%; display: inherit;background: #fff;border: 8px solid " + TimeLine!.Color + ";margin: 0 auto;";
+        switch (TimeLine!.Size)
+        {
+            case Size.Small: result += "width: 25px;height: 25px;"; break;
+            case Size.Medium: result += "width: 35px;height: 35px;"; break;
+            case Size.Large: result += "width: 45px;height: 45px;"; break;
+            default: result += "width: 35px;height: 35px;"; break;
+        }
+        return result;
+    }
+    private string GetGapTailStyle()
+    {
+        var result = "position: relative;margin: 0 auto;";
+        if (TimeLine!.Vertical)
+        {
+            result += "height: 100%;border-left: 5px dashed " + TimeLine!.Color + ";";
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: result += "width: 2px;"; break;
+                case Size.Medium: result += "width: 3px;"; break;
+                case Size.Large: result += "width: 4px;"; break;
+                default: result += "width: 3px;"; break;
+            }
+        }
+        else
+        {
+            result += "width: 100%;border-top: 5px dashed " + TimeLine!.Color + ";";
+            switch (TimeLine!.Size)
+            {
+                case Size.Small: result += "height: 2px;"; break;
+                case Size.Medium: result += "height: 3px;"; break;
+                case Size.Large: result += "height: 4px;"; break;
+                default: result += "height: 3px;"; break;
+            }
+        }
+        return result;
+    }
+}

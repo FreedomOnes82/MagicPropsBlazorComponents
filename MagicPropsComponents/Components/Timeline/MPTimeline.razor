@@ -1,0 +1,37 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.ViewModels.Shared
+@implements IMPTimeline
+<CascadingValue Value="this" Name="MPTimeline">
+    @if (Visible)
+    {
+        <div id="@ClientId" class="timeline_container" style="@(Vertical?"":"display:flex;")">
+            @ChildContent
+        </div>
+    }
+</CascadingValue>
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public string ClientId { get; set; } = string.Empty;
+    [Parameter]
+    public string Color { get; set; } = "rgb(109,209,201)";
+    [Parameter]
+    public string ItemBgColor { get; set; } = "rgba(109,209,201,0.3)";
+    [Parameter]
+    public Size Size { get; set; } = Size.Medium;
+    [Parameter]
+    public bool Visible { get; set; } = true;
+    [Parameter]
+    public bool Vertical { get; set; } = true;
+    [Parameter]
+    public int ItemCount { get; set; }
+ 
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(ClientId))
+        {
+            ClientId = "Procs_" + Guid.NewGuid().ToString().Replace("-", "");
+        }
+    }
+}

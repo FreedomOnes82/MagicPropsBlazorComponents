@@ -24,14 +24,15 @@
 </div>
 <br />
 <hr />
+
 <div>
-    <p>Click this div to show up Popup</p>
-    <div style="width:200px;height:100px;background-color:#0dcaf0;margin-top:10px;margin-left:10px;" id="@_triggerId">
+    <p>Click this div to show up Popup with Close Button</p>
+    <div style="width:200px;height:100px;background-color:#0dcaf0;margin-top:10px;margin-left:10px;" id="divTrigger">
         Div trigger
     </div>
-    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_triggerId" AnchorPointType="AnchorPointType.TriggerCenter" 
+    <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="divTrigger" AnchorPointType="AnchorPointType.TriggerRightBottom" @ref=divpopupele
                                                    Toward="PopupToward.TopRight" BorderRadius="2">
-        <h3>Div Test Popup</h3>
+        <h3>Div Test Popup</h3><button @onclick="async()=>{await divpopupele.Hide();}">Click to close</button>
     </MagicPropsComponents.Components.Popup.MPPopup>
 </div>
 <br />
@@ -48,13 +49,12 @@
 
 @code {
     private string _cusTriggerId = string.Empty;
-    private string _triggerId { get; set; } = string.Empty;
+    private MagicPropsComponents.Components.Popup.MPPopup divpopupele;
 
     protected override void OnInitialized()
     {
-        if (string.IsNullOrEmpty(_triggerId))
+        if (string.IsNullOrEmpty(_cusTriggerId))
         {
-            _triggerId = Guid.NewGuid().ToString().Replace("-", "");
             _cusTriggerId = "cus_"+Guid.NewGuid().ToString().Replace("-", "");
            
         }

@@ -1,0 +1,67 @@
+﻿@page "/timelinedemo"
+
+<hr />
+<MagicPropsComponents.Components.Timeline.MPTimeline ItemCount="@test.Length" Color="green" Size="MagicPropsComponents.ViewModels.Shared.Size.Small" Vertical="false" ItemBgColor="transparent">
+    @foreach (var i in test)
+    {
+        <MagicPropsComponents.Components.Timeline.MPTimelineItem ItemIndex="i">
+            <HeaderTemplate>
+                <h3>This is Header-@i</h3>
+            </HeaderTemplate>
+            <BodyTemplate>
+                <span>Name:@GetName(i)</span>
+                <span>Sex:@GetSex(i)</span>
+                <span>Number:@GetNumber(i)</span>
+            </BodyTemplate>
+        </MagicPropsComponents.Components.Timeline.MPTimelineItem>
+    }
+</MagicPropsComponents.Components.Timeline.MPTimeline>
+<hr />
+<MagicPropsComponents.Components.Timeline.MPTimeline ItemCount="@test.Length" Size="MagicPropsComponents.ViewModels.Shared.Size.Large">
+    @foreach (var i in test)
+    {
+        <MagicPropsComponents.Components.Timeline.MPTimelineItem ItemIndex="i">
+            <HeaderTemplate>
+                <h2>This is Header-@i</h2>
+            </HeaderTemplate>
+            <BodyTemplate>
+                <span>Name:@GetName(i)</span>
+                <span>Sex:@GetSex(i)</span>
+                <span>Number:@GetNumber(i)</span>
+            </BodyTemplate>
+        </MagicPropsComponents.Components.Timeline.MPTimelineItem>
+    }
+</MagicPropsComponents.Components.Timeline.MPTimeline>
+<hr />
+
+<MagicPropsComponents.Components.Timeline.MPTimeline ItemCount="@test.Length" Color="rgb(197,167,250)" ItemBgColor="rgba(197,167,250,0.3)">
+    @foreach (var i in test)
+    {
+        <MagicPropsComponents.Components.Timeline.MPTimelineItem ItemIndex="i">
+            <HeaderTemplate>
+                <h2>This is Header-@i</h2>
+            </HeaderTemplate>
+            <BodyTemplate>
+                <span>Name:@GetName(i)</span>
+                <span>Sex:@GetSex(i)</span>
+                <span>Number:@GetNumber(i)</span>
+            </BodyTemplate>
+        </MagicPropsComponents.Components.Timeline.MPTimelineItem>
+    }
+</MagicPropsComponents.Components.Timeline.MPTimeline>
+@code {
+    private int[] test = [0, 1, 2, 3, 4];
+    private string GetName(int i)
+    {
+        return "Name" + i;
+    }
+    private string GetSex(int i)
+    {
+        if (i % 2 == 0) return "male";
+        return "female";
+    }
+    private string GetNumber(int i)
+    {
+        return "12312312312-" + i;
+    }
+}
