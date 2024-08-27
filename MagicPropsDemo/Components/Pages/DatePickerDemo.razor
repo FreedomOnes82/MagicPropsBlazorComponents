@@ -1,0 +1,21 @@
+﻿@page "/datepickerdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<h3>Date Picker Demo</h3>
+<hr />
+
+<MagicPropsComponents.Components.DatePicker.MPDatePicker FixedTitle="true" TitleFloat="true" Title="Test Date" Width="580" ShowErrorMsg="true" Minimum="new DateTime(2024,7,1)" Maximum="new DateTime(2025,7,1)" @bind-Value="_date" DateFormatString="MM/dd/yyyy">
+</MagicPropsComponents.Components.DatePicker.MPDatePicker>
+
+<MagicPropsComponents.Components.DatePicker.MPDatePicker Title="Required Date" TitleFloat="true" Required="true" DateFormatString="dd/MM/yyyy" ShowErrorMsg="true">
+</MagicPropsComponents.Components.DatePicker.MPDatePicker>
+<div style="margin-top:300px;margin-left:950px">
+</div>
+<MagicPropsComponents.Components.DatePicker.MPDatePicker Title="Demo Date" TitleFloat="true"  DateFormatString="dd/MM/yyyy" ShowErrorMsg="true">
+</MagicPropsComponents.Components.DatePicker.MPDatePicker>
+
+
+
+@code {
+    private DateTime _date = new DateTime(2024, 12, 10);
+
+}

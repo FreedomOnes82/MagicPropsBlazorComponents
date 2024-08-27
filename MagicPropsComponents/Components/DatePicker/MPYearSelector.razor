@@ -1,0 +1,140 @@
+﻿@using MagicPropsComponents.Abstractions
+<div class="year-selector row my-5" style="margin-left:2px;margin-right:2px;">
+    @foreach (var year in _showingYears)
+    {
+        <div class="col-3 @CalCssClassForMonth(year) align-items-center" @onclick="()=>SelectYear(year)">
+            @year
+        </div>
+    }
+</div>
+@code {
+    [CascadingParameter(Name = "MPDatePicker")]
+    public IMPDatePicker? DatePicker { get; set; }
+    [Parameter]
+    public int MinDisplayYear { get; set; } = 1900;
+    [Parameter]
+    public int MaxDisplayYear { get; set; } = 2100;
+    [Parameter]
+    public int PageSize { get; set; } = 16;
+    private int _pageIndex = 0;
+    private int _pageCount = 0;
+    private int? _showingYear = default;
+    [Parameter]
+    public int? ShowingYear
+    {
+        get
+        {
+            return _showingYear;
+        }
+        set
+        {
+            _showingYear = value;
+        }
+    }
+    [Parameter]
+    public EventCallback<int> OnYearSelected { get; set; }
+    [Parameter]
+    public Func<DateTime, bool>? EnabledFun { get; set; }
+    [Parameter]
+    public bool IsAllowGoNextYearPage { get; set; }
+    [Parameter]
+    public EventCallback<bool> IsAllowGoNextYearPageChanged { get; set; }
+    [Parameter]
+    public bool IsAllowGoPreYearPage { get; set; }
+    [Parameter]
+    public EventCallback<bool> IsAllowGoPreYearPageChanged { get; set; }
+
+    [Parameter]
+    public bool ShowDisabledStyle { get; set; }
+
+    private List<int> _showingYears = new List<int>();
+
+    protected override void OnInitialized()
+    {
+        _pageCount = Convert.ToInt32(Math.Ceiling((decimal)(MaxDisplayYear - MinDisplayYear) / (decimal)PageSize));
+        if (_showingYear == null)
+        {
+            _showingYear = DateTime.Now.Year;
+        }
+        _pageIndex = Convert.ToInt32(Math.Truncate((decimal)((_showingYear!.Value - MinDisplayYear) / (decimal)PageSize)));
+        ResetPageIndex();
+    }
+
+    private void ResetPageIndex()
+    {
+        _showingYears.Clear();
+        for (var i = 0; i < PageSize; i++)
+        {
+            _showingYears.Add(1900 + _pageIndex * PageSize + i);
+        }
+        _showingYears = _showingYears.Where(x => x >= MinDisplayYear && x <= MaxDisplayYear).ToList();
+    }
+
+    private string CalCssClassForMonth(int year)
+    {
+        if (ShowDisabledStyle)
+        {
+            if (new DateTime(year, 1, 1) > DatePicker!.Maximum || new DateTime(year, 12, 31, 23, 59, 59, 999) < DatePicker!.Minimum)
+            {
+                return " year-disabled";
+            }
+        }
+
+        if (_showingYear != null)
+        {
+            return _showingYear.Value == year ? "year-selected" : "";
+        }
+        return "";
+    }
+
+    private void SelectYear(int year)
+    {
+        if (ShowDisabledStyle)
+        {
+            if (new DateTime(year, 1, 1) > DatePicker!.Maximum || new DateTime(year, 12, 31, 23, 59, 59, 999) < DatePicker!.Minimum)
+            {
+                return;
+            }
+        }
+        _showingYear = year;
+        OnYearSelected.InvokeAsync(year);
+    }
+
+    public void GoPre()
+    {
+        this._pageIndex--;
+        if (this._pageIndex == 0)
+        {
+            IsAllowGoPreYearPage = false;
+            IsAllowGoPreYearPageChanged.InvokeAsync(IsAllowGoPreYearPage);
+            StateHasChanged();
+        }
+        else if (this._pageIndex < 0) { this._pageIndex = 0; return; }
+        ResetPageIndex();
+        if (!IsAllowGoNextYearPage)
+        {
+            IsAllowGoNextYearPage = true;
+            IsAllowGoNextYearPageChanged.InvokeAsync(IsAllowGoNextYearPage);
+            StateHasChanged();
+        }
+    }
+
+    public void GoNext()
+    {
+        this._pageIndex++;
+        if (this._pageIndex == this._pageCount - 1)
+        {
+            IsAllowGoNextYearPage = false;
+            IsAllowGoNextYearPageChanged.InvokeAsync(IsAllowGoNextYearPage);
+            StateHasChanged();
+        }
+        else if (this._pageIndex > this._pageCount - 1) { this._pageIndex = this._pageCount - 1; return; }
+        ResetPageIndex();
+        if (!IsAllowGoPreYearPage)
+        {
+            IsAllowGoPreYearPage = true;
+            IsAllowGoPreYearPageChanged.InvokeAsync(IsAllowGoPreYearPage);
+            StateHasChanged();
+        }
+    }
+}

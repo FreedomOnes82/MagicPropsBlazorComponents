@@ -1,0 +1,69 @@
+﻿@using MagicPropsComponents.Utilities
+@using MagicPropsComponents.Abstractions
+<div class="month-selector row my-5" style="margin-left:2px;margin-right:2px;">
+    @for (var i = 1; i <= 12; i++)
+    {
+        var month = i;
+        <div class="col-3 @CalCssClassForMonth(month)" @onclick="()=>SelectMonth(month)">
+            @DatePicker!.GetMonthString(month)
+        </div>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter(Name = "MPDatePicker")]
+    public IMPDatePicker? DatePicker { get; set; }
+    [Parameter]
+    public bool ShowDisabledStyle { get; set; }
+    [Parameter]
+    public int ShowingYear { get; set; }
+    [Parameter]
+    public EventCallback<int> OnMonthSelected { get; set; }
+    [Parameter]
+    public int? SelectedMonth
+    {
+        get
+        {
+            return _selectedMonth;
+        }
+        set
+        {
+            _selectedMonth = value;
+        }
+    }
+
+    private int? _selectedMonth = default;
+
+    private void SelectMonth(int month)
+    {
+        if (ShowDisabledStyle)
+        {
+            int daysInMonth = DateTime.DaysInMonth(ShowingYear, month);
+            if (new DateTime(ShowingYear, month, daysInMonth, 23, 59, 59, 999) > DatePicker!.Maximum || new DateTime(ShowingYear, month, 1) < DatePicker!.Minimum)
+            {
+                return;
+            }
+        }
+        _selectedMonth = month;
+        OnMonthSelected.InvokeAsync(month);
+    }
+
+    private string CalCssClassForMonth(int month)
+    {
+        if (ShowDisabledStyle)
+        {
+            int daysInMonth = DateTime.DaysInMonth(ShowingYear, month);
+            if (new DateTime(ShowingYear, month, daysInMonth, 23, 59, 59, 999) > DatePicker!.Maximum || new DateTime(ShowingYear, month, 1) < DatePicker!.Minimum)
+            {
+                return " month-disabled";
+            }
+        }
+
+        if (_selectedMonth != null)
+        {
+            return _selectedMonth.Value == month ? "month-selected" : "";
+        }
+        return "";
+    }
+}
