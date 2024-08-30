@@ -1,0 +1,10 @@
+<svg width="100" height="100"  xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .svg-default-shape {
+    fill: black;
+    stroke: black;
+    stroke-width: 4;
+    }
+  </style>
+  <polygon points="5,5 95,5 60,35 60,75 40,95 40,35" class="svg-default-shape" />
+</svg>

@@ -1,0 +1,11 @@
+<svg width="100" height="100"  xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .svg-pager-shape {
+    fill: none;
+    stroke: rgb(0,0,0);
+    stroke-width: 4;
+    }
+  </style>
+  <polygon points="2,5  2,95  15,95 15,5" class="svg-pager-shape"></polygon>
+  <polygon points="17,50  60,5  60,95" class="svg-pager-shape"></polygon>
+</svg>

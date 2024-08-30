@@ -1,0 +1,664 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.ViewModels.PivotTable
+@using MagicPropsComponents.ViewModels.Shared
+@using MagicPropsComponents.ViewModels.Modal
+@using System.Collections.Generic;
+@using System.Reflection;
+@using Microsoft.JSInterop
+@using MagicPropsComponents.Utilities
+@using System.IO;
+@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime;
+<div class="col-12 pivot-grid-wrapper data-grid_wrapper py-1 px-2" style="width:@(TableWidth)px;">
+    <div class="col-12" style="display: flex;justify-content: end;">
+        <div class="btn" style="border:1px solid black" @onclick="ShowImportDailog">Import Settings</div>
+        <div class="btn ms-2" style="border:1px solid black" @onclick="ExportSettings">Export Settings</div>
+        <div class="btn ms-2" style="border:1px solid black" @onclick="Export">Export</div>
+        <div style="width:150px;background-color:transparent;">
+            <div class="btn ms-2" style="border:1px solid black" id="@_filedChooserId" @onclick="ShowFieldChooserDailog">Field Chooser</div>
+        </div>
+    </div>
+</div>
+<MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showFieldChooserModal" Title="Field Chooser" Size="ViewModels.Modal.ModalSettings.Large" FooterBottons="fieldChooserModalButtons" OnDialogButtonClicked="FieldChooserModalButtonClicked">
+    <BodyTemplate>
+        <div class="row" @ref="_fieldChooserContainer">
+            <div class="col-4 pe-1">
+                <div class="mp-pivot-fchooser-fieldlist-container">
+                    <span class="input-group-text">
+                        <label>All Fields</label>
+                    </span>
+                    <div class="item-container">
+                        <div class="input-group my-1 mx-2" style="max-width:230px;">
+                            <input type="text" class="form-control" placeholder="Search..." @onchange="OnSearching">
+                        </div>
+                        <div class="list-container">
+                            @foreach (var field in filteredFieldSet)
+                            {
+                                <div class="mp-pivot-fchooser-flexible-item">
+                                    <input type="checkbox" class="form-check-input" name="option2" checked="@field.Applied" @onchange="()=>SwitchCheckStatus(field)">
+                                    <div class="item-text ms-2 fw-bold" id="all_@field.ID">@field.DisplayText</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 px-1 pb-1">
+                <div class="mp-pivot-fchooser-fieldtype-container">
+                    <span class="input-group-text">
+                        <i class="fa fa-filter"></i>
+                        <label class="ms-3">Filters</label>
+                    </span>
+                    <div class="item-container" style="padding:3px;">
+                        @foreach (var field in filterFieldSet)
+                        {
+                            <div class="mp-pivot-fchooser-flexible-item">
+                                <div class="item-text" id="@field.ID" title="@field.DisplayText">@field.DisplayText</div>
+                                <img class="ms-auto me-1" src="@GetFilterIcon(field.FieldName)" width="15" height="15" id="@("filterPopupOnFieldChooser_"+field.FieldName)" @onclick="async()=>{await TriggeFilter(field);}" />
+                            </div>
+                        }
+                        @if (filterFieldSet.Count < 1)
+                        {
+                            <div class="mp-text-center-container">
+                                <span>Drop filter here...</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="mp-pivot-fchooser-fieldtype-container">
+                    <span class="input-group-text">
+                        <img src="@SvgHelper.GetSvgPath()row.svg" width="15" height="15">
+                        <label class="ms-3">Rows</label>
+                    </span>
+                    <div class="item-container" style="padding:3px;">
+                        @foreach (var field in rowFieldSet)
+                        {
+                            <div class="mp-pivot-fchooser-flexible-item">
+                                <div class="item-text" id="@field.ID" title="@field.DisplayText">@field.DisplayText</div>
+                                @if (field.SortType == SortType.None)
+                                {
+                                    <img class="ms-auto me-1" src="@SvgHelper.GetSvgPath()sort-unsorted.svg" width="15" height="15" @onclick="()=>{field.SortType=SortType.Ascending;}">
+                                }
+                                else if (field.SortType == SortType.Descending)
+                                {
+                                    <img class="ms-auto me-1" src="@SvgHelper.GetSvgPath()sort-desc.svg" width="15" height="15" @onclick="()=>{field.SortType=SortType.None;}">
+                                }
+                                else if (field.SortType == SortType.Ascending)
+                                {
+                                    <img class="ms-auto me-1" src="@SvgHelper.GetSvgPath()sort-asc.svg" width="15" height="15" @onclick="()=>{field.SortType=SortType.Descending;}">
+                                }
+                                <img class="mx-1" src="@GetFilterIcon(field.FieldName)" width="15" height="15" id="@("filterPopupOnFieldChooser_"+field.FieldName)" @onclick="async()=>{await TriggeFilter(field);}" />
+                            </div>
+                        }
+                        @if (rowFieldSet.Count < 1)
+                        {
+                            <div class="mp-text-center-container">
+                                <span>Drop row here...</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 ps-1 pb-1">
+                <div class="mp-pivot-fchooser-fieldtype-container">
+                    <span class="input-group-text">
+                        <img src="@SvgHelper.GetSvgPath()column.svg" width="15" height="15">
+                        <label class="ms-3">Columns</label>
+                    </span>
+                    <div class="item-container" style="padding:3px;">
+                        @foreach (var field in columnFieldSet)
+                        {
+                            <div class="mp-pivot-fchooser-flexible-item">
+                                <div class="item-text" id="@field.ID" title="@field.DisplayText">@field.DisplayText</div>
+                                @if (field.SortType == SortType.None)
+                                {
+                                    <img class="ms-auto me-1" src="@SvgHelper.GetSvgPath()sort-unsorted.svg" width="15" height="15" @onclick="()=>{field.SortType=SortType.Ascending;}">
+                                }
+                                else if (field.SortType == SortType.Descending)
+                                {
+                                    <img class="ms-auto me-1" src="@SvgHelper.GetSvgPath()sort-desc.svg" width="15" height="15" @onclick="()=>{field.SortType=SortType.None;}">
+                                }
+                                else if (field.SortType == SortType.Ascending)
+                                {
+                                    <img class="ms-auto me-1" src="@SvgHelper.GetSvgPath()sort-asc.svg" width="15" height="15" @onclick="()=>{field.SortType=SortType.Descending;}">
+                                }
+                                <img class="mx-1" src="@GetFilterIcon(field.FieldName)" width="15" height="15" id="@("filterPopupOnFieldChooser_"+field.FieldName)" @onclick="async()=>{await TriggeFilter(field);}" />
+
+                            </div>
+                        }
+                        @if (columnFieldSet.Count < 1)
+                        {
+                            <div class="mp-text-center-container">
+                                <span>Drop column here...</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="mp-pivot-fchooser-fieldtype-container">
+                    <span class="input-group-text">
+                        <img src="@SvgHelper.GetSvgPath()sigma.svg" width="15" height="15">
+                        <label class="ms-3">Values</label>
+                    </span>
+                    <div class="item-container" style="padding:3px;">
+                        @foreach (var field in valueFieldSet)
+                        {
+                            <div class="mp-pivot-fchooser-flexible-item">
+                                <div class="item-text" id="@field.ID" title="@(GetValueFieldDisplayTextPrefix(field)+" of "+ @field.DisplayText)">@GetValueFieldDisplayTextPrefix(field) of @field.DisplayText</div>
+                                <span class="d-flex ms-auto justify-content-center" style="width:30px" id="@("expand_"+field.ID)" @onclick:stopPropagation=true @onclick="async()=>{await TriggeAggrevateFuncList(field);}"><i class="fa fa-ellipsis-v"></i></span>
+                            </div>
+                        }
+                        @if (valueFieldSet.Count < 1)
+                        {
+                            <div class="mp-text-center-container">
+                                <span>Drop value here...</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <PivotFilter @ref=@_filter Field="_filterField" Theme="@Theme" OnSubmitFilter="HandleSubmitFilter" OnRemoveFilter="HandleRemoveFilter"></PivotFilter>
+        <MagicPropsComponents.Components.Popup.MPPopup @ref=_aggregateFuncListPopup AnchorPointType="ViewModels.Popup.AnchorPointType.TriggerRightTop" Toward="ViewModels.Popup.PopupToward.BottomRight" TriggerEleID="@("expand_"+_activeValueField.ID)" Spacing="0" BorderRadius="3" PopupShadowSettings="0 16px 48px rgba(0,0,0,.175)" Padding="3">
+            <div class="mp-pivot-aggregatefuncs-list">
+                @foreach (var aggregateFun in Enum.GetNames(typeof(AggregateFuncs)))
+                {
+                    <div class="item @(aggregateFun==GetValueFieldDisplayTextPrefix(_activeValueField).Replace(" ","")?"selected":"")" @onclick="async()=>await SwitchValueFieldAggregateFun(aggregateFun, _activeValueField)">@aggregateFun</div>
+                }
+            </div>
+        </MagicPropsComponents.Components.Popup.MPPopup>
+    </BodyTemplate>
+</MagicPropsComponents.Components.Modal.MPModal>
+
+<MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showImportSettingsModal" Title="Import Settings" Size="ViewModels.Modal.ModalSettings.Small" FooterBottons="importModalButtons" OnDialogButtonClicked="ImportModalButtonClicked">
+<BodyTemplate>
+        <InputFile OnChange="HandleFileSelected"></InputFile>
+    </BodyTemplate>
+</MagicPropsComponents.Components.Modal.MPModal>
+@code {
+    [CascadingParameter(Name = "CurrentSettings")]
+    public PivotTableDataSourceSettings Settings { get; set; }
+    [CascadingParameter(Name = "CurrentPivotTable")]
+    public IMPPivotTable CurrentPivotTable { get; set; }
+    [Parameter]
+    public bool WithFieldChooser { get; set; }
+    [Parameter]
+    public int TableWidth { get; set; } = 1024;
+    private List<FieldDefinition> filterFieldSet { get; set; } = new List<FieldDefinition>();
+    private List<FieldDefinition> rowFieldSet { get; set; } = new List<FieldDefinition>();
+    private List<FieldDefinition> columnFieldSet { get; set; } = new List<FieldDefinition>();
+    private List<FieldDefinition> valueFieldSet { get; set; } = new List<FieldDefinition>();
+    private List<FieldDefinition> fieldSet { get; set; } = new List<FieldDefinition>();
+    private List<FieldDefinition> filteredFieldSet { get; set; } = new List<FieldDefinition>();
+
+    private ElementReference _fieldChooserContainer;
+    private bool _showFieldChooserModal;
+    private bool _showImportSettingsModal;
+    private string errorMessage = string.Empty;
+    private string _filedChooserId { get; set; } = string.Empty;
+    public List<ModalButton> fieldChooserModalButtons = new List<ModalButton>()
+    { new ModalButton() { CssClass = "btn btn-primary", Text = "Apply" } ,
+    new ModalButton() { CssClass = "btn btn-secondary", Text = "Close" } };
+    public List<ModalButton> importModalButtons = new List<ModalButton>()
+    { new ModalButton() { CssClass = "btn btn-primary", Text = "Apply" } ,
+    new ModalButton() { CssClass = "btn btn-secondary", Text = "Cancle" } };
+    //about field chooser dialog
+    public async Task ShowFieldChooserDailog()
+    {
+        InitFieldSet();
+        Settings._showFieldsChooser = true;
+        await JSRuntime.InvokeVoidAsync("MPPivotTable.loadFeildChooserDraggedItems", _fieldChooserContainer, _filedChooserId);
+        _showFieldChooserModal = true;
+        //reset currentFilterPara
+        _currentFilterPara = new Dictionary<string, FilterOption>();
+        foreach (var item in Settings.FilterPara)
+        {
+            _currentFilterPara.Add(item.Key, item.Value);
+        }
+        StateHasChanged();
+    }
+
+    private async Task Export()
+    {
+        await JSRuntime.InvokeVoidAsync("MPPivotTable.exportExcel", CurrentPivotTable.ClientID);
+    }
+    IBrowserFile _file;
+
+    private async Task ExportSettings()
+    {
+        var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
+            };
+        string jsonString = JsonSerializer.Serialize(new PivotTableFieldsConfig
+            {
+                RowFields = Settings.RowFields,
+                ColumnFields = Settings.ColumnFields,
+                FilterFields = Settings.FilterFields,
+                ValueFields = Settings.ValueFields,
+                FilterPara = Settings.FilterPara
+            }, options);
+        await JSRuntime.InvokeVoidAsync("downloadFile", "TableFieldsConfig.json", "text/json", jsonString);
+    }
+
+    public void HideFieldChooserDailog()
+    {
+        Settings._showFieldsChooser = false;
+        _showFieldChooserModal = false;
+        //await fieldChooserDialog!.CloseDialog();
+        //StateHasChanged();
+    }
+
+    public void ShowImportDailog()
+    {
+        _showImportSettingsModal = true;
+    }
+    public void HideImportDailog()
+    {
+        _showImportSettingsModal = false;
+    }
+
+    public async Task FieldChooserModalButtonClicked(ModalButton ModalButton)
+    {
+        switch (ModalButton.Text)
+        {
+            case "Apply":
+                {
+                    if (Settings != null)
+                    {
+                        Settings.FilterPara = _currentFilterPara;
+                        await Settings.UpdateAllFields(columnFieldSet, rowFieldSet, valueFieldSet, filterFieldSet);
+                    }
+                    HideFieldChooserDailog();
+                }
+                break;
+            case "Close":
+            default: HideFieldChooserDailog(); break;
+        }
+    }
+    public async Task ImportModalButtonClicked(ModalButton ModalButton)
+    {
+        switch (ModalButton.Text)
+        {
+            case "Apply":
+                {
+                    using var stream = new MemoryStream();
+                    await _file.OpenReadStream().CopyToAsync(stream);
+                    PivotTableFieldsConfig? importConfig;
+                    stream.Position = 0;
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string text = await reader.ReadToEndAsync();
+                        importConfig = JsonSerializer.Deserialize<PivotTableFieldsConfig>(text, new JsonSerializerOptions
+                            {
+                                WriteIndented = true
+                            });
+                    }
+                    if (importConfig != null && Settings != null)
+                    {
+                        Settings.ResetFieldConfig(importConfig);
+                        await Settings.RenderPivotTable();
+                    }
+                    //todo: recode json file.
+                    HideImportDailog();
+                }
+                break;
+            case "Cancle":
+            default: HideImportDailog(); break;
+        }
+    }
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        errorMessage = string.Empty;
+        if (e.File.ContentType != "application/json")
+        {
+            errorMessage = "Please upload json file";
+            return;
+        }
+        _file = e.File;
+    }
+
+    //about all fields
+    private void OnSearching(ChangeEventArgs e)
+    {
+        var keywords = e.Value!.ToString();
+        if (!string.IsNullOrEmpty(keywords))
+            filteredFieldSet = fieldSet.Where(x => x.DisplayText.ToLower().Contains(keywords.ToLower())).ToList();
+        else
+            filteredFieldSet = fieldSet;
+    }
+    private void SwitchCheckStatus(FieldDefinition field)
+    {
+        if (field.Applied)
+        {
+            field.Applied = false;
+        }
+        else
+        {
+            field.Applied = true;
+        }
+    }
+
+    //about sort(column/row fieldSet)
+    private void SwitchSortType(FieldDefinition field, SortType newSortType)
+    {
+        field.SortType = newSortType;
+    }
+
+    [JSInvokable]
+    public void HandleFieldChooserDialogDragging(string originalConatiner, string targetContainer, string draggedFieldDisplayName)
+    {
+        if (fieldSet != null && !string.IsNullOrEmpty(draggedFieldDisplayName))
+        {
+            var field = fieldSet.FirstOrDefault(x => string.Equals(x.DisplayText, draggedFieldDisplayName));
+            var originalFieldSet = fieldSet;
+            var targetFieldSet = fieldSet;
+            var targetFieldType = PivotTableFieldTypes.Column;
+            if (field != null)
+            {
+                switch (originalConatiner)
+                {
+                    case "All":
+                        {
+                            if (field.Applied)
+                            {
+                                field.Applied = false;
+                            }
+                        }
+                        break;
+                    case "Column": { originalFieldSet = columnFieldSet; } break;
+                    case "Row": { originalFieldSet = rowFieldSet; } break;
+                    case "Filter": { originalFieldSet = filterFieldSet; } break;
+                    case "Value": { originalFieldSet = valueFieldSet; } break;
+                }
+                switch (targetContainer)
+                {
+                    case "All": { originalFieldSet.Remove(field); field.Applied = false; } break;
+                    case "Column":
+                        {
+                            targetFieldSet = columnFieldSet;
+                            targetFieldType = PivotTableFieldTypes.Column;
+                        }
+                        break;
+                    case "Row":
+                        {
+                            targetFieldSet = rowFieldSet;
+                            targetFieldType = PivotTableFieldTypes.Row;
+                        }
+                        break;
+                    case "Filter":
+                        {
+                            targetFieldSet = filterFieldSet;
+                            targetFieldType = PivotTableFieldTypes.Filter;
+                        }
+                        break;
+                    case "Value":
+                        {
+                            targetFieldSet = valueFieldSet;
+                            targetFieldType = PivotTableFieldTypes.Value;
+                        }
+                        break;
+                }
+                if (targetContainer != "All")
+                {
+                    if (originalFieldSet != fieldSet)
+                        originalFieldSet.Remove(field);
+                    field.Applied = true;
+                    field.Type = targetFieldType;
+                    if (targetContainer == "Value" && field.AggregateFunc == null)
+                    {
+                        field.AggregateFunc = AggregateFuncs.Count;
+                    }
+                    if (!targetFieldSet.Any(x => x.ID == field.ID))
+                    {
+                        targetFieldSet.Add(field);
+                    }
+                }
+                StateHasChanged();
+            }
+        }
+    }
+
+    //init
+    [Parameter]
+    public Theme Theme { get; set; }
+    private SvgHelper SvgHelper;
+    protected override void OnInitialized()
+    {
+        SvgHelper = new SvgHelper(Theme);
+        if (string.IsNullOrEmpty(_filedChooserId))
+            _filedChooserId = "filedChooser_" + Guid.NewGuid().ToString().Replace("-", "");
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("registerDotNetMethod", _filedChooserId, DotNetObjectReference.Create(this));
+            InitFieldSet();
+        }
+    }
+
+    protected void InitFieldSet()
+    {
+        if (Settings != null)
+        {
+            filterFieldSet = new List<FieldDefinition>();
+            rowFieldSet = new List<FieldDefinition>();
+            columnFieldSet = new List<FieldDefinition>();
+            valueFieldSet = new List<FieldDefinition>();
+            fieldSet = new List<FieldDefinition>();
+            filteredFieldSet = new List<FieldDefinition>();
+            if (Settings.DataSource == null || Settings.DataSource.Count() < 1) return;
+            FieldInfo[] fields = Settings.DataSource.First().GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var field in fields)
+            {
+                var fieldName = field.Name;
+                int startIndex = fieldName.IndexOf("<") + 1;
+                int endIndex = fieldName.IndexOf('>', startIndex);
+                if (startIndex > 0 && endIndex > -1)
+                {
+                    fieldName = fieldName.Substring(startIndex, endIndex - startIndex);
+                }
+                var headerText = fieldName;
+                bool applied = false;
+                var columnField = Settings.ColumnFields.FirstOrDefault(x => x.Name == fieldName);
+                var type = PivotTableFieldTypes.Column;
+                if (columnField != null)
+                {
+                    headerText = columnField.Caption ?? fieldName;
+                    applied = true;
+                    var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, columnField.SortType, columnField.FilterType, columnField.ColumnType, columnField.CultureString, null, columnField.Format);
+                    columnFieldSet.Add(newFieldDef);
+                    fieldSet.Add(newFieldDef);
+                    //_showFilterFieldFilterInfo.Add(newFieldDef.ID, false);
+                    continue;
+                }
+                var rowField = Settings.RowFields.FirstOrDefault(x => x.Name == fieldName);
+                if (rowField != null)
+                {
+                    headerText = rowField.Caption ?? fieldName;
+                    applied = true;
+                    type = PivotTableFieldTypes.Row;
+                    var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, rowField.SortType, rowField.FilterType, rowField.ColumnType, rowField.CultureString, null, rowField.Format);
+                    rowFieldSet.Add(newFieldDef);
+                    fieldSet.Add(newFieldDef);
+                    //_showFilterFieldFilterInfo.Add(newFieldDef.ID, false);
+                    continue;
+                }
+                var valueField = Settings.ValueFields.FirstOrDefault(x => x.Name == fieldName);
+                if (valueField != null)
+                {
+                    headerText = valueField.Caption ?? fieldName;
+                    applied = true;
+                    type = PivotTableFieldTypes.Value;
+                    var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, valueField.SortType, valueField.FilterType, valueField.ColumnType, valueField.CultureString, valueField.AggregateFunc, valueField.Format);
+                    valueFieldSet.Add(newFieldDef);
+                    fieldSet.Add(newFieldDef);
+                    // _showValueFieldAggregateFuncLists.Add(newFieldDef.ID, false);
+                    continue;
+                }
+                var filterField = Settings.FilterFields.FirstOrDefault(x => x.Name == fieldName);
+                if (filterField != null)
+                {
+                    headerText = filterField.Caption ?? fieldName;
+                    applied = true;
+                    type = PivotTableFieldTypes.Filter;
+                    var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, filterField.SortType, filterField.FilterType, filterField.ColumnType, filterField.CultureString, null, filterField.Format);
+                    filterFieldSet.Add(newFieldDef);
+                    fieldSet.Add(newFieldDef);
+                    //_showFilterFieldFilterInfo.Add(newFieldDef.ID, false);
+                    continue;
+                }
+                fieldSet.Add(new FieldDefinition { FieldName = fieldName, Applied = applied, ID = Guid.NewGuid().ToString().Replace("-", ""), Type = type, DisplayText = headerText });
+            }
+            filteredFieldSet = fieldSet;
+        }
+    }
+
+    private FieldDefinition ConvertToFieldDefinition(string fieldName, string headerText, bool applied, PivotTableFieldTypes type, SortType sortType, FilterType filterType, ColumnType columnType, string cultureString, AggregateFuncs? aggregateFuncs = null, string? format = null)
+    {
+        var id = Guid.NewGuid().ToString().Replace("-", "");
+        return new FieldDefinition
+            {
+                FieldName = fieldName,
+                Applied = applied,
+                ID = id,
+                Type = type,
+                DisplayText = headerText,
+                SortType = sortType,
+                ColumnType = columnType,
+                FilterType = filterType,
+                AggregateFunc = aggregateFuncs,
+                Format = format,
+                CultureString = cultureString
+            };
+    }
+    public Dictionary<string, FilterOption> _currentFilterPara = new Dictionary<string, FilterOption>();
+    private string GetFilterIcon(string fieldname)
+    {
+        if (_currentFilterPara.ContainsKey(fieldname))
+        {
+            return "./_content/MagicPropsComponents/svgs/filtered.svg";
+        }
+        else
+        {
+            return "./_content/MagicPropsComponents/svgs/filter.svg";
+        }
+    }
+
+    private Popup.MPPopup _aggregateFuncListPopup;
+    //anput value fields
+    private string GetValueFieldDisplayTextPrefix(FieldDefinition field)
+    {
+        var prefix = string.Empty;
+        if (field.AggregateFunc != null)
+        {
+            switch (field.AggregateFunc)
+            {
+                case AggregateFuncs.Count:
+                    prefix = "Count";
+                    break;
+                case AggregateFuncs.DistinctCount:
+                    prefix = "Distinct Count";
+                    break;
+                case AggregateFuncs.Sum:
+                    prefix = "Sum";
+                    break;
+                case AggregateFuncs.Min:
+                    prefix = "Min";
+                    break;
+                case AggregateFuncs.Max:
+                    prefix = "Max";
+                    break;
+                case AggregateFuncs.Average:
+                    prefix = "Average";
+                    break;
+                default: prefix = "Sum"; break;
+            }
+        }
+        else
+        {
+            field.AggregateFunc = AggregateFuncs.Count;
+            prefix = "Count";
+        }
+        return prefix;
+    }
+
+    private async Task SwitchValueFieldAggregateFun(string funcName, FieldDefinition field)
+    {
+        var aggregateFun = (AggregateFuncs)Enum.Parse(typeof(AggregateFuncs), funcName);
+        field.AggregateFunc = aggregateFun;
+        await _aggregateFuncListPopup.Hide();
+    }
+
+    private FieldDefinition _activeValueField = new FieldDefinition { ID = "ValueFieldID" };
+    private async Task TriggeAggrevateFuncList(FieldDefinition valueField)
+    {
+        if (valueField.ID == _activeValueField.ID)
+        {
+            await _aggregateFuncListPopup.Hide();
+            _activeValueField = new FieldDefinition { ID = "ValueFieldID" };
+        }
+        else
+        {
+            await _aggregateFuncListPopup.Hide();
+            _activeValueField = valueField;
+            StateHasChanged();
+            await Task.Delay(10);//await popup update its TriggerId
+            await _aggregateFuncListPopup.Show();
+        }
+    }
+
+    private static string newFieIdID = Guid.NewGuid().ToString().Replace("-", "");
+    private PivotFilter _filter;
+    private FieldDefinition _filterField { get; set; } = new FieldDefinition
+        {
+            ID = newFieIdID
+        };
+
+    private async Task TriggeFilter(FieldDefinition field)
+    {
+        if (_filterField.ID != field.ID)
+        {
+            await _filter.HideFilter();
+            _filterField = field;
+            await _filter.ShowFilter(_currentFilterPara, field);
+            StateHasChanged();
+        }
+        else
+        {
+            await _filter.HideFilter();
+            _filterField = new FieldDefinition
+                {
+                    ID = newFieIdID
+                };
+        }
+    }
+    private void HandleSubmitFilter(FilterOption option)
+    {
+        var fieldname = _filterField.FieldName;
+        if (_currentFilterPara.ContainsKey(fieldname))
+        {
+            _currentFilterPara[fieldname] = option;
+        }
+        else
+        {
+            _currentFilterPara.Add(fieldname, option);            
+        }
+        _filterField = new FieldDefinition
+            {
+                ID = newFieIdID
+            };//reset for next trigge
+        StateHasChanged();
+    }
+    private void HandleRemoveFilter(string fieldname)
+    {
+        _currentFilterPara.Remove(fieldname);
+        _filterField = new FieldDefinition
+            {
+                ID = newFieIdID
+            };
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,565 @@
+﻿@using Microsoft.JSInterop
+@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.Utilities
+@using MagicPropsComponents.ViewModels.DropDownList
+@typeparam TValue
+@inject IJSRuntime JSRuntime;
+@implements IMPDropDownList
+<CascadingValue Value="this" Name="MPDropDownList">
+    @if (Visible)
+    {
+        <div class="@(!string.IsNullOrEmpty(Title)?"mp-input-container":"")">
+            <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" id="@ClientID" @onfocusin="ShowOptionList" style="@(_widthString);@(!string.IsNullOrEmpty(Title)?"margin-top: 15px;":"")">
+                <input type="text" class="mp-within-input text-overflow-replace-ellipsis" value="@_displayText" id="@InputID" placeholder="@(_placeholderText)" readonly>
+                @if (Clearable)
+                {
+                    <div class="mp-input-btn" @onclick="ClearValue" @onclick:stopPropagation="true">
+                        <i class="fa fa-close"></i>
+                    </div>
+                }
+                <div class="mp-input-btn" @onclick="SwicthOptionListPopupVisible" @onclick:stopPropagation=true>
+                    <i class="fa @(_showLists?"fa-angle-up":"fa fa-angle-down")"></i>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide") @(Disabled?"disabled":"")" style="@(_titleWidthString);display:@(FixedTitle||_showLists || !string.IsNullOrEmpty(_displayText) ? "flex":"none")" title="@Title">
+                    <label class="text-overflow-replace-ellipsis " for="@InputID">@Title</label>
+                </div>
+            }
+            <div class="dropdownlist-popup" @ref="_optionListPopupEle">
+                @if (Searchable)
+                {
+                    <div style="padding:5px;">
+                        <MagicPropsComponents.Components.Input.MPInput InputID="@_filterInputId" Placeholder="Search..." Value="@_keyword" ValueChanged="SearchOptions" />
+                    </div>
+                }
+                <div style="@(_widthString);max-height:@MaxHeight.ToString()px;overflow-y:auto">
+                    @if (ChildContent != null)
+                    {
+                        @ChildContent
+                        @foreach (var item in _filteredchildDatasource)
+                        {
+                            <div class="dropdown-option-container @(CheckIsSelected(item)?"dropdown-option-selected":"" )" @onclick="()=>UpdateSelected(item)">
+                                <div class="d-flex" title="@item.Text">
+                                    <span class="text-overflow-replace-ellipsis">
+                                        @item.Text
+                                    </span>
+                                    @if (Multiple && CheckIsSelected(item))
+                                    {
+                                        <i class="fa fa-check ms-auto me-1 d-flex align-items-center"></i>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        @foreach (var opt in _options)
+                        {
+                            <div class="dropdown-option-container @(CheckIsSelected(opt)?"dropdown-option-selected":"" ) " @onclick="()=>UpdateSelected(opt)">
+                                <div class="d-flex" title="@GetTextData(opt)">
+                                    <span class="text-overflow-replace-ellipsis">
+                                        @GetTextData(opt)
+                                    </span>
+                                    @if (Multiple && CheckIsSelected(opt))
+                                    {
+                                        <i class="fa fa-check ms-auto me-1 d-flex align-items-center"></i>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+            </div>
+        </div>
+        <span class="mp-input-errmsg-hide @(ShowErrorMsg&&!CheckIsValid()?"mp-input-errmsg-show":"")">@RequiredErrorMsg </span>
+    }
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [Parameter]
+    public bool FixedTitle { get; set; }
+    [Parameter]
+    public string Placeholder { get; set; } = string.Empty;
+    [Parameter]
+    public bool Visible { get; set; } = true;
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+    [Parameter]
+    public int? Width { get; set; }
+    [Parameter]
+    public bool Multiple { get; set; } = false;
+    [Parameter]
+    public bool Searchable { get; set; } = false;
+    [Parameter]
+    public bool Casesensive { get; set; } = false;
+    [Parameter]
+    public bool Clearable { get; set; } = false;
+    [Parameter]
+    public int MaxHeight { get; set; } = 300;
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public List<TValue> Datasource { get; set; } = new List<TValue>();
+    [Parameter]
+    public string TextBy { get; set; } = "Text";
+    [Parameter]
+    public string ValueBy { get; set; } = "Value";
+    [Parameter]
+    public TValue? Value
+    {
+        get => _selectedValue;
+        set
+        {
+            _selectedValue = value;
+        }
+    }
+    [Parameter]
+    public EventCallback<TValue?> ValueChanged { get; set; }
+    [Parameter]
+    public List<TValue>? Values
+    {
+        get => _selectedValues;
+        set
+        {
+            if (_selectedValues == null || _selectedValues.Count != value?.Count())
+            {
+                _selectedValues = value?.ToList();
+                ValuesChanged.InvokeAsync(value?.ToList());
+                StateHasChanged();
+            }
+        }
+    }
+    [Parameter]
+    public EventCallback<List<TValue>?> ValuesChanged { get; set; }
+    [Parameter]
+    public bool Required { get; set; }
+    [Parameter]
+    public bool ShowErrorMsg { get; set; }
+    [Parameter]
+    public string RequiredErrorMsg { get; set; } = string.Empty;
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+    [Parameter]
+    public string InputID { get; set; } = string.Empty;
+    private bool _isValid = true;
+    [Parameter]
+    public bool IsValid
+    {
+        get => _isValid;
+        set
+        {
+            if (_isValid != value)
+            {
+                _isValid = CheckIsValid();
+                if (IsValidChanged.HasDelegate)
+                    IsValidChanged.InvokeAsync(_isValid);
+                if (_afterFirstFocus && value != _isValid)
+                {
+                    Console.WriteLine("Component internal validation result is: " + _isValid);
+                }
+            }
+        }
+    }
+    [Parameter]
+    public EventCallback<bool> IsValidChanged { get; set; }
+
+    #region Custom Option
+    private List<DefaultOptionModel> _childDatasource { get; set; } = new List<DefaultOptionModel>();
+    private List<DefaultOptionModel> _filteredchildDatasource { get; set; } = new List<DefaultOptionModel>();
+    private List<DefaultOptionModel> _selectedChildValues { get; set; } = new List<DefaultOptionModel>();
+    private DefaultOptionModel _selectedChildValue { get; set; } = new DefaultOptionModel();
+
+    public void AddChildDatasource(DefaultOptionModel value)
+    {
+        _keyword = string.Empty;
+        if (_childDatasource.Any(x => x.Value == value.Value)) return;
+        _childDatasource.Add(value);
+        _filteredchildDatasource = _childDatasource;
+        StateHasChanged();
+    }
+
+    public void DeleteChildDatasource(string value)
+    {
+        _childDatasource = _childDatasource.Where(x => x.Value != value).ToList();
+        _filteredchildDatasource = _childDatasource;
+        if (!Multiple && _selectedChildValue.Value == value) _selectedChildValue = new DefaultOptionModel();
+        if (Multiple && _selectedChildValues.Any(x => x.Value == value)) _selectedChildValues = _selectedChildValues.Where(x => x.Value != value).ToList();
+        StateHasChanged();
+    }
+
+    public bool CheckIsSelected(DefaultOptionModel value)
+    {
+        bool result = false;
+        if (Multiple)
+            result = _selectedChildValues.Any(x => x.Value == value.Value);
+        else
+            result = _selectedChildValue.Value == value.Value;
+        return result;
+    }
+
+    public void UpdateSelected(DefaultOptionModel value)
+    {
+        if (Multiple)
+        {
+            var item = _selectedChildValues.FirstOrDefault(x => x.Value == value.Value);
+            if (item != null)
+            {
+                _selectedChildValues.Remove(item);
+            }
+            else
+            {
+                _selectedChildValues.Add(value);
+            }
+            if (_isStringType)
+            {
+                Values = _selectedChildValues.Select(x => (string)x.Value).Cast<TValue>().ToList();
+                ValuesChanged.InvokeAsync(Values);
+                ExcuteVerfied();
+            }
+        }
+        else
+        {
+            _selectedChildValue = value;
+            if (_isStringType)
+            {
+                Value = (TValue)Convert.ChangeType(_selectedChildValue.Value, typeof(TValue));
+                ValueChanged.InvokeAsync(Value);
+                ExcuteVerfied();
+            }
+        }
+        StateHasChanged();
+    }
+
+    #endregion
+
+    private void ExcuteVerfied()
+    {
+        if (IsValidChanged.HasDelegate)
+        {
+            if (CheckIsValid())
+            {
+                IsValidChanged.InvokeAsync(true);
+            }
+            else
+            {
+                IsValidChanged.InvokeAsync(false);
+            }
+        }
+    }
+
+    private TValue? _selectedValue { get; set; }
+    private List<TValue>? _selectedValues { get; set; }
+    private ElementReference? _optionListPopupEle;
+    private bool _showLists = false;
+    private List<TValue> _options = new List<TValue>();
+    private string _displayText { get => GetDisplayText(); }
+    private bool _isStringType = false;
+    private string _placeholderText => string.IsNullOrEmpty(Title) ? Placeholder : (_showLists || FixedTitle) ? Placeholder : Title;
+    private string _keyword = string.Empty;
+    private string _filterInputId = string.Empty;
+    private bool _afterFirstFocus = false;
+    private string _widthString => Width == null ? "width:auto;" : Width < 100 ? "width:100px;" : "width:" + Width + "px;";
+    private string _titleWidthString => Width == null ? "width:auto;" : Width < 100 ? "max-width:90px;" : "max-width:" + (Width - 10) + "px;";
+
+    private string GetDisplayText()
+    {
+        if (ChildContent != null)
+        {
+            if (Multiple)
+            {
+                return string.Join(", ", _selectedChildValues.Select(x => x.Text));
+            }
+            else
+            {
+                return _selectedChildValue.Text;
+            }
+        }
+        if (Multiple)
+        {
+            var textList = new List<string>();
+            if (_isStringType)
+                _selectedValues?.ForEach(x =>
+                {
+                    if (!string.IsNullOrEmpty(x.ToString()))
+                        textList.Add(x.ToString());
+                });
+            else if (!string.IsNullOrEmpty(TextBy))
+            {
+                _selectedValues?.ForEach(selectedValue =>
+                    {
+                        var text = selectedValue?.GetType().GetProperty(TextBy)?.GetValue(selectedValue)?.ToString();
+                        if (!string.IsNullOrEmpty(text))
+                            textList.Add(text);
+                    });
+            }
+            return string.Join(", ", textList);
+        }
+        else
+        {
+            string text = string.Empty;
+            if (_isStringType)
+            {
+                text = _selectedValue?.ToString() ?? string.Empty;
+            }
+            else if (!string.IsNullOrEmpty(TextBy))
+            {
+                var filedText = _selectedValue?.GetType().GetProperty(TextBy)?.GetValue(_selectedValue)?.ToString();
+                if (!string.IsNullOrEmpty(filedText))
+                    text = filedText;
+            }
+            return text;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(ClientID))
+            ClientID = "mpdropdownlist_" + Guid.NewGuid().ToString().Replace("-", "");
+        if (string.IsNullOrEmpty(InputID))
+            InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
+        _filterInputId = "mpdropdownlistfilter_" + Guid.NewGuid().ToString().Replace("-", "");
+        _isStringType = typeof(TValue).Name == "String";
+        if (ChildContent != null && !_isStringType)
+        {
+            throw new Exception("For custom options, the value type must be string(TValue=string)");
+        }
+        _childDatasource = new List<DefaultOptionModel>();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("registerDotNetMethod", ClientID, DotNetObjectReference.Create(this));
+            _options = Datasource.ToList();
+            if (ChildContent != null && _isStringType)
+            {
+                _filteredchildDatasource = _childDatasource;
+                if (Multiple && Values != null)
+                {
+                    _selectedChildValues = _childDatasource.Where(item => Values.Select(x => x.ToString()).Contains(item.Value)).ToList();
+                    StateHasChanged();
+                }
+                else if (!Multiple && Value != null)
+                {
+                    _selectedChildValue = _childDatasource.FirstOrDefault(item => Value.ToString() == item.Value) ?? new DefaultOptionModel();
+                    StateHasChanged();
+                }
+            }
+        }
+        //_childDatasource = new List<DefaultOptionModel>();
+    }
+
+    private async Task ClearValue()
+    {
+        if (Multiple)
+        {
+            _selectedValues = new List<TValue>();
+            _selectedChildValues = new List<DefaultOptionModel>();
+            await ValuesChanged.InvokeAsync(_selectedValues);
+            ExcuteVerfied();
+        }
+        else
+        {
+            _selectedValue = Array.Empty<TValue>().FirstOrDefault();
+            _selectedChildValue = new DefaultOptionModel();
+            await ValueChanged.InvokeAsync(_selectedValue);
+            ExcuteVerfied();
+        }
+        await ShowOptionList();
+        StateHasChanged();
+    }
+
+    private void SearchOptions(string keywords)
+    {
+        _keyword = keywords;
+        if (ChildContent != null)
+        {
+            if (Casesensive)
+                _filteredchildDatasource = _childDatasource.Where(x => x.Text.IndexOf(keywords) > -1).ToList();
+            else
+                _filteredchildDatasource = _childDatasource.Where(x => x.Text.ToLower().IndexOf(keywords.ToLower()) > -1).ToList();
+            StateHasChanged();
+            return;
+        }
+        if (string.IsNullOrEmpty(keywords))
+        {
+            _options = Datasource.ToList();
+            return;
+        }
+        if (_isStringType)
+        {
+            _options = Datasource.ToList().Where(obj =>
+                {
+                    var text = obj.ToString();
+                    if (!string.IsNullOrEmpty(text) && !Casesensive && text.ToLower().Contains(keywords.ToLower())) return true;
+                    if (!string.IsNullOrEmpty(text) && Casesensive && text.Contains(keywords)) return true;
+                    return false;
+                }).ToList();
+            return;
+        }
+        var itemType = Datasource.GetType().GenericTypeArguments[0];
+        var props = PropertyByLambda.GetProperties(itemType);
+        var textProp = props.FirstOrDefault(x => x.Name == TextBy);
+        _options = Datasource.ToList().Where(obj =>
+        {
+            var text = textProp?.GetValue(obj)?.ToString();
+            if (!string.IsNullOrEmpty(text) && !Casesensive && text.ToLower().Contains(keywords.ToLower())) return true;
+            if (!string.IsNullOrEmpty(text) && Casesensive && text.Contains(keywords)) return true;
+            return false;
+        }).ToList();
+        StateHasChanged();
+    }
+
+    private bool CheckIsSelected(TValue value)
+    {
+        if (Multiple)
+        {
+            if (Values != null)
+                return Values.Any(x => GetValueData(x) == GetValueData(value));
+            else return false;
+        }
+        else
+        {
+            return GetValueData(Value) == GetValueData(value);
+        }
+    }
+
+    private async Task UpdateSelected(TValue value)
+    {
+        if (Multiple)
+        {
+            if (Values != null && Values.Any(x => GetValueData(x) == GetValueData(value)))
+            {
+                Values = Values.Where(x => GetValueData(x) != GetValueData(value)).ToList();
+            }
+            else
+            {
+                if (Values != null)
+                    Values = Values.Append(value).ToList();
+                else
+                {
+                    Values = new List<TValue>();
+                    Values = Values.Append(value).ToList();
+                }
+            }
+            await ValuesChanged.InvokeAsync(Values.ToList());
+            ExcuteVerfied();
+            StateHasChanged();
+        }
+        else
+        {
+            Value = value;
+            await ValueChanged.InvokeAsync(Value);
+            ExcuteVerfied();
+            await HideOptionList();
+        }
+    }
+
+    private string GetValueData(TValue value)
+    {
+        if (value == null) return string.Empty;
+        string textData = string.Empty;
+        if (_isStringType)
+        {
+            textData = value?.ToString() ?? string.Empty;
+        }
+        else if (!string.IsNullOrEmpty(ValueBy))
+        {
+            var data = value?.GetType().GetProperty(ValueBy)?.GetValue(value);
+            textData = data?.ToString() ?? string.Empty;
+        }
+        else if (ChildContent == null)
+        {
+            textData = GetTextData(value);
+        }
+        return textData ?? string.Empty;
+    }
+
+    private string GetTextData(TValue value)
+    {
+        if (value == null) return string.Empty;
+        string textData = string.Empty;
+        if (_isStringType)
+            textData = value?.ToString() ?? string.Empty;
+        else if (!string.IsNullOrEmpty(TextBy))
+        {
+            var data = value?.GetType().GetProperty(TextBy)?.GetValue(value);
+            textData = data?.ToString() ?? string.Empty;
+        }
+        else if (ChildContent == null)
+        {
+            throw new Exception("Could not fetch display field.");
+        }
+        return textData ?? string.Empty;
+    }
+
+    private bool CheckIsValid()
+    {
+        if (!_afterFirstFocus) return true;
+        if (Required && string.IsNullOrEmpty(_displayText))
+        {
+            var _errmsg = (string.IsNullOrEmpty(Title) ? "This field" : Title) + " is required";
+            RequiredErrorMsg = string.IsNullOrEmpty(RequiredErrorMsg) ? _errmsg : RequiredErrorMsg;
+            return false;
+        }
+        return true;
+    }
+
+    private async Task ShowOptionList()
+    {
+        if (Disabled) return;
+        if (!_showLists)
+        {
+            _keyword = string.Empty;
+            _options = Datasource.ToList();
+            if (!_afterFirstFocus) _afterFirstFocus = true;
+            _showLists = true;
+            await JSRuntime.InvokeAsync<object>("MPDropdonwlist.show", ClientID, _optionListPopupEle, _filterInputId);
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public async Task HideOptionList()
+    {
+        if (Disabled) return;
+        if (_showLists)
+        {
+            _showLists = false;
+            await JSRuntime.InvokeAsync<object>("MPDropdonwlist.hide", ClientID, _optionListPopupEle);
+            StateHasChanged();
+        }
+    }
+
+    [JSInvokable]
+    public async Task UpdateSelectedValueIndex(int valueIndex)
+    {
+        if (ChildContent != null)
+        {
+            DefaultOptionModel value = _filteredchildDatasource[valueIndex];
+            UpdateSelected(value);
+            return;
+        }
+        TValue obj = _options[valueIndex];
+        await UpdateSelected(obj);
+    }
+
+    private async Task SwicthOptionListPopupVisible()
+    {
+        if (Disabled) return;
+        if (_showLists)
+        {
+            await HideOptionList();
+        }
+        else
+        {
+            await ShowOptionList();
+        }
+    }
+}

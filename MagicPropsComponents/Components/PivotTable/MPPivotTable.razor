@@ -1,0 +1,116 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.ViewModels.PivotTable
+@using Microsoft.JSInterop
+@using System.Text.Json
+@using MagicPropsComponents.Utilities
+@using static MagicPropsComponents.Components.PivotTable.PivotTableGroupingTreeGenerator
+@implements IMPPivotTable;
+@implements IDisposable;
+@inject IJSRuntime JSRuntime;
+<CascadingValue Value="this" Name="CurrentPivotTable">
+    @ChildContent
+</CascadingValue>
+
+
+<div class="col-12 pivot-grid-wrapper data-grid_wrapper p-0" @ref="_pvtableContainer" id="@ClientID" style="@GetSizeStyle()">
+    <div class="values-filters-captions-row col-12">
+        <div class="values-captions-container"></div>
+        <div class="header-fields-container">
+            <div class="filter-fields-captions-cotnainer"></div>
+            <div class="col-fields-captions-cotnainer"> </div>
+        </div>
+    </div>
+    <div class="pivot-headerRoot">
+        <div class="mp-datagrid-header-wrapper ">
+            <table style="width:100%" class="mp-datagrid-header">
+            </table>
+        </div>
+    </div>
+
+    <div class="pivot-body-root mp-datagrid-body-wraper" style="height:500px">
+        <table style="width:100%" class="mp-pivot-datagrid">
+        </table>
+    </div>
+</div>
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent
+    {
+        get;
+        set;
+    }
+
+    [Parameter]
+    public bool ShowSummarizedRows { get; set; } = false;
+
+    [Parameter]
+    public bool ShowSummarizedColumns { get; set; } = false;
+
+    private ElementReference _pvtableContainer;
+    [Parameter]
+    public int Width { get; set; } = 1024;
+    [Parameter]
+    public int? Height { get; set; }
+
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+
+    public string GetSizeStyle()
+    {
+        return (Width < 400 ? "width:400px" : ("width:" + Width + "px")) + (Height == null ? "" : ";height:" + Height.ToString() + "px");
+    }
+
+    private string GetBodySizeStyle()
+    {
+        return (Width < 400 ? "width:400px" : ("width:" + Width + "px")) + (Height == null ? "" : ";height:" + (Height - 100).ToString() + "px");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(ClientID))
+            ClientID = "pivotTable_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
+
+    public async Task RenderPivotTable(PivotTableAggregatedData aggregatedDataSource, PivotFieldSettings[] colFields, PivotFieldSettings[] rowFields, PivotValueFieldSettings[] valueFields,
+            PivotFieldSettings[] filterFields, GroupTreeNode colTreeNode, GroupTreeNode rowTreeNode, List<string> filteredFieldNames, string donetRefId)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("MPPivotTable.renderPivotTable", _pvtableContainer, new SerializableAggregatedData(aggregatedDataSource, valueFields).ToJson(),
+            JsonSerializer.Serialize(colFields), JsonSerializer.Serialize(rowFields), JsonSerializer.Serialize(valueFields),
+            JsonSerializer.Serialize(filterFields), JsonSerializer.Serialize(colTreeNode), JsonSerializer.Serialize(rowTreeNode), filteredFieldNames, donetRefId);
+        }
+        catch (Exception ex)
+        {
+
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+        }
+        catch (Exception ex)
+        { }
+    }
+
+
+    private int _nodeLevel = 0;
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    void IDisposable.Dispose()
+    {
+        JSRuntime.InvokeVoidAsync("MPPivotTable.releaseData", ClientID);
+        Console.WriteLine("Disposed");
+    }
+}

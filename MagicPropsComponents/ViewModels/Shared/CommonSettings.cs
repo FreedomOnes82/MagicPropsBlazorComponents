@@ -17,4 +17,26 @@ namespace MagicPropsComponents.ViewModels.Shared
         Medium,
         Large
     }
+
+    public enum ColumnType
+    {
+        Default,
+        Date,
+        Number,
+        Boolean
+    }
+
+    public enum SortType
+    {
+        None,
+        Ascending,
+        Descending,
+    }
+
+    public enum TextAlign
+    {
+        Left,
+        Center,
+        Right
+    }
 }

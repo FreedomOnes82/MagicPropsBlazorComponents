@@ -1,0 +1,74 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.ViewModels.PivotTable
+@using MagicPropsComponents.ViewModels.Shared
+@using System.Globalization;
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public string Caption { get; set; }
+    [Parameter]
+    public ColumnType ColumnType { get; set; }
+    [Parameter]
+    public string? Format { get; set; }
+    [Parameter]
+    public SortType SortType { get; set; }
+    [Parameter]
+    public FilterType FilterType { get; set; }
+    [Parameter]
+    public AggregateFuncs AggregateFunction { get; set; }
+    [Parameter]
+    public string CultureString { get; set; } = "en-US";
+
+
+    [CascadingParameter(Name = "CurrentSettings")]
+    public PivotTableDataSourceSettings Settings { get; set; }
+    [CascadingParameter(Name = "FieldType")]
+    public PivotTableFieldTypes FieldType { get; set; }
+
+    protected override void OnInitialized()
+    {
+        switch (this.FieldType)
+        {
+            case PivotTableFieldTypes.Row:
+                this.Settings.AddRowField(GetPivotFieldSettings());
+                break;
+            case PivotTableFieldTypes.Column:
+                this.Settings.AddColumnField(GetPivotFieldSettings());
+                break;
+            case PivotTableFieldTypes.Value:
+                this.Settings.AddValueField(new PivotValueFieldSettings()
+                    {
+                        Name = Name,
+                        Caption = Caption ?? Name,
+                        ColumnType = ColumnType,
+                        Format = Format,
+                        CultureString = CultureString,
+                        SortType = SortType,
+                        FilterType = FilterType,
+                        AggregateFunc = AggregateFunction
+                    });
+                break;
+            case PivotTableFieldTypes.Filter:
+                this.Settings.AddFilterField(GetPivotFieldSettings());
+                break;
+        }
+        StateHasChanged();
+    }
+
+    private PivotFieldSettings GetPivotFieldSettings()
+    {
+        return new PivotFieldSettings()
+            {
+                Name = Name,
+                Caption = Caption ?? Name,
+                ColumnType = ColumnType,
+                Format = Format,
+                CultureString = CultureString,
+                SortType = SortType,
+                FilterType = FilterType
+            };
+    }
+
+}

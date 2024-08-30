@@ -1,0 +1,86 @@
+﻿@page "/pivottabledemo";
+
+@using MagicPropsComponents.Components.PivotTable
+@using MagicPropsDemo.Models
+@using MagicProsDemo.Services
+@using MagicPropsComponents.ViewModels.PivotTable
+@using MagicPropsComponents.ViewModels.Shared
+@using System.IO;
+@using System.Text.Json;
+@using System.Text.Json.Serialization;
+ @rendermode @(new InteractiveServerRenderMode(prerender:false) )
+
+<HeadContent>
+    <h3>This is header for pivot table</h3>
+
+</HeadContent>
+<MPPivotTable Width="1200">
+    <PivotTableDataSourceSettings @ref="@settings" DataSource="@AllGoods" CaseSensitive="false">
+        <PivotColumnFields>
+            <PivotField Name="CreateBy" FilterType="FilterType.DefaultFilter" />
+            <PivotField Name="LastModifiedBy" FilterType="FilterType.DefaultFilter" />
+        </PivotColumnFields>
+        <PivotRowsFields>
+            <PivotField Name="Category" FilterType="FilterType.MenuListFilter" ColumnType="ColumnType.Default" />
+            <PivotField Name="SubCategory" FilterType="FilterType.MenuListFilter" />
+            <PivotField Name="Name" FilterType="FilterType.MenuListFilter" />
+        </PivotRowsFields>
+        <PivotFiltersFields>
+            <PivotField Name="LastModifiedDate" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Date" />
+            <PivotField Name="IsDiscount" FilterType="FilterType.MenuListFilter" ColumnType="ColumnType.Boolean" />
+            <PivotField Name="IsActive" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Boolean" />
+            <PivotField Name="ID" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Number" />
+        </PivotFiltersFields>
+        <PivotValuesFields>
+            <PivotField Name="Inventory" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Number" AggregateFunction="MagicPropsComponents.ViewModels.PivotTable.AggregateFuncs.Sum" />
+            <PivotField Name="Price" FilterType="FilterType.ConditionFilter" Format="c" CultureString="en-US" ColumnType="ColumnType.Number" AggregateFunction="MagicPropsComponents.ViewModels.PivotTable.AggregateFuncs.Max" />
+        </PivotValuesFields>
+    </PivotTableDataSourceSettings>
+</MPPivotTable>
+@code {
+    private PivotTableDataSourceSettings settings;
+    private List<Goods> AllGoods { get; set; }
+
+    protected override void OnInitialized()
+    {
+        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Models/Data.json");
+
+        if (File.Exists(filePath))
+        {
+            using var stream = File.OpenRead(filePath);
+            using var reader = new StreamReader(stream);
+            string text = reader.ReadToEnd();
+
+            var options = new JsonSerializerOptions
+                {
+                    Converters = { new DateTimeConverter() }
+                };
+
+            AllGoods = JsonSerializer.Deserialize<List<Goods>>(text, options) ?? new List<Goods>();
+        }
+        else
+        {
+            Console.WriteLine("Cound not found this file：" + filePath);
+        }
+       
+        //Following codes is to get the data from database while not from mock json data
+       //var goodsService = new MagicPropsDemo.Services.GoodsService();
+       //AllGoods = goodsService.GetAllGoods().ToList();
+    }
+
+    public class DateTimeConverter : JsonConverter<DateTime>
+    {
+        private const string DateFormat = "yyyy-MM-dd HH:mm:ss";
+
+        public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var dateString = reader.GetString();
+            return DateTime.ParseExact(dateString, DateFormat, null);
+        }
+
+        public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString(DateFormat));
+        }
+    }
+}

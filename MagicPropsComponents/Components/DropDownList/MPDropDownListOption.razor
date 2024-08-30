@@ -1,0 +1,26 @@
+﻿@using MagicPropsComponents.Abstractions
+@using MagicPropsComponents.ViewModels.DropDownList
+@implements IDisposable;
+
+@code {
+    [CascadingParameter(Name = "MPDropDownList")]
+    public IMPDropDownList CurrentDropdownList { get; set; }
+
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (CurrentDropdownList == null)
+            throw new Exception("Error to fetch DropdownList, please check your statement.");
+        CurrentDropdownList.AddChildDatasource(new DefaultOptionModel { Value = Value, Text = Text });
+        base.OnInitialized();
+    }
+
+    void IDisposable.Dispose()
+    {
+        CurrentDropdownList.DeleteChildDatasource(Value);
+    }
+}

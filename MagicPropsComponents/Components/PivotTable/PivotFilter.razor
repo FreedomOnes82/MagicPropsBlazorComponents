@@ -1,0 +1,422 @@
+﻿@using MagicPropsComponents.Utilities
+@using MagicPropsComponents.ViewModels.PivotTable
+@using MagicPropsComponents.ViewModels.Shared
+@using MagicPropsComponents.Utilities.Extensions
+
+<MagicPropsComponents.Components.Popup.MPPopup Toward="ViewModels.Popup.PopupToward.TriggerBottomCenter" TriggerEleID="@_filterPopupTriggerID" @ref="_filterPopup">
+    <div class="mt-3">
+        @if (FilterTemplate != null)
+        {
+            @FilterTemplate(Field)
+        }
+        else
+        {
+            @switch (Field.FilterType)
+            {
+                case FilterType.DefaultFilter:
+                    <input type="text" class="form-control" style="width:300px;" placeholder="Search..." @bind-value="_keyword" />
+                    break;
+                case FilterType.MenuListFilter:
+                    {
+                        GetMenuListDS();
+                        <MagicPropsComponents.Components.Input.MPInput @bind-Value="@_menuListKeyword" Placeholder="Search..." Width="300">
+                            <LeftAppend>
+                                <i class="fa fa-search"></i>
+                            </LeftAppend>
+                        </MagicPropsComponents.Components.Input.MPInput>
+                        <div style="max-height:250px;overflow-y:auto;max-width:350px;overflow-x:auto;margin-top:10px;">
+                            @if (string.IsNullOrEmpty(_menuListKeyword))
+                            {
+                                <div class="form-check" @onclick="SwitchSelectAllStatus">
+                                    <input class="form-check-input" type="checkbox" checked="@(_selectedObjects.Count == _menuListObjectDS.Count)">
+                                    <label class="form-check-label">
+                                        Select All
+                                    </label>
+                                </div>
+                            }
+                            @foreach (var data in _menuListObjectDS)
+                            {
+                                <div class="form-check" @onclick="()=>UpdateSelectedObject(data)">
+                                    <input class="form-check-input" type="checkbox" checked="@(_selectedObjects.Contains(data))">
+                                    <label style="white-space: nowrap;">
+                                        @data.ToString()
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    break;
+                case FilterType.ConditionFilter:
+                    if (Field.ColumnType == ColumnType.Default)
+                    {
+                        GetStringTypeFilterBy();
+                        if (string.IsNullOrEmpty(_filterBy))
+                            _filterBy = FilterByDS.First();
+                    }
+                    else
+                    {
+                        GetOtherTypeFilterBy();
+                        if (string.IsNullOrEmpty(_filterBy))
+                            _filterBy = FilterByDS.First();
+                    }
+                    switch (Field.ColumnType)
+                    {
+                        case ColumnType.Default:
+                            <div class="mb-3">
+                                <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
+                                </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+                            </div>
+                            <input type="text" class="form-control" style="width:300px;" placeholder="Search..." @bind-value="_keyword" />
+                            break;
+                        case ColumnType.Number:
+                            <div class="mb-3">
+                                <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
+                                </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+                            </div>
+                            <MagicPropsComponents.Components.NumberInput.MPNumberInput @bind-Value="_keynumber" Width="300">
+                            </MagicPropsComponents.Components.NumberInput.MPNumberInput>
+                            break;
+                        case ColumnType.Date:
+                            <div class="mb-3">
+                                <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
+                                </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+                            </div>
+                            <MagicPropsComponents.Components.DatePicker.MPDatePicker Title="Date" FixedTitle @bind-Value="@_keyDate" Width="300" />
+                            break;
+                        case ColumnType.Boolean:
+                            <div style="padding: 10px; justify-content: center;display: flex;">
+                                <MagicPropsComponents.Components.RadioGroup.MPRadioGroup DisplayInline="true" DisplayMode="MagicPropsComponents.ViewModels.SelectionGroup.DisplayModes.DefaultButton" @bind-Value="_keyword">
+                                    <MagicPropsComponents.Components.RadioGroup.MPRadioGroup Value="True" Description="True"></MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
+                                    <MagicPropsComponents.Components.RadioGroup.MPRadioGroup Value="False" Description="False"></MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
+                                </MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
+                            </div>
+                            break;
+                    }
+                    break;
+            }
+            <div class="fchooser-footer pe-0 pb-0">
+                <button type="button" class="btn btn-secondary" @onclick="RemoveFilter">Clear</button>
+                <button type="button" class="btn btn-primary ms-3" @onclick="SubmitFilterCondition">Submit</button>
+            </div>
+        }
+
+    </div>
+</MagicPropsComponents.Components.Popup.MPPopup>
+@code {
+    [CascadingParameter(Name = "CurrentSettings")]
+    public PivotTableDataSourceSettings Settings { get; set; }
+    [Parameter]
+    public FieldDefinition Field { get; set; } = new FieldDefinition();
+    [Parameter]
+    public Theme Theme { get; set; }
+    private MagicPropsComponents.Components.Popup.MPPopup _filterPopup;
+    [Parameter]
+    public bool DirectOnTable { get; set; } = false;
+    [Parameter]
+    public EventCallback<string> OnRemoveFilter { get; set; }
+    [Parameter]
+    public RenderFragment<object>? FilterTemplate { get; set; }
+
+    [Parameter]
+    public List<object>? MenuListDS { get; set; }
+
+    [Parameter]
+    public EventCallback<FilterOption> OnSubmitFilter { get; set; }
+
+    private SvgHelper SvgHelper;
+    private string _filterBy { get; set; } = string.Empty;
+    private List<string> FilterByDS { get; set; } = new List<string>();
+    private string _keyword = string.Empty;
+    private decimal _keynumber;
+    private DateTime _keyDate = DateTime.Today;
+    private string _menuListKeyword { get; set; } = string.Empty;
+
+    private bool isShowFieldChooser = false;
+    protected override void OnInitialized()
+    {
+        SvgHelper = new SvgHelper(Theme);
+    }
+
+    private string _filterPopupTriggerID { get; set; } = "filterPopupTriggerID";
+    private void SetPopupTriggerID()
+    {
+        if (DirectOnTable && !string.IsNullOrEmpty(Field.FieldName))
+        {
+            _filterPopupTriggerID = "filterPopup_" + Field.FieldName;
+        }
+        else if (!DirectOnTable && !string.IsNullOrEmpty(Field.FieldName))
+        {
+            _filterPopupTriggerID = "filterPopupOnFieldChooser_" + Field.FieldName;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (Settings != null)
+        {
+            isShowFieldChooser = Settings._showFieldsChooser;
+        }
+    }
+
+    private async Task RemoveFilter()
+    {
+        await _filterPopup.Hide();
+        await OnRemoveFilter.InvokeAsync(Field.FieldName);
+        _filterBy = string.Empty;
+        _keyword = string.Empty;
+        _menuListKeyword = string.Empty;
+        _selectedObjects = new List<object>();
+        //TODO: reset FiltercOption
+        StateHasChanged();
+    }
+
+    private async Task SubmitFilterCondition()
+    {
+        var newFilterOption = new FilterOption();
+        newFilterOption.ColumnType = Field.ColumnType;
+        newFilterOption.FilterType = Field.FilterType;
+        switch (Field.FilterType)
+        {
+            case FilterType.DefaultFilter:
+                newFilterOption.Keywords = _keyword;
+                break;
+            case FilterType.ConditionFilter:
+                {
+                    var conditionFilterSettings = new ConditionFilterSettings();
+                    switch (Field.ColumnType)
+                    {
+                        case ColumnType.Default: conditionFilterSettings.StingFilterBy = StringTypeFilterByMap[_filterBy]; conditionFilterSettings.Keywords = _keyword; break;
+                        case ColumnType.Number: conditionFilterSettings.OtherFilterBy = OtherTypeFilterByMap[_filterBy]; conditionFilterSettings.KeyValue = _keynumber; break;
+                        case ColumnType.Date: conditionFilterSettings.OtherFilterBy = OtherTypeFilterByMap[_filterBy]; conditionFilterSettings.KeyValue = _keyDate; break;
+                        case ColumnType.Boolean: conditionFilterSettings.KeyValue = _keyword; break;
+                    }
+                    newFilterOption.ConditionFilterSettings = conditionFilterSettings;
+                }
+                break;
+            case FilterType.MenuListFilter:
+                {
+                    newFilterOption.MenuList = _selectedObjects;
+                }
+                break;
+        }
+        if (OnSubmitFilter.HasDelegate)
+        {
+            await _filterPopup.Hide();
+            await OnSubmitFilter.InvokeAsync(newFilterOption);
+            _menuListKeyword = string.Empty;
+        }
+        StateHasChanged();
+    }
+
+    private Dictionary<string, FilterOption> _filterPara = new Dictionary<string, FilterOption>();
+    //private FieldDefinition _field = new FieldDefinition();
+    public async Task ShowFilter(Dictionary<string, FilterOption> filterPara, FieldDefinition field)
+    {
+        _filterPara = filterPara;
+        Field = field;
+        SetPopupTriggerID();
+        InitFilterInfo();
+        StateHasChanged();
+        if (_filterPopup.TriggerEleID == _filterPopupTriggerID)
+        {
+            await _filterPopup.Show();
+        }
+        else
+        {
+            await Task.Delay(10);//await _filterPopup update its TriggerID.
+            await _filterPopup.Show();
+        }
+    }
+
+    public async Task HideFilter()
+    {
+        await _filterPopup.Hide();
+    }
+
+    private List<object> _menuListObjectDS = new List<object>();
+    private List<object> _selectedObjects { get; set; } = new List<object>();
+    private void GetMenuListDS()
+    {
+        if (!isShowFieldChooser && MenuListDS != null)
+        {
+            _menuListObjectDS = MenuListDS.Distinct().ToList();
+        }
+        else if (isShowFieldChooser)
+        {
+            _menuListObjectDS = Settings.GetMenuListDS(Field.FieldName).Distinct().ToList();
+        }
+        if (!string.IsNullOrEmpty(_menuListKeyword))
+            _menuListObjectDS = _menuListObjectDS.Where(x => x.ToString().ToLower().IndexOf(_menuListKeyword.ToLower()) > -1).ToList();
+    }
+
+    private void SwitchSelectAllStatus()
+    {
+        if (_selectedObjects.Count == _menuListObjectDS.Count)
+        {
+            _selectedObjects = new List<object>();
+        }
+        else
+        {
+            _selectedObjects = _menuListObjectDS.ToList();
+        }
+    }
+    private void UpdateSelectedObject(object data)
+    {
+        if (_selectedObjects.Contains(data))
+        {
+            _selectedObjects.Remove(data);
+        }
+        else
+        {
+            _selectedObjects.Add(data);
+        }
+    }
+
+    private void InitFilterInfo()
+    {
+        if (_filterPara.ContainsKey(Field.FieldName))
+        {
+            FilterOption filterOption = _filterPara[Field.FieldName];
+            switch (filterOption.FilterType)
+            {
+                case FilterType.DefaultFilter:
+                    {
+                        _keyword = filterOption.Keywords ?? string.Empty;
+                    }
+                    break;
+                case FilterType.MenuListFilter:
+                    {
+                        if (filterOption.MenuList != null)
+                        {
+                            var selectedObjects = new List<object>();
+                            foreach (var item in filterOption.MenuList)
+                            {
+                                if (item != null)
+                                {
+                                    if (Field.ColumnType == ColumnType.Default)
+                                    {
+                                        selectedObjects.Add(item.ToString());
+                                    }
+                                    else if (Field.ColumnType == ColumnType.Number)
+                                    {
+                                        selectedObjects.Add(Convert.ToDecimal(item));
+                                    }
+                                    else if (Field.ColumnType == ColumnType.Date)
+                                    {
+                                        selectedObjects.Add(Convert.ToDateTime(item));
+                                    }
+                                    else if (Field.ColumnType == ColumnType.Boolean)
+                                    {
+                                        selectedObjects.Add(Convert.ToBoolean(item.ToString()));
+                                    }
+                                }
+                            }
+                            _selectedObjects = selectedObjects;
+                        }
+                    }
+                    break;
+                case FilterType.ConditionFilter:
+                    {
+                        switch (filterOption.ColumnType)
+                        {
+                            case ColumnType.Default:
+                                {
+                                    _keyword = filterOption?.ConditionFilterSettings?.Keywords ?? string.Empty;
+                                    _filterBy = filterOption?.ConditionFilterSettings?.StingFilterBy?.GetDescription() ?? string.Empty;
+                                }
+                                break;
+                            case ColumnType.Date:
+                                {
+                                    _keyDate = Convert.ToDateTime(filterOption?.ConditionFilterSettings?.KeyValue?.ToString());
+                                    _filterBy = filterOption?.ConditionFilterSettings?.OtherFilterBy?.GetDescription() ?? string.Empty;
+                                }
+                                break;
+                            case ColumnType.Number:
+                                {
+                                    _keynumber = Convert.ToDecimal(filterOption?.ConditionFilterSettings?.KeyValue?.ToString());
+                                    _filterBy = filterOption?.ConditionFilterSettings?.OtherFilterBy?.GetDescription() ?? string.Empty;
+                                }
+                                break;
+                            case ColumnType.Boolean:
+                                {
+                                    _keyword = filterOption?.ConditionFilterSettings?.KeyValue?.ToString() ?? string.Empty;
+                                    _filterBy = filterOption?.ConditionFilterSettings?.OtherFilterBy?.GetDescription() ?? string.Empty;
+                                }
+                                break;
+                            default:
+                                {
+                                    _keyword = filterOption?.ConditionFilterSettings?.Keywords?.ToString() ?? string.Empty;
+                                    _filterBy = filterOption?.ConditionFilterSettings?.StingFilterBy?.GetDescription() ?? string.Empty;
+                                }
+                                break;
+                        }
+                    }
+                    break;
+                default: break;
+            }
+        }
+        else
+        {
+            //Field = Field;
+            _filterBy = string.Empty;
+            _keyword = string.Empty;
+            _menuListKeyword = string.Empty;
+            _selectedObjects = new List<object>();
+            //StateHasChanged();
+        }
+    }
+
+    private void GetStringTypeFilterBy()
+    {
+        FilterByDS.Clear();
+        FilterByDS.Add("Starts With");
+        FilterByDS.Add("Does Not Start With");
+        FilterByDS.Add("Ends With");
+        FilterByDS.Add("Does Not End With");
+        FilterByDS.Add("Contains");
+        FilterByDS.Add("Does Not Contain");
+        FilterByDS.Add("Equal");
+        FilterByDS.Add("Not Equal");
+        FilterByDS.Add("Empty");
+        FilterByDS.Add("Not Empty");
+        FilterByDS.Add("Regular Matching");
+    }
+    public static Dictionary<string, StringColumnTypeFilterBy> StringTypeFilterByMap = new Dictionary<string, StringColumnTypeFilterBy>
+    {
+        {"Starts With", StringColumnTypeFilterBy.StartsWith},
+        {"Does Not Start With", StringColumnTypeFilterBy.DoesNotStartWith},
+        {"Ends With", StringColumnTypeFilterBy.EndsWith},
+        {"Does Not End With", StringColumnTypeFilterBy.DoesNotEndWith},
+        {"Contains", StringColumnTypeFilterBy.Contains},
+        {"Does Not Contain", StringColumnTypeFilterBy.DoesNotContain},
+        {"Equal", StringColumnTypeFilterBy.Equal},
+        {"Not Equal", StringColumnTypeFilterBy.NotEqual},
+        {"Empty", StringColumnTypeFilterBy.Empty},
+        {"Not Empty", StringColumnTypeFilterBy.NotEmpty},
+        {"Regular Matching", StringColumnTypeFilterBy.RegularMatching}
+    };
+
+    private void GetOtherTypeFilterBy()
+    {
+        FilterByDS.Clear();
+        FilterByDS.Add("Equal");
+        FilterByDS.Add("Not Equal");
+        FilterByDS.Add("Greater Than");
+        FilterByDS.Add("Greater Than Or Equal");
+        FilterByDS.Add("Less Than");
+        FilterByDS.Add("Less Than Or Equal");
+        FilterByDS.Add("Null");
+        FilterByDS.Add("Not Null");
+    }
+    public static Dictionary<string, OtherColumnTypeFilterBy> OtherTypeFilterByMap = new Dictionary<string, OtherColumnTypeFilterBy>
+    {
+        {"Equal", OtherColumnTypeFilterBy.Equal},
+        {"Not Equal", OtherColumnTypeFilterBy.NotEqual},
+        {"Greater Than", OtherColumnTypeFilterBy.GreaterThan},
+        {"Greater Than Or Equal", OtherColumnTypeFilterBy.GreaterThanOrEqual},
+        {"Less Than", OtherColumnTypeFilterBy.LessThan},
+        {"Less Than Or Equal", OtherColumnTypeFilterBy.LessThanOrEqual},
+        {"Null", OtherColumnTypeFilterBy.Null},
+        {"Not Null", OtherColumnTypeFilterBy.NotNull}
+    };
+}
