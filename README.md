@@ -21,6 +21,6 @@ The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons an
 ![image](./Public_Images/Using_Componnent_Sample.png)
 
 If you encounter any difficulties while utilizing the associated component, please kindly download our demo project. It will provide a clear demonstration of how we effectively employ the components, serving as a valuable reference for you.  
-Details please go to [detail.md](./Detail_ReadMe/pivottable.md)
+Details please go to [detail.md](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/Detail_ReadMe/PivotTable.md)
 
 
