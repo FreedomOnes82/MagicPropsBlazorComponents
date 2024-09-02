@@ -1,4 +1,6 @@
-Pivot Table 
+Pivot Table  
+**Introduction**:  
+
    A pivot table is a powerful tool in data analysis and reporting, it allows you to reorganize and summarize large amounts of data in a table format, making it easier to understand and analyze trends, patterns, and relationships within the data. 
    Here are the key properties related to the pivot table component (Including MPPivotTable,PivotTableDataSourceSettings and PivotField), which provide customization options for both its display and functionality:
    **MPPivotTable**:    
@@ -28,4 +30,7 @@ Pivot Table
    * **CultureString**: Setting for culture string showing up for this filed, only used in PivotValuesFields part. Please note: since you can drap and drop to change the fileds position, that is, for example, you can drap PivotColumnFields and drop it to PivotValuesFields, please do correct setting for this if want to use it later.
    * **AggregateFunction**: Setting for calculation method for the fileds, the value should be "Count", "DistinctCount", "Sum", "Min","Max" or "Average".
 
-
+  
+Demo Images:
+![Pivottable](pivottable.png)  
+![Pivottable Fieldchooser](pivottable_fieldchooser.png)
