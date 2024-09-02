@@ -1,4 +1,4 @@
-Pivot Table  
+**Pivot Table**  
 **Introduction**:  
 
    A pivot table is a powerful tool in data analysis and reporting, it allows you to reorganize and summarize large amounts of data in a table format, making it easier to understand and analyze trends, patterns, and relationships within the data. 
@@ -31,6 +31,6 @@ Pivot Table
    * **AggregateFunction**: Setting for calculation method for the fileds, the value should be "Count", "DistinctCount", "Sum", "Min","Max" or "Average".
 
   
-Demo Images:
+**Demo Images**:
 ![Pivottable](pivottable.png)  
 ![Pivottable Fieldchooser](pivottable_fieldchooser.png)

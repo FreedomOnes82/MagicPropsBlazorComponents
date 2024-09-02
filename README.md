@@ -4,7 +4,9 @@ This is a versatile Blazor component that you can seamlessly integrate into your
 **Blazor Components Demos**
 
 This Demo project shows up the demos how we use the blazor components we developed.
-The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons and more.
+The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons,
+[Pivot Table](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/Detail_ReadMe/PivotTable/PivotTable.md) 
+and more.
 
 
 **How to use these Components**
@@ -21,6 +23,6 @@ The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons an
 ![image](./Public_Images/Using_Componnent_Sample.png)
 
 If you encounter any difficulties while utilizing the associated component, please kindly download our demo project. It will provide a clear demonstration of how we effectively employ the components, serving as a valuable reference for you.  
-Details please go to [detail.md](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/Detail_ReadMe/PivotTable/PivotTable.md)
+
 
 
