@@ -86,8 +86,8 @@
                         case ColumnType.Boolean:
                             <div style="padding: 10px; justify-content: center;display: flex;">
                                 <MagicPropsComponents.Components.RadioGroup.MPRadioGroup DisplayInline="true" DisplayMode="MagicPropsComponents.ViewModels.SelectionGroup.DisplayModes.DefaultButton" @bind-Value="_keyword">
-                                    <MagicPropsComponents.Components.RadioGroup.MPRadioGroup Value="True" Description="True"></MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
-                                    <MagicPropsComponents.Components.RadioGroup.MPRadioGroup Value="False" Description="False"></MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
+                                    <MagicPropsComponents.Components.RadioGroup.MPRadioOption Value="True" Description="True"></MagicPropsComponents.Components.RadioGroup.MPRadioOption>
+                                    <MagicPropsComponents.Components.RadioGroup.MPRadioOption Value="False" Description="False"></MagicPropsComponents.Components.RadioGroup.MPRadioOption>
                                 </MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
                             </div>
                             break;
@@ -107,8 +107,6 @@
     public PivotTableDataSourceSettings Settings { get; set; }
     [Parameter]
     public FieldDefinition Field { get; set; } = new FieldDefinition();
-    [Parameter]
-    public Theme Theme { get; set; }
     private MagicPropsComponents.Components.Popup.MPPopup _filterPopup;
     [Parameter]
     public bool DirectOnTable { get; set; } = false;
@@ -122,8 +120,6 @@
 
     [Parameter]
     public EventCallback<FilterOption> OnSubmitFilter { get; set; }
-
-    private SvgHelper SvgHelper;
     private string _filterBy { get; set; } = string.Empty;
     private List<string> FilterByDS { get; set; } = new List<string>();
     private string _keyword = string.Empty;
@@ -132,10 +128,6 @@
     private string _menuListKeyword { get; set; } = string.Empty;
 
     private bool isShowFieldChooser = false;
-    protected override void OnInitialized()
-    {
-        SvgHelper = new SvgHelper(Theme);
-    }
 
     private string _filterPopupTriggerID { get; set; } = "filterPopupTriggerID";
     private void SetPopupTriggerID()

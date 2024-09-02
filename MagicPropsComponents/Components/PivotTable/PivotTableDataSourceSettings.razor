@@ -33,7 +33,7 @@
         }
     </div>
 </MagicPropsComponents.Components.Popup.MPPopup>
-<PivotFilter @ref=@_filter Field="_field" Theme="@Theme" DirectOnTable MenuListDS="@GetMenuListDS(_field.FieldName)" OnSubmitFilter="(option)=>HandleSubmitFilter(_field.FieldName,option)" OnRemoveFilter="HandleRemoveFilter"></PivotFilter>
+<PivotFilter @ref=@_filter Field="_field" DirectOnTable MenuListDS="@GetMenuListDS(_field.FieldName)" OnSubmitFilter="(option)=>HandleSubmitFilter(_field.FieldName,option)" OnRemoveFilter="HandleRemoveFilter"></PivotFilter>
 
 @code {
     private PivotFilter _filter;
@@ -52,8 +52,7 @@
             //StateHasChanged();
         }
     }
-    [Parameter]
-    public Theme Theme { get; set; }
+   
     [CascadingParameter(Name = "CurrentPivotTable")]
     public IMPPivotTable CurrentPivotTable { get; set; }
 
@@ -111,7 +110,6 @@
         if (string.IsNullOrEmpty(ClientID))
             ClientID = "pivotTable_" + Guid.NewGuid().ToString().Replace("-", "");
         base.OnInitialized();
-        //CurrentPivotTable
     }
 
     protected override void OnParametersSet()
@@ -154,9 +152,7 @@
             stopwatch.Stop();
             await this.CurrentPivotTable.RenderPivotTable(result,
                ColumnFields.ToArray(), RowFields.ToArray(), ValueFields.ToArray(), FilterFields.ToArray(), colNode, rowNode, FilterPara.Select(x => x.Key).ToList(), ClientID);
-            // await this.CurrentPivotTable.GeneratePivotTable(_groupedRecords,
-            //     RowFields.ToArray(), ColumnFields.ToArray(), ValueFields.ToArray(), FilterFields.ToArray(), colNode, rowNode);
-
+          
             Console.WriteLine($"Excuted with time: {stopwatch.ElapsedMilliseconds} ms");
         }
     }

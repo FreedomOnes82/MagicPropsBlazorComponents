@@ -158,7 +158,7 @@
                 </div>
             </div>
         </div>
-        <PivotFilter @ref=@_filter Field="_filterField" Theme="@Theme" OnSubmitFilter="HandleSubmitFilter" OnRemoveFilter="HandleRemoveFilter"></PivotFilter>
+        <PivotFilter @ref=@_filter Field="_filterField" OnSubmitFilter="HandleSubmitFilter" OnRemoveFilter="HandleRemoveFilter"></PivotFilter>
         <MagicPropsComponents.Components.Popup.MPPopup @ref=_aggregateFuncListPopup AnchorPointType="ViewModels.Popup.AnchorPointType.TriggerRightTop" Toward="ViewModels.Popup.PopupToward.BottomRight" TriggerEleID="@("expand_"+_activeValueField.ID)" Spacing="0" BorderRadius="3" PopupShadowSettings="0 16px 48px rgba(0,0,0,.175)" Padding="3">
             <div class="mp-pivot-aggregatefuncs-list">
                 @foreach (var aggregateFun in Enum.GetNames(typeof(AggregateFuncs)))
@@ -419,9 +419,7 @@
         }
     }
 
-    //init
-    [Parameter]
-    public Theme Theme { get; set; }
+    private Theme Theme { get; set; }
     private SvgHelper SvgHelper;
     protected override void OnInitialized()
     {

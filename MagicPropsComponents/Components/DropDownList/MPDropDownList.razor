@@ -520,7 +520,7 @@
             _options = Datasource.ToList();
             if (!_afterFirstFocus) _afterFirstFocus = true;
             _showLists = true;
-            await JSRuntime.InvokeAsync<object>("MPDropdonwlist.show", ClientID, _optionListPopupEle, _filterInputId);
+            await JSRuntime.InvokeAsync<object>("MPDropdownlist.show", ClientID, _optionListPopupEle, _filterInputId);
             StateHasChanged();
         }
     }
@@ -532,7 +532,7 @@
         if (_showLists)
         {
             _showLists = false;
-            await JSRuntime.InvokeAsync<object>("MPDropdonwlist.hide", ClientID, _optionListPopupEle);
+            await JSRuntime.InvokeAsync<object>("MPDropdownlist.hide", ClientID, _optionListPopupEle);
             StateHasChanged();
         }
     }

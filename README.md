@@ -20,5 +20,7 @@ The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons an
 4. Then you can use the related components  
 ![image](./Public_Images/Using_Componnent_Sample.png)
 
-If you encounter any difficulties while utilizing the associated component, please kindly download our demo project. It will provide a clear demonstration of how we effectively employ the components, serving as a valuable reference for you.
+If you encounter any difficulties while utilizing the associated component, please kindly download our demo project. It will provide a clear demonstration of how we effectively employ the components, serving as a valuable reference for you.  
+Details please go to [detail.md](./MagicPropsDemo./readme.md)
+
 
