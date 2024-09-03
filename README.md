@@ -5,6 +5,7 @@ This is a versatile Blazor component that you can seamlessly integrate into your
 
 This Demo project shows up the demos how we use the blazor components we developed.
 The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons,
+[Timeline](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Timeline/Timeline.md), 
 [Pivot Table](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/PivotTable/PivotTable.md) 
 and more.
 

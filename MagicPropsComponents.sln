@@ -21,6 +21,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PivotTable", "PivotTable", 
 		ReadMeDetails\PivotTable\pivottable_fieldchooser.png = ReadMeDetails\PivotTable\pivottable_fieldchooser.png
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Timeline", "Timeline", "{36B23580-397E-41DB-A18C-FC85FD95D0BD}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\Timeline\Timeline.md = ReadMeDetails\Timeline\Timeline.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +47,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B0A92394-045E-4227-B282-A13B00F58375} = {209D1E5E-421F-42FC-A080-8A4212A79973}
 		{9C6E2831-1D17-455C-8547-C56768EDA425} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{36B23580-397E-41DB-A18C-FC85FD95D0BD} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}
