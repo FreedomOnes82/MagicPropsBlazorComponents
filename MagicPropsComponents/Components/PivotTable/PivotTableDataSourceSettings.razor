@@ -66,44 +66,48 @@
     public RenderFragment PivotFiltersFields { get; set; }
     [Parameter]
     public bool CaseSensitive { get; set; } = false;
-    [Parameter]
-    public List<PivotFieldSettings> FilterFields { get; set; } = new List<PivotFieldSettings>();
+   
+    private List<PivotFieldSettings> _filterFields { get; set; } = new List<PivotFieldSettings>();
     public void AddFilterField(PivotFieldSettings pivotFieldSettings)
     {
-        FilterFields.Add(pivotFieldSettings);
+        _filterFields.Add(pivotFieldSettings);
         StateHasChanged();
     }
-    [Parameter]
-    public List<PivotFieldSettings> ColumnFields { get; set; } = new List<PivotFieldSettings>();
+    public List<PivotFieldSettings> FilterFields { get => _filterFields; }
+
+    private List<PivotFieldSettings> _columnFields { get; set; } = new List<PivotFieldSettings>();
     public void AddColumnField(PivotFieldSettings pivotFieldSettings)
     {
-        ColumnFields.Add(pivotFieldSettings);
+        _columnFields.Add(pivotFieldSettings);
         StateHasChanged();
     }
-    [Parameter]
-    public List<PivotFieldSettings> RowFields { get; set; } = new List<PivotFieldSettings>();
+    public List<PivotFieldSettings> ColumnFields { get => _columnFields; }
+
+    private List<PivotFieldSettings> _rowFields { get; set; } = new List<PivotFieldSettings>();
     public void AddRowField(PivotFieldSettings pivotFieldSettings)
     {
-        RowFields.Add(pivotFieldSettings);
+        _rowFields.Add(pivotFieldSettings);
         StateHasChanged();
     }
-    public void ResetFieldConfig(PivotTableFieldsConfig newConfig)
-    {
-        RowFields = newConfig.RowFields;
-        ColumnFields = newConfig.ColumnFields;
-        ValueFields = newConfig.ValueFields;
-        FilterFields = newConfig.FilterFields;
-        FilterPara = newConfig.FilterPara;
-    }
-    [Parameter]
-    public List<PivotValueFieldSettings> ValueFields { get; set; } = new List<PivotValueFieldSettings>();
+    public List<PivotFieldSettings> RowFields { get => _rowFields; }
+
+  
+    private List<PivotValueFieldSettings> _valueFields { get; set; } = new List<PivotValueFieldSettings>();
     public void AddValueField(PivotValueFieldSettings pivotFieldSettings)
     {
-        ValueFields.Add(pivotFieldSettings);
+        _valueFields.Add(pivotFieldSettings);
         StateHasChanged();
     }
+    public List<PivotValueFieldSettings> ValueFields { get => _valueFields; }
 
-
+    public void ResetFieldConfig(PivotTableFieldsConfig newConfig)
+    {
+        _rowFields = newConfig.RowFields;
+        _columnFields = newConfig.ColumnFields;
+        _valueFields = newConfig.ValueFields;
+        _filterFields = newConfig.FilterFields;
+        _filterPara = newConfig.FilterPara;
+    }
 
     protected override void OnInitialized()
     {
@@ -130,28 +134,28 @@
 
     public async Task RenderPivotTable()
     {
-        if (ValueFields.Count > 0 && DataSource != null)
+        if (_valueFields.Count > 0 && DataSource != null)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             List<string> groupingFields = new List<string>();
-            groupingFields.AddRange(ColumnFields.Select(c => c.Name));
-            groupingFields.AddRange(RowFields.Select(c => c.Name));
-            var kvps = ValueFields.Select(x => KeyValuePair.Create(x.Name, x.AggregateFunc));
-            var result = DataGroupingHelper.Aggregate(DataSource, ColumnFields, RowFields, kvps.ToDictionary(), true, true, GetSortPara(), FilterPara, !CaseSensitive);
+            groupingFields.AddRange(_columnFields.Select(c => c.Name));
+            groupingFields.AddRange(_rowFields.Select(c => c.Name));
+            var kvps = _valueFields.Select(x => KeyValuePair.Create(x.Name, x.AggregateFunc));
+            var result = DataGroupingHelper.Aggregate(DataSource, _columnFields, _rowFields, kvps.ToDictionary(), true, true, GetSortPara(), _filterPara, !CaseSensitive);
             var _groupedRecords = result.GroupedData.Select(x => new GroupedData() { GroupedKeys = x.Key, GroupedValues = x.Value }).ToList();
 
             var groupingTreeBuilder = new PivotTableGroupingTreeGenerator();
             GroupTreeNode colNode = new GroupTreeNode(null) { IsExpand = true };
-            var detailDataKeys = result.GroupedData.Keys.Where(x => x.Length == ColumnFields.Count + RowFields.Count).ToList();
-            if (ColumnFields.Count > 0)
-                PivotTableGroupingTreeGenerator.BuildTree(detailDataKeys, colNode, 0, ColumnFields.Count - 1);
+            var detailDataKeys = result.GroupedData.Keys.Where(x => x.Length == _columnFields.Count + _rowFields.Count).ToList();
+            if (_columnFields.Count > 0)
+                PivotTableGroupingTreeGenerator.BuildTree(detailDataKeys, colNode, 0, _columnFields.Count - 1);
 
             GroupTreeNode rowNode = new GroupTreeNode(null) { IsExpand = true };
-            if (RowFields.Count > 0)
-                PivotTableGroupingTreeGenerator.BuildTree(detailDataKeys, rowNode, ColumnFields.Count, groupingFields.Count - 1, ColumnFields.Count);
+            if (_rowFields.Count > 0)
+                PivotTableGroupingTreeGenerator.BuildTree(detailDataKeys, rowNode, _columnFields.Count, groupingFields.Count - 1, _columnFields.Count);
             stopwatch.Stop();
             await this.CurrentPivotTable.RenderPivotTable(result,
-               ColumnFields.ToArray(), RowFields.ToArray(), ValueFields.ToArray(), FilterFields.ToArray(), colNode, rowNode, FilterPara.Select(x => x.Key).ToList(), ClientID);
+               _columnFields.ToArray(), _rowFields.ToArray(), _valueFields.ToArray(), _filterFields.ToArray(), colNode, rowNode, _filterPara.Select(x => x.Key).ToList(), ClientID);
           
             Console.WriteLine($"Excuted with time: {stopwatch.ElapsedMilliseconds} ms");
         }
@@ -169,13 +173,13 @@
         switch (originalConatiner)
         {
             case "Column":
-                field = ColumnFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); originalFieldList = ColumnFields; break;
+                field = _columnFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); originalFieldList = _columnFields; break;
             case "Row":
-                field = RowFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); originalFieldList = RowFields; break;
+                field = _rowFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); originalFieldList = _rowFields; break;
             case "Filter":
-                field = FilterFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); originalFieldList = FilterFields; if (field != null) RemoveFilter(field.Name); break;
+                field = _filterFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); originalFieldList = _filterFields; if (field != null) RemoveFilter(field.Name); break;
             case "Value":
-                valueField = ValueFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); valueFieldList = ValueFields; isOriginalValue = true; break;
+                valueField = _valueFields.FirstOrDefault(x => x.Caption == draggedFieldDisplayName); valueFieldList = _valueFields; isOriginalValue = true; break;
         }
         switch (targetConatiner)
         {
@@ -183,12 +187,12 @@
                 {
                     if (isOriginalValue && valueField != null)
                     {
-                        ColumnFields.Add(valueField);
-                        ValueFields.Remove(valueField);
+                        _columnFields.Add(valueField);
+                        _valueFields.Remove(valueField);
                     }
                     else if (!isOriginalValue && field != null)
                     {
-                        ColumnFields.Add(field);
+                        _columnFields.Add(field);
                         originalFieldList.Remove(field);
                     }
                 }
@@ -197,12 +201,12 @@
                 {
                     if (isOriginalValue && valueField != null)
                     {
-                        RowFields.Add(valueField);
-                        ValueFields.Remove(valueField);
+                        _rowFields.Add(valueField);
+                        _valueFields.Remove(valueField);
                     }
                     else if (!isOriginalValue && field != null)
                     {
-                        RowFields.Add(field);
+                        _rowFields.Add(field);
                         originalFieldList.Remove(field);
                     }
                 }
@@ -211,12 +215,12 @@
                 {
                     if (isOriginalValue && valueField != null)
                     {
-                        FilterFields.Add(valueField);
-                        ValueFields.Remove(valueField);
+                        _filterFields.Add(valueField);
+                        _valueFields.Remove(valueField);
                     }
                     else if (!isOriginalValue && field != null)
                     {
-                        FilterFields.Add(field);
+                        _filterFields.Add(field);
                         originalFieldList.Remove(field);
                     }
                 }
@@ -225,7 +229,7 @@
                 {
                     if (!isOriginalValue && field != null)
                     {
-                        ValueFields.Add(new PivotValueFieldSettings { Name = field.Name, Caption = field.Caption, Expand = field.Expand, AggregateFunc = AggregateFuncs.Count, Format = field.Format, CultureString = field.CultureString });
+                        _valueFields.Add(new PivotValueFieldSettings { Name = field.Name, Caption = field.Caption, Expand = field.Expand, AggregateFunc = AggregateFuncs.Count, Format = field.Format, CultureString = field.CultureString });
                         originalFieldList.Remove(field);
                     }
                 }
@@ -240,13 +244,13 @@
         switch (fieldContainer)
         {
             case "Column":
-                ColumnFields = ColumnFields.Where(x => x.Name != fieldName).ToList(); break;
+                _columnFields = _columnFields.Where(x => x.Name != fieldName).ToList(); break;
             case "Row":
-                RowFields = RowFields.Where(x => x.Name != fieldName).ToList(); break;
+                _rowFields = _rowFields.Where(x => x.Name != fieldName).ToList(); break;
             case "Filter":
-                FilterFields = FilterFields.Where(x => x.Name != fieldName).ToList(); RemoveFilter(fieldName); break;
+                _filterFields = _filterFields.Where(x => x.Name != fieldName).ToList(); RemoveFilter(fieldName); break;
             case "Value":
-                ValueFields = ValueFields.Where(x => x.Name != fieldName).ToList(); break;
+                _valueFields = _valueFields.Where(x => x.Name != fieldName).ToList(); break;
         }
         await RenderPivotTable();
     }
@@ -257,9 +261,9 @@
     [JSInvokable]
     public async Task HandleShowFilter(string fieldName)
     {
-        var target = FilterFields.FirstOrDefault(x => x.Name == fieldName) ??
-                     RowFields.FirstOrDefault(x => x.Name == fieldName) ??
-                     ColumnFields.FirstOrDefault(x => x.Name == fieldName);
+        var target = _filterFields.FirstOrDefault(x => x.Name == fieldName) ??
+                     _rowFields.FirstOrDefault(x => x.Name == fieldName) ??
+                     _columnFields.FirstOrDefault(x => x.Name == fieldName);
         if (target != null)
         {
             await _filter.HideFilter();
@@ -280,7 +284,7 @@
                     CultureString=target.CultureString,
                     Format=target.Format
                 };
-            await _filter.ShowFilter(FilterPara, _field);
+            await _filter.ShowFilter(_filterPara, _field);
             StateHasChanged();
         }
     }
@@ -288,12 +292,12 @@
     [JSInvokable]
     public bool IsFiltered(string fieldName)
     {
-        return FilterPara.ContainsKey(fieldName);
+        return _filterPara.ContainsKey(fieldName);
     }
 
     private Dictionary<string, string> GetSortPara()
     {
-        var allFields = ColumnFields.Concat(RowFields);
+        var allFields = _columnFields.Concat(_rowFields);
 
         var sortedFields = allFields.Where(field => field.SortType != SortType.None)
                                     .ToDictionary(field => field.Name,
@@ -302,25 +306,26 @@
         return sortedFields;
     }
 
-    public Dictionary<string, FilterOption> FilterPara = new Dictionary<string, FilterOption>();
+    private Dictionary<string, FilterOption> _filterPara = new Dictionary<string, FilterOption>();
+    public Dictionary<string, FilterOption> FilterPara { get => _filterPara; }
 
     public void AddFilter(string fieldName, FilterOption filterOption)
     {
-        if (FilterPara.ContainsKey(fieldName))
+        if (_filterPara.ContainsKey(fieldName))
         {
-            FilterPara[fieldName] = filterOption;
+            _filterPara[fieldName] = filterOption;
         }
         else
         {
-            FilterPara.Add(fieldName, filterOption);
+            _filterPara.Add(fieldName, filterOption);
         }
     }
 
     public void RemoveFilter(string fieldName)
     {
-        if (FilterPara.ContainsKey(fieldName))
+        if (_filterPara.ContainsKey(fieldName))
         {
-            FilterPara.Remove(fieldName);
+            _filterPara.Remove(fieldName);
         }
     }
 
@@ -330,7 +335,7 @@
         switch (fieldContainer)
         {
             case "Column":
-                var field = ColumnFields.FirstOrDefault(x => x.Name == fieldName);
+                var field = _columnFields.FirstOrDefault(x => x.Name == fieldName);
                 if (field != null)
                 {
                     switch (field.SortType)
@@ -342,7 +347,7 @@
                 }
                 break;
             case "Row":
-                field = RowFields.FirstOrDefault(x => x.Name == fieldName);
+                field = _rowFields.FirstOrDefault(x => x.Name == fieldName);
                 if (field != null)
                 {
                     switch (field.SortType)
@@ -357,28 +362,29 @@
         await RenderPivotTable();
     }
 
-    public async Task UpdateAllFields(List<FieldDefinition> columnFields, List<FieldDefinition> rowFields, List<FieldDefinition> valueFields, List<FieldDefinition> filterFields)
+    public async Task UpdateFiledsSettings(List<FieldDefinition> columnFields, List<FieldDefinition> rowFields, List<FieldDefinition> valueFields, List<FieldDefinition> filterFields, Dictionary<string, FilterOption> filterPara)
     {
-        ColumnFields.Clear();
+        _columnFields.Clear();
         foreach (var field in columnFields)
         {
-            ColumnFields.Add(ConvertToPivotFieldSettings(field));
+            _columnFields.Add(ConvertToPivotFieldSettings(field));
         }
-        RowFields.Clear();
+        _rowFields.Clear();
         foreach (var field in rowFields)
         {
-            RowFields.Add(ConvertToPivotFieldSettings(field));
+            _rowFields.Add(ConvertToPivotFieldSettings(field));
         }
-        ValueFields.Clear();
+        _valueFields.Clear();
         foreach (var field in valueFields)
         {
-            ValueFields.Add(new PivotValueFieldSettings { Name = field.FieldName, Caption = field.DisplayText, ColumnType = field.ColumnType, AggregateFunc = field.AggregateFunc ?? AggregateFuncs.Count, Format = field.Format, CultureString = field.CultureString });
+            _valueFields.Add(new PivotValueFieldSettings { Name = field.FieldName, Caption = field.DisplayText, ColumnType = field.ColumnType, AggregateFunc = field.AggregateFunc ?? AggregateFuncs.Count, Format = field.Format, CultureString = field.CultureString });
         }
-        FilterFields.Clear();
+        _filterFields.Clear();
         foreach (var field in filterFields)
         {
-            FilterFields.Add(ConvertToPivotFieldSettings(field));
+            _filterFields.Add(ConvertToPivotFieldSettings(field));
         }
+        _filterPara = filterPara;
         await RenderPivotTable();
     }
 
@@ -398,7 +404,7 @@
 
     public async Task UpdateValueFieldAggregateFunc(string fieldName, AggregateFuncs newFunc)
     {
-        var targetValueField = ValueFields.First(x => x.Name == fieldName);
+        var targetValueField = _valueFields.First(x => x.Name == fieldName);
         if (targetValueField != null)
         {
             targetValueField.AggregateFunc = newFunc;
@@ -441,7 +447,7 @@
     private string GetValueFieldDisplayTextPrefix(string fieldName)
     {
         var prefix = string.Empty;
-        var target = ValueFields.FirstOrDefault(x => x.Name == fieldName);
+        var target = _valueFields.FirstOrDefault(x => x.Name == fieldName);
         if (target != null)
         {
             switch (target.AggregateFunc)
@@ -472,7 +478,7 @@
 
     private async Task SwitchValueFieldAggregateFun(string funcName,string fieldName)
     {
-        var target = ValueFields.FirstOrDefault(x => x.Name == fieldName);
+        var target = _valueFields.FirstOrDefault(x => x.Name == fieldName);
         if (target != null)
         {
             var aggregateFun = (AggregateFuncs)Enum.Parse(typeof(AggregateFuncs), funcName);
@@ -486,7 +492,7 @@
     [JSInvokable]
     public async Task HandleShowAggragateFunc(string fieldName)
     {
-        var target = ValueFields.FirstOrDefault(x => x.Name == fieldName);
+        var target = _valueFields.FirstOrDefault(x => x.Name == fieldName);
         if (target != null)
         {
             if (_activeAggragatePopupField.Name == fieldName)

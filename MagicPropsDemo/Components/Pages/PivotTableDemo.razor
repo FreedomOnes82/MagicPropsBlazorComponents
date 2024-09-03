@@ -17,18 +17,18 @@
 <MPPivotTable Width="1200">
     <PivotTableDataSourceSettings @ref="@settings" DataSource="@AllGoods" CaseSensitive="false">
         <PivotColumnFields>
-            <PivotField Name="CreateBy" FilterType="FilterType.DefaultFilter" />
-            <PivotField Name="LastModifiedBy" FilterType="FilterType.DefaultFilter" />
+            <PivotField Name="CreateBy" Caption="Create Person" FilterType="FilterType.DefaultFilter" />
+            <PivotField Name="LastModifiedBy" Caption="Last Modified Person" FilterType="FilterType.DefaultFilter" />
         </PivotColumnFields>
         <PivotRowsFields>
             <PivotField Name="Category" FilterType="FilterType.MenuListFilter" ColumnType="ColumnType.Default" />
-            <PivotField Name="SubCategory" FilterType="FilterType.MenuListFilter" />
+            <PivotField Name="SubCategory" Caption="Sub Category" FilterType="FilterType.MenuListFilter" />
             <PivotField Name="Name" FilterType="FilterType.MenuListFilter" />
         </PivotRowsFields>
         <PivotFiltersFields>
-            <PivotField Name="LastModifiedDate" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Date" />
-            <PivotField Name="IsDiscount" FilterType="FilterType.MenuListFilter" ColumnType="ColumnType.Boolean" />
-            <PivotField Name="IsActive" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Boolean" />
+            <PivotField Name="LastModifiedDate" Caption="Last Modified Date" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Date" />
+            <PivotField Name="IsDiscount" Caption="Is Discount" FilterType="FilterType.MenuListFilter" ColumnType="ColumnType.Boolean" />
+            <PivotField Name="IsActive" Caption="Is Active" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Boolean" />
             <PivotField Name="ID" FilterType="FilterType.ConditionFilter" ColumnType="ColumnType.Number" />
         </PivotFiltersFields>
         <PivotValuesFields>

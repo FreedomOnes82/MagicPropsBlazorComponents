@@ -29,14 +29,14 @@
                         <label>All Fields</label>
                     </span>
                     <div class="item-container">
-                        <div class="input-group my-1 mx-2" style="max-width:230px;">
-                            <input type="text" class="form-control" placeholder="Search..." @onchange="OnSearching">
+                        <div class="mp-input-outline m-1">
+                            <input class="mp-within-input" placeholder="Search..." @oninput="OnSearching" />
                         </div>
                         <div class="list-container">
                             @foreach (var field in filteredFieldSet)
                             {
                                 <div class="mp-pivot-fchooser-flexible-item">
-                                    <input type="checkbox" class="form-check-input" name="option2" checked="@field.Applied" @onchange="()=>SwitchCheckStatus(field)">
+                                    <input type="checkbox" class="form-check-input" name="option2" checked="@field.Applied" @onchange="async()=>await SwitchCheckStatus(field)">
                                     <div class="item-text ms-2 fw-bold" id="all_@field.ID">@field.DisplayText</div>
                                 </div>
                             }
@@ -207,7 +207,6 @@
     {
         InitFieldSet();
         Settings._showFieldsChooser = true;
-        await JSRuntime.InvokeVoidAsync("MPPivotTable.loadFeildChooserDraggedItems", _fieldChooserContainer, _filedChooserId);
         _showFieldChooserModal = true;
         //reset currentFilterPara
         _currentFilterPara = new Dictionary<string, FilterOption>();
@@ -216,6 +215,8 @@
             _currentFilterPara.Add(item.Key, item.Value);
         }
         StateHasChanged();
+        await Task.Delay(5);
+        await JSRuntime.InvokeVoidAsync("MPPivotTable.loadFeildChooserDraggedItems", _fieldChooserContainer, _filedChooserId);
     }
 
     private async Task Export()
@@ -266,8 +267,7 @@
                 {
                     if (Settings != null)
                     {
-                        Settings.FilterPara = _currentFilterPara;
-                        await Settings.UpdateAllFields(columnFieldSet, rowFieldSet, valueFieldSet, filterFieldSet);
+                        await Settings.UpdateFiledsSettings(columnFieldSet, rowFieldSet, valueFieldSet, filterFieldSet, _currentFilterPara);
                     }
                     HideFieldChooserDailog();
                 }
@@ -327,16 +327,29 @@
         else
             filteredFieldSet = fieldSet;
     }
-    private void SwitchCheckStatus(FieldDefinition field)
+    private async Task SwitchCheckStatus(FieldDefinition field)
     {
+        var targetContainer = string.Empty;
+        switch (field.Type)
+        {
+            case PivotTableFieldTypes.Row: { targetContainer = "Row"; } break;
+            case PivotTableFieldTypes.Filter: { targetContainer = "Filter"; } break;
+            case PivotTableFieldTypes.Value: { targetContainer = "Value"; } break;
+            case PivotTableFieldTypes.Column:
+            default: { targetContainer = "Column"; } break;
+        }
         if (field.Applied)
         {
             field.Applied = false;
+            HandleFieldChooserDialogDragging(targetContainer, "All", field.DisplayText);
         }
         else
         {
             field.Applied = true;
+            HandleFieldChooserDialogDragging("All", targetContainer, field.DisplayText);
         }
+        await Task.Delay(5);
+        await JSRuntime.InvokeVoidAsync("MPPivotTable.loadFeildChooserDraggedItems", _fieldChooserContainer, _filedChooserId);
     }
 
     //about sort(column/row fieldSet)
@@ -362,6 +375,13 @@
                         {
                             if (field.Applied)
                             {
+                                switch (field.Type)
+                                {
+                                    case PivotTableFieldTypes.Column: { originalFieldSet = columnFieldSet; } break;
+                                    case PivotTableFieldTypes.Row: { originalFieldSet = rowFieldSet; } break;
+                                    case PivotTableFieldTypes.Filter: { originalFieldSet = filterFieldSet; } break;
+                                    case PivotTableFieldTypes.Value: { originalFieldSet = valueFieldSet; } break;
+                                }
                                 field.Applied = false;
                             }
                         }

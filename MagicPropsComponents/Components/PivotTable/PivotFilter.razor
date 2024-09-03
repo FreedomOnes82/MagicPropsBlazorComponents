@@ -5,6 +5,7 @@
 
 <MagicPropsComponents.Components.Popup.MPPopup Toward="ViewModels.Popup.PopupToward.TriggerBottomCenter" TriggerEleID="@_filterPopupTriggerID" @ref="_filterPopup">
     <div class="mt-3">
+      <form @onsubmit="SubmitFilterCondition">
         @if (FilterTemplate != null)
         {
             @FilterTemplate(Field)
@@ -14,7 +15,8 @@
             @switch (Field.FilterType)
             {
                 case FilterType.DefaultFilter:
-                    <input type="text" class="form-control" style="width:300px;" placeholder="Search..." @bind-value="_keyword" />
+                        <MagicPropsComponents.Components.Input.MPInput @bind-Value="@_keyword" Placeholder="Search..." Width="300">
+                        </MagicPropsComponents.Components.Input.MPInput>
                     break;
                 case FilterType.MenuListFilter:
                     {
@@ -96,10 +98,10 @@
             }
             <div class="fchooser-footer pe-0 pb-0">
                 <button type="button" class="btn btn-secondary" @onclick="RemoveFilter">Clear</button>
-                <button type="button" class="btn btn-primary ms-3" @onclick="SubmitFilterCondition">Submit</button>
+                <button type="submit" class="btn btn-primary ms-3">Submit</button>
             </div>
         }
-
+        </form>
     </div>
 </MagicPropsComponents.Components.Popup.MPPopup>
 @code {

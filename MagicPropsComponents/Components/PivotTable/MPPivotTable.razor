@@ -84,7 +84,7 @@
         {
             await JSRuntime.InvokeVoidAsync("MPPivotTable.renderPivotTable", _pvtableContainer, new SerializableAggregatedData(aggregatedDataSource, valueFields).ToJson(),
             JsonSerializer.Serialize(colFields), JsonSerializer.Serialize(rowFields), JsonSerializer.Serialize(valueFields),
-            JsonSerializer.Serialize(filterFields), JsonSerializer.Serialize(colTreeNode), JsonSerializer.Serialize(rowTreeNode), filteredFieldNames, donetRefId);
+            JsonSerializer.Serialize(filterFields), JsonSerializer.Serialize(colTreeNode), JsonSerializer.Serialize(rowTreeNode), filteredFieldNames, donetRefId, ShowSummarizedColumns, ShowSummarizedRows);
         }
         catch (Exception ex)
         {

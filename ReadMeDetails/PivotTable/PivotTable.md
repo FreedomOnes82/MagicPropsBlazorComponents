@@ -1,4 +1,18 @@
-**Pivot Table**  
+**Pivot Table**    
+**Demo Images**:  
+Here are a few demonstrative images that offer you a comprehensive overview of our pivot components.  
+Privot table overview diagram:     
+![Pivottable](pivottable.png)
+![Pivottableoverview](pivottableoverview.png)  
+Pivot table filter chooser:
+![Pivottable Fieldchooser](pivottable_fieldchooser.png)  
+Pivot table filter part:   
+![Filter with List](filter1.png)  
+![Filter with Condition](filter2.png)  
+![Filter with Boolean](filter3.png)  
+![Filter with String Match](filter4.png)
+
+
 **Introduction**:  
 
    A pivot table is a powerful tool in data analysis and reporting, it allows you to reorganize and summarize large amounts of data in a table format, making it easier to understand and analyze trends, patterns, and relationships within the data. 
@@ -12,7 +26,7 @@
    * **ClientID**: A unique identifier (id) for this component, allowing for specific targeting and styling via CSS or JavaScript.
     
    **PivotTableDataSourceSettings**:    
-   * **DataSource**: Binding the datasource for the pivot table.
+   * **DataSource**: Binding the datasource for the pivot table. It can be not only data from all kinds of database, such as MSSQL, MySQL, Postgresql and so on but also it can get data from JSON file.
    * **PivotRowsFields**: HTML code or elements, which can be appended to the rows area within pivot table, typically achieved through the use of PivotField within it.
    * **PivotColumnFields**: HTML code or elements, which can be appended to the columns area within pivot table, typically achieved through the use of PivotField within it.
    * **PivotFiltersFields**: HTML code or elements, which can be appended to the filters area within pivot table, typically achieved through the use of PivotField within it.
@@ -31,6 +45,3 @@
    * **AggregateFunction**: Setting for calculation method for the fileds, the value should be "Count", "DistinctCount", "Sum", "Min","Max" or "Average".
 
   
-**Demo Images**:
-![Pivottable](pivottable.png)  
-![Pivottable Fieldchooser](pivottable_fieldchooser.png)

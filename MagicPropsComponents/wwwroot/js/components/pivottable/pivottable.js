@@ -573,8 +573,9 @@
             }
         };
         createDataRows(rowNode, colNode);
-        createGrantTotalRow();
+
         //TODO:Create Grant total row...
+        if (datasourceSettings.showGrantTotalRow) createGrantTotalRow();
 
         var headerDiv = $(pivotTbContainerEle).find(".pivot-headerRoot")[0];
         var bodyDiv = $(pivotTbContainerEle).find(".pivot-body-root")[0];
@@ -625,7 +626,9 @@
         strColNode,
         strRowNode,
         filteredFieldNames,
-        donetRefId
+        donetRefId,
+        showGrantTotalColumn,
+        showGrantTotalRow
     ) {
         console.log("groupedDatas:");
         var arrGroupedData = JSON.parse(strAggregatedRecords);
@@ -649,7 +652,6 @@
         var colFields = JSON.parse(strColFields);
 
         var id = $(pivotTbContainerEle).attr("id");
-        var showGrantTotalColumn = true;
         if (showGrantTotalColumn) {
             var grantTotalNode = colNode.Children.find(
                 (x) => x.Name === "[]:Grant Total"
@@ -675,7 +677,8 @@
             valueFields: valueFields,
             filterFields: filters,
             aggregatedRecords: arrGroupedData,
-            showGrantTotalColumn: true,
+            showGrantTotalColumn: showGrantTotalColumn,
+            showGrantTotalRow: showGrantTotalRow,
             filteredFieldNames: filteredFieldNames,
             donetRefId: donetRefId,
         };
