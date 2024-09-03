@@ -7,6 +7,8 @@
 @using static PivotTable.PivotTableGroupingTreeGenerator
 @using MagicPropsComponents.Utilities
 @inject IJSRuntime JSRuntime;
+@implements IDisposable
+
 <CascadingValue Value="this" Name="CurrentSettings">
     <PivotToolbar WithFieldChooser="true" TableWidth="CurrentPivotTable!.Width"></PivotToolbar>
     <CascadingValue Value="PivotTableFieldTypes.Value" Name="FieldType">
@@ -130,6 +132,11 @@
             await JSRuntime.InvokeVoidAsync("registerDotNetMethod", ClientID, DotNetObjectReference.Create(this));
             await RenderPivotTable();
         }
+    }
+
+    void IDisposable.Dispose()
+    {
+        JSRuntime.InvokeVoidAsync("releaseDotNetRef", ClientID);
     }
 
     public async Task RenderPivotTable()

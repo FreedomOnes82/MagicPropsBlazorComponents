@@ -2,7 +2,8 @@
 @using MagicPropsComponents.ViewModels.Modal
 @using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
-<div id="@clientId" class="modal" @ref=_modal>
+@implements IDisposable
+<div id="@ClientID" class="modal" @ref=_modal>
     <div class="modal-dialog modal-dialog-centered @GetModalSizeClass()">
         <div class="modal-content" @ref=_content>
             @if (HeaderVisible)
@@ -121,15 +122,16 @@
         await OnDialogButtonClicked.InvokeAsync(btn);
     }
 
-    private string clientId { get; set; } = string.Empty;
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            if (string.IsNullOrEmpty(clientId))
+            if (string.IsNullOrEmpty(ClientID))
             {
-                clientId = "modal_" + Guid.NewGuid().ToString().Replace("-", "");
-                await JSRuntime.InvokeVoidAsync("registerDotNetMethod", clientId, DotNetObjectReference.Create(this));
+                ClientID = "modal_" + Guid.NewGuid().ToString().Replace("-", "");
+                await JSRuntime.InvokeVoidAsync("registerDotNetMethod", ClientID, DotNetObjectReference.Create(this));
             }
         }
     }
@@ -138,11 +140,11 @@
     {
         if (visible)
         {
-            await JSRuntime.InvokeAsync<object>("MPModal.show", this.clientId, _modal, _content, ClickOutsideToClose);
+            await JSRuntime.InvokeAsync<object>("MPModal.show", this.ClientID, _modal, _content, ClickOutsideToClose);
         }
         else
         {
-            await JSRuntime.InvokeAsync<object>("MPModal.hide", this.clientId, _modal);
+            await JSRuntime.InvokeAsync<object>("MPModal.hide", this.ClientID, _modal);
         }
     }
 
@@ -151,6 +153,11 @@
     {
         Visible = !_visible;
         await Task.Delay(10);
+    }
+
+    void IDisposable.Dispose()
+    {
+        JSRuntime.InvokeAsync<object>("releaseDotNetRef", ClientID);
     }
 
 }

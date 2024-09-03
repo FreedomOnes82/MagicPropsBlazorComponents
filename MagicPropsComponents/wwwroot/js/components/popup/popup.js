@@ -56,6 +56,22 @@
 
         var hideFuntion = async function (e) {
             await window.getDotNetRef(popupElementId).invokeMethodAsync('Hide');
+            //popupElement.style.display = "none";
+            //popupElement.style.visibility = 'hidden';
+            //if (clickFunc[popupElementId]) {
+            //    document.removeEventListener('click', clickFunc[popupElementId]);
+            //    clickFunc[popupElementId] = null;
+            //}
+            //if (hideFunc[popupElementId]) {
+            //    window.removeEventListener('resize', hideFunc[popupElementId]);
+            //    hideFunc[popupElementId] = null;
+            //}
+            //if (wheelFunc[popupElementId]) {
+            //    document.removeEventListener('wheel', wheelFunc[popupElementId]);
+            //    wheelFunc[popupElementId] = null;
+            //}
+            //if (isVisible[popupElementId])
+            //    isVisible[popupElementId] = false;
         }
         var listener = async function (event) {
             if (event.target == targetElement || targetElement.contains(event.target)) {
@@ -89,7 +105,7 @@
     function hide(popupElementId, popupElement) {
         popupElement.style.display = "none";
         popupElement.style.visibility = 'hidden';
-
+        //$(popupEle).removeClass("popup-active");
         if (clickFunc[popupElementId]) {
             document.removeEventListener('click', clickFunc[popupElementId]);
             clickFunc[popupElementId] = null;
@@ -106,11 +122,11 @@
             isVisible[popupElementId] = false;
     }
 
-    function dispose(triggerElementId) {
+    function dispose(triggerElementId, popupElementId) {
         if (triggerFunc[triggerElementId]) {
             document.removeEventListener('click', triggerFunc[triggerElementId])
-            console.log("release");
         }
+        window.releaseDotNetRef(popupElementId);
     }
     var triggerFunc = [];
     var hideFunc = [];

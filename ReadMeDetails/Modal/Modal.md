@@ -17,6 +17,7 @@ Here are a few demonstrative images that offer you a comprehensive overview of o
  * **VisibleChanged**: A function that can be assigned to this property. When the value of the visible changes, this function is automatically triggered, allowing for dynamic updates or validation checks or anything else you want to do.
  * **Size**: Setting for the size for this modal, it can be "ModalSettings.Small", "ModalSettings.Normal","ModalSettings.Large" and "ModalSettings.XLarge"
  * **Title**: Setting for the title for this modal
+ * **ClientID**: A unique identifier (id) for this component, allowing for specific targeting and styling via CSS or JavaScript.
  * **CloseBtnVisible**: True or False, to control if the close button visible or not
  * **HeaderVisible**:True or False, to control if the header visible or not
  * **FooterVisible**:True or False, to control if the footer visible or not

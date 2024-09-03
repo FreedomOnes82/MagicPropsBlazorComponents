@@ -409,7 +409,7 @@
                     colNode.ParentKeys +
                     "' " +
                     strRowspan +
-                    " class='col-freeze-header' " +
+                    " class='col-freeze-header' title='" + colText + "'" +
                     (colSpan > 1 ? "colspan='" + colSpan.toString() + "'" : "") +
                     ">" +
                     expandIcon +
@@ -438,7 +438,7 @@
 
                     valueFields.forEach((x) => {
                         var tdValue = $(
-                            "<td class='col-freeze-header' >" + x.Caption + "</td>"
+                            "<td class='col-freeze-header' title='" + x.Caption + "' >" + x.Caption + "</td>"
                         );
                         trValues.tr.append(tdValue);
                     });
@@ -504,11 +504,11 @@
                 if (suitableDatas && suitableDatas.length > 0) {
                     var values = suitableDatas[0].Values;
                     values.forEach((x) => {
-                        tr.append($("<td " + cellClass + ">" + x.toString() + "</td>"));
+                        tr.append($("<td " + cellClass + " title='" + x.toString() + "'>" + x.toString() + "</td>"));
                     });
                 } else {
                     for (var j = 0; j < valueFields.length; j++) {
-                        tr.append($("<td " + cellClass + ">-</td>"));
+                        tr.append($("<td " + cellClass + " title='null' >-</td>"));
                     }
                 }
             }
@@ -518,7 +518,7 @@
             var tr = $("<tr  rowKeys='' isLeaf='1' class='gr'></tr>");
             var rowHeaderText = "Grant Total";
             var tdCaption = $(
-                "<td class='stiky-rowHeader'><span class='row-header row-level0'> " +
+                "<td class='stiky-rowHeader'><span class='row-header row-level0' title='" + rowHeaderText + "'> " +
                 rowHeaderText +
                 "</span></td>"
             );
@@ -552,7 +552,7 @@
                 var tdCaption = $(
                     "<td class='stiky-rowHeader'><span class='row-header row-level" +
                     rNode.Level +
-                    "'> " +
+                    "' title='" + rowHeaderText + "'> " +
                     btnTreeNode +
                     rowHeaderText +
                     "</span></td>"
@@ -962,7 +962,18 @@
             let rowData = [];
             for (let j = 0; j < tableEle.rows[i].cells.length; j++) {
                 const cell = tableEle.rows[i].cells[j];
-                rowData.push(cell.textContent.trim());
+                let text = cell.textContent.trim();
+                if ($(cell).find("span").length == 1) {
+                    const rowHeader = $(cell).find("span")[0];
+                    if (rowHeader.classList.contains("row-header")) {
+                        var levelClass = rowHeader.classList[1]
+                        if (levelClass) {
+                            var level = levelClass.substring(("row-level").length, levelClass.length)
+                            text = ' '.repeat(level * 4) + text;
+                        }
+                    }
+                }
+                rowData.push(text);
             }
             oriData.push(rowData);
         }
@@ -1075,37 +1086,48 @@
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(data);
 
-        const boldStyle = { fill: { fgColor: { rgb: "80AAF9" } } };
-
+        //end total related column
+        if (dataSourceSettings[id].showGrantTotalColumn) {
+            for (let i = 0; i < data.length; i++) {
+                for (
+                    let j = exportData[0].length - 1;
+                    j >
+                    exportData[0].length -
+                    1 -
+                    dataSourceSettings[id].valueFields.length;
+                    j--
+                ) {
+                    if (data[i][j] !== undefined) {
+                        let cellRef = XLSX.utils.encode_cell({ c: j, r: i });
+                        ws[cellRef].s = { fill: { fgColor: { rgb: "80AAF9" } } };
+                    }
+                }
+            }
+        }
+        //last row about total
+        if (dataSourceSettings[id].showGrantTotalRow) {
+            const lastRowIndex = data.length - 1;
+            for (let c = 0; c < exportData[0].length; c++) {
+                if (data[lastRowIndex][c] !== undefined) {
+                    let cellRef = XLSX.utils.encode_cell({ c: c, r: lastRowIndex });
+                    ws[cellRef].s = { fill: { fgColor: { rgb: "80AAF9" } } };
+                }
+            }
+        }
         //first column
         for (let i = 0; i < data.length; i++) {
             if (data[i][0]) {
                 let cellRef = XLSX.utils.encode_cell({ c: 0, r: i });
-                ws[cellRef].s = boldStyle;
+                ws[cellRef].s = { fill: { fgColor: { rgb: "80AAF9" } }, font: { bold: true } };
             }
         }
-        //end total related column
-        for (let i = 0; i < data.length; i++) {
-            for (
-                let j = exportData[0].length - 1;
-                j >
-                exportData[0].length -
-                1 -
-                dataSourceSettings[id].valueFields.length;
-                j--
-            ) {
-                if (data[i][j] !== undefined) {
-                    let cellRef = XLSX.utils.encode_cell({ c: j, r: i });
-                    ws[cellRef].s = boldStyle;
-                }
-            }
-        }
-        //The first three rows
+        //The header rows
         for (let r = 0; r < exportHeaderData.length; r++) {
             for (let c = 0; c < data[r].length; c++) {
                 if (data[r][c] !== undefined) {
                     let cellRef = XLSX.utils.encode_cell({ c: c, r: r });
                     ws[cellRef].s = {
+                        font: { bold: true },
                         fill: { fgColor: { rgb: "80AAF9" } },
                         //alignment: { horizontal: 'center', vertical: 'center' },
                         border: {
@@ -1116,14 +1138,6 @@
                         },
                     };
                 }
-            }
-        }
-        //last row about total
-        const lastRowIndex = data.length - 1;
-        for (let c = 0; c < exportData[0].length; c++) {
-            if (data[lastRowIndex][c] !== undefined) {
-                let cellRef = XLSX.utils.encode_cell({ c: c, r: lastRowIndex });
-                ws[cellRef].s = boldStyle;
             }
         }
 

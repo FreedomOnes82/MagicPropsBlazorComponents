@@ -68,7 +68,7 @@
                                 <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
                                 </MagicPropsComponents.Components.DropDownList.MPDropDownList>
                             </div>
-                            <input type="text" class="form-control" style="width:300px;" placeholder="Search..." @bind-value="_keyword" />
+                                <MagicPropsComponents.Components.Input.MPInput @bind-Value="@_keyword" Placeholder="Search..." Width="300" />
                             break;
                         case ColumnType.Number:
                             <div class="mb-3">

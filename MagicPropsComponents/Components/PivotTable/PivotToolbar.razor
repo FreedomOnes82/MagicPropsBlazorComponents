@@ -8,16 +8,17 @@
 @using MagicPropsComponents.Utilities
 @using System.IO;
 @using System.Text.Json;
+@using System.ComponentModel;
 @using Microsoft.AspNetCore.Components.Forms
 @inject IJSRuntime JSRuntime;
+@implements IDisposable
+
 <div class="col-12 pivot-grid-wrapper data-grid_wrapper py-1 px-2" style="width:@(TableWidth)px;">
-    <div class="col-12" style="display: flex;justify-content: end;">
-        <div class="btn" style="border:1px solid black" @onclick="ShowImportDailog">Import Settings</div>
-        <div class="btn ms-2" style="border:1px solid black" @onclick="ExportSettings">Export Settings</div>
-        <div class="btn ms-2" style="border:1px solid black" @onclick="Export">Export</div>
-        <div style="width:150px;background-color:transparent;">
-            <div class="btn ms-2" style="border:1px solid black" id="@_filedChooserId" @onclick="ShowFieldChooserDailog">Field Chooser</div>
-        </div>
+    <div class="col-12 d-flex justify-content-end">
+        <div class="btn-theme @(_btnEnable?"":"disabled")" @onclick="ShowImportDailog">Import Settings</div>
+        <div class="btn-theme ms-2 @(_btnEnable?"":"disabled")" @onclick="ExportSettings">Export Settings</div>
+        <div class="btn-theme ms-2 @(_btnEnable?"":"disabled")" @onclick="Export">Export</div>
+        <div class="btn-theme ms-2 @(_btnEnable?"":"disabled")" id="@_filedChooserId" @onclick="ShowFieldChooserDailog">Field Chooser</div>
     </div>
 </div>
 <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showFieldChooserModal" Title="Field Chooser" Size="ViewModels.Modal.ModalSettings.Large" FooterBottons="fieldChooserModalButtons" OnDialogButtonClicked="FieldChooserModalButtonClicked">
@@ -159,7 +160,7 @@
             </div>
         </div>
         <PivotFilter @ref=@_filter Field="_filterField" OnSubmitFilter="HandleSubmitFilter" OnRemoveFilter="HandleRemoveFilter"></PivotFilter>
-        <MagicPropsComponents.Components.Popup.MPPopup @ref=_aggregateFuncListPopup AnchorPointType="ViewModels.Popup.AnchorPointType.TriggerRightTop" Toward="ViewModels.Popup.PopupToward.BottomRight" TriggerEleID="@("expand_"+_activeValueField.ID)" Spacing="0" BorderRadius="3" PopupShadowSettings="0 16px 48px rgba(0,0,0,.175)" Padding="3">
+        <MagicPropsComponents.Components.Popup.MPPopup @ref=_aggregateFuncListPopup AnchorPointType="ViewModels.Popup.AnchorPointType.TriggerRightTop" Toward="ViewModels.Popup.PopupToward.BottomRight" TriggerEleID="@("expand_"+_activeValueField.ID)" Spacing="0" BorderRadius="3" PopupShadowSettings="0 16px 48px rgba(0,0,0,.175)" Padding="0">
             <div class="mp-pivot-aggregatefuncs-list">
                 @foreach (var aggregateFun in Enum.GetNames(typeof(AggregateFuncs)))
                 {
@@ -202,9 +203,11 @@
     public List<ModalButton> importModalButtons = new List<ModalButton>()
     { new ModalButton() { CssClass = "btn btn-primary", Text = "Apply" } ,
     new ModalButton() { CssClass = "btn btn-secondary", Text = "Cancle" } };
+    private bool _btnEnable;
     //about field chooser dialog
     public async Task ShowFieldChooserDailog()
     {
+        if (!_btnEnable) return;
         InitFieldSet();
         Settings._showFieldsChooser = true;
         _showFieldChooserModal = true;
@@ -221,12 +224,14 @@
 
     private async Task Export()
     {
+        if (!_btnEnable) return;
         await JSRuntime.InvokeVoidAsync("MPPivotTable.exportExcel", CurrentPivotTable.ClientID);
     }
     IBrowserFile _file;
 
     private async Task ExportSettings()
     {
+        if (!_btnEnable) return;
         var options = new JsonSerializerOptions
             {
                 WriteIndented = true
@@ -252,6 +257,7 @@
 
     public void ShowImportDailog()
     {
+        if (!_btnEnable) return;
         _showImportSettingsModal = true;
     }
     public void HideImportDailog()
@@ -454,8 +460,15 @@
         {
             await JSRuntime.InvokeVoidAsync("registerDotNetMethod", _filedChooserId, DotNetObjectReference.Create(this));
             InitFieldSet();
+            StateHasChanged();
         }
     }
+
+    void IDisposable.Dispose()
+    {
+        JSRuntime.InvokeVoidAsync("releaseDotNetRef", _filedChooserId);
+    }
+
 
     protected void InitFieldSet()
     {
@@ -468,7 +481,9 @@
             fieldSet = new List<FieldDefinition>();
             filteredFieldSet = new List<FieldDefinition>();
             if (Settings.DataSource == null || Settings.DataSource.Count() < 1) return;
+            _btnEnable = Settings.DataSource.Count() > 0;
             FieldInfo[] fields = Settings.DataSource.First().GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var props = Settings.DataSource.First().GetType().GetProperties();
             foreach (var field in fields)
             {
                 var fieldName = field.Name;
@@ -479,53 +494,57 @@
                     fieldName = fieldName.Substring(startIndex, endIndex - startIndex);
                 }
                 var headerText = fieldName;
+
+                var prop = props.FirstOrDefault(x => x.Name == fieldName);
+                if (prop != null)
+                {
+                    var propDisplayText = prop.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+                    if (!string.IsNullOrEmpty(propDisplayText)) headerText = propDisplayText;
+                }
+
                 bool applied = false;
                 var columnField = Settings.ColumnFields.FirstOrDefault(x => x.Name == fieldName);
                 var type = PivotTableFieldTypes.Column;
                 if (columnField != null)
                 {
-                    headerText = columnField.Caption ?? fieldName;
+                    headerText = columnField.Caption ?? headerText;
                     applied = true;
                     var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, columnField.SortType, columnField.FilterType, columnField.ColumnType, columnField.CultureString, null, columnField.Format);
                     columnFieldSet.Add(newFieldDef);
                     fieldSet.Add(newFieldDef);
-                    //_showFilterFieldFilterInfo.Add(newFieldDef.ID, false);
                     continue;
                 }
                 var rowField = Settings.RowFields.FirstOrDefault(x => x.Name == fieldName);
                 if (rowField != null)
                 {
-                    headerText = rowField.Caption ?? fieldName;
+                    headerText = rowField.Caption ?? headerText;
                     applied = true;
                     type = PivotTableFieldTypes.Row;
                     var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, rowField.SortType, rowField.FilterType, rowField.ColumnType, rowField.CultureString, null, rowField.Format);
                     rowFieldSet.Add(newFieldDef);
                     fieldSet.Add(newFieldDef);
-                    //_showFilterFieldFilterInfo.Add(newFieldDef.ID, false);
                     continue;
                 }
                 var valueField = Settings.ValueFields.FirstOrDefault(x => x.Name == fieldName);
                 if (valueField != null)
                 {
-                    headerText = valueField.Caption ?? fieldName;
+                    headerText = valueField.Caption ?? headerText;
                     applied = true;
                     type = PivotTableFieldTypes.Value;
                     var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, valueField.SortType, valueField.FilterType, valueField.ColumnType, valueField.CultureString, valueField.AggregateFunc, valueField.Format);
                     valueFieldSet.Add(newFieldDef);
                     fieldSet.Add(newFieldDef);
-                    // _showValueFieldAggregateFuncLists.Add(newFieldDef.ID, false);
                     continue;
                 }
                 var filterField = Settings.FilterFields.FirstOrDefault(x => x.Name == fieldName);
                 if (filterField != null)
                 {
-                    headerText = filterField.Caption ?? fieldName;
+                    headerText = filterField.Caption ?? headerText;
                     applied = true;
                     type = PivotTableFieldTypes.Filter;
                     var newFieldDef = ConvertToFieldDefinition(fieldName, headerText, applied, type, filterField.SortType, filterField.FilterType, filterField.ColumnType, filterField.CultureString, null, filterField.Format);
                     filterFieldSet.Add(newFieldDef);
                     fieldSet.Add(newFieldDef);
-                    //_showFilterFieldFilterInfo.Add(newFieldDef.ID, false);
                     continue;
                 }
                 fieldSet.Add(new FieldDefinition { FieldName = fieldName, Applied = applied, ID = Guid.NewGuid().ToString().Replace("-", ""), Type = type, DisplayText = headerText });
