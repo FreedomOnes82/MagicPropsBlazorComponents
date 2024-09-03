@@ -1,3 +1,5 @@
+[Home](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/README.md)     
+
 **Pivot Table**    
 **Demo Images**:  
 Here are a few demonstrative images that offer you a comprehensive overview of our pivot components.  
@@ -5,7 +7,7 @@ Privot table overview diagram:
 ![Pivottable](pivottable.png)
 ![Pivottableoverview](pivottableoverview.png)  
 Pivot table filter chooser:
-![Pivottable Fieldchooser](pivottable_fieldchooser.png)  
+![Pivottable Fieldchooser](pivottable_fieldchooser.png) 
 Pivot table filter part:   
 ![Filter with List](filter1.png)  
 ![Filter with Condition](filter2.png)  
