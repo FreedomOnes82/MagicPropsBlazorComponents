@@ -4,7 +4,11 @@ This is a versatile Blazor component that you can seamlessly integrate into your
 **Blazor Components Demos**
 
 This Demo project shows up the demos how we use the blazor components we developed.
-The componnets inlcude but not limit to Modal, Input, Checkbox, Radio buttons,
+The componnets inlcude but not limit to 
+[Modal](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Modal/Modal.md), 
+[Popup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Popup/Popup.md), 
+Input, Number Input, Datepicker, Checkbox, Radio buttons,
+[TabGroup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/TabGroup/TabGroup.md), 
 [Timeline](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Timeline/Timeline.md), 
 [Pivot Table](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/PivotTable/PivotTable.md) 
 and more.
