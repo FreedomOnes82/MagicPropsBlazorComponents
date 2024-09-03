@@ -2,7 +2,7 @@
 
 **Timeline**    
 **Demo Images**:  
-Here are a few demonstrative images that offer you a comprehensive overview of our timeline components.    
+Here are a few demonstrative images that offer you a comprehensive overview of our timeline component.    
 Horizontal Timeline
 ![Timeline Sample1](TimelineSample1.png)  
 Vertical Timeline  
