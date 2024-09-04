@@ -11,6 +11,7 @@ Input, Number Input, Datepicker, Checkbox, Radio buttons,
 [TabGroup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/TabGroup/TabGroup.md), 
 [Timeline](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Timeline/Timeline.md), 
 [Pager](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Pager/Pager.md), 
+[Accordion](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Accordion/Accordion.md), 
 [Pivot Table](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/PivotTable/PivotTable.md) 
 and more.
 

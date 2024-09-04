@@ -1,0 +1,124 @@
+﻿@page "/accordiondemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<head>
+    <style>
+        table {
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+        }
+
+        th, td {
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2; 
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9; 
+        }
+
+        tr:hover {
+            background-color: #f1f1f1; 
+        }
+    </style>
+</head>
+<h3>Accordion Demo</h3>
+<hr />
+ <MagicPropsComponents.Components.Accordion.MPAccordion Width="500" HoverTitle="Title for Accordion" >
+            <HeaderTemplate>
+                <div style="height:50px;line-height:50px;">
+                    <i class="fa fa-home" />
+                    This is my custom header1
+                </div>
+            </HeaderTemplate>
+            <BodyTemplate>
+                <div style="min-height:50px;width:100%;border:1px">
+                    <MagicPropsComponents.Components.Accordion.MPAccordion>
+                        <HeaderTemplate>
+                            <div style="height:50px;line-height:50px;">
+                                <i class="fa fa-home" />
+                                Header1.1
+                            </div>
+                        </HeaderTemplate>
+                        <BodyTemplate>
+                            <div style="height:50px;width:100%;border:1px solid grey">
+                                This is Body for 1.1
+                            </div>
+                        </BodyTemplate>
+                    </MagicPropsComponents.Components.Accordion.MPAccordion>
+                    <MagicPropsComponents.Components.Accordion.MPAccordion Disabled="true" Expanded="true">
+                        <HeaderTemplate>
+                            <div style="height:50px;line-height:50px;">
+                                <i class="fa fa-home" />
+                                This is my custom header1.2
+                            </div>
+                        </HeaderTemplate>
+                        <BodyTemplate>
+                    <div style="height:50px;width:100%;border:1px solid grey">
+                                This is Body for 1.2
+                            </div>
+                        </BodyTemplate>
+                    </MagicPropsComponents.Components.Accordion.MPAccordion>
+                </div>
+            </BodyTemplate>
+        </MagicPropsComponents.Components.Accordion.MPAccordion>
+
+<hr />
+<div style="width:1200px;">
+    <MagicPropsComponents.Components.Accordion.MPAccordion @ref=_accordion1 HideIcon>
+            <HeaderTemplate>
+                <div style="height:50px;line-height:50px;background-color:#b0cefb">
+                <i class="@(_accordion1.Expanded?"fa fa-angle-up" : "fa fa-angle-down") mx-3" />
+                    This is datagrid Client Mode application.
+                </div>
+            </HeaderTemplate>
+            <BodyTemplate>
+            <div>
+                    <span>this is the content</span>
+                </div>
+            </BodyTemplate>
+        </MagicPropsComponents.Components.Accordion.MPAccordion>
+    <MagicPropsComponents.Components.Accordion.MPAccordion @ref=_accordion2 HideIcon>
+            <HeaderTemplate>
+                <div style="height:50px;line-height:50px;background-color:#b0cefb">
+                <i class="@(_accordion2.Expanded?"fa fa-angle-up" : "fa fa-angle-down") mx-3" />
+                    This is datagrid Server Mode application.
+                </div>
+            </HeaderTemplate>
+            <BodyTemplate>
+                <table style="width:1000px">
+                        <tr>
+                            <td>Name</td>
+                            <td>Phone</td>
+                            <td>Address</td>
+                        </tr>
+                        <tr>
+                            <td>Alice White</td>
+                            <td>1-234-3454</td>
+                            <td>this is test address</td>
+                        </tr>
+                        <tr>
+                            <td>Jim Lee</td>
+                            <td>2-234-3444</td>
+                            <td>this is test address1</td>
+                        </tr>
+                        <tr>
+                            <td>Kate Green</td>
+                            <td>1-254-9454</td>
+                            <td>this is test address 3</td>
+                        </tr>
+                    </table>
+            </BodyTemplate>
+        </MagicPropsComponents.Components.Accordion.MPAccordion>
+
+</div>
+
+@code {
+    private MagicPropsComponents.Components.Accordion.MPAccordion _accordion1;
+    private MagicPropsComponents.Components.Accordion.MPAccordion _accordion2;
+}

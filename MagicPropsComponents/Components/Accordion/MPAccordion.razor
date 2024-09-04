@@ -1,0 +1,61 @@
+﻿<div class="accordion-item-container" style="@(Disabled?"background:gray":"");@_widthSty" title="@HoverTitle" id="@ClientID">
+    <div class="accordion-trigger-item" @onclick="Trigger">
+        <div class="w-100 d-flex">
+            <div style="@(HideIcon?"width:100%":"width:90%")">@HeaderTemplate</div>
+            @if (!HideIcon)
+            {
+                <div class="d-flex justify-content-center align-items-center" style="width:10%">
+                    @if (BodyTemplate != null)
+                    {
+                        <i class="@(Expanded ? "fa fa-angle-up" : "fa fa-angle-down")" />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+    @if (Expanded && BodyTemplate != null)
+    {
+        <div class="d-flex ms-auto" style="width:95%">
+            @BodyTemplate
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int? Width { get; set; }
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+    [Parameter]
+    public RenderFragment HeaderTemplate { get; set; }
+    [Parameter]
+    public RenderFragment BodyTemplate { get; set; }
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+    [Parameter]
+    public bool Expanded { get; set; } = false;
+    [Parameter]
+    public bool HideIcon { get; set; } = false;
+    [Parameter]
+    public string HoverTitle { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback OnClickHeader { get; set; }
+
+    private string _widthSty => Width == null ? "width:auto;" : Width > 100 ? "width:" + Width + "px;" : "width:100px;";
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(ClientID))
+        {
+            ClientID = "accroding_" + Guid.NewGuid().ToString().Replace("-", "");
+        }
+        base.OnInitialized();
+    }
+
+    private async Task Trigger()
+    {
+        await OnClickHeader.InvokeAsync();
+        if (!Disabled)
+            Expanded = !Expanded;
+    }
+}
