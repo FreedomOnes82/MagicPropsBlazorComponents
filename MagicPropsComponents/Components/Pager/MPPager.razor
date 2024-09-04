@@ -1,0 +1,122 @@
+﻿@using MagicPropsComponents.Utilities
+<div class="grid-pg">
+    <div class="pager-text">
+        @if (TextContent != null)
+        {
+            @TextContent
+        }
+        else
+        {
+            @GetDefaultText()
+        }
+    </div>
+    <div class="pager-index-selector">
+        <button type="button" class="btnAction action @(PageIndex>1?"active":"disabled")" style="@(PageIndex==1?"color:lightgray":"")" :title="gofirst" @onclick="@(()=>SetPageIndex(1,PageIndex>1))">
+            @if (PageIndex > 1)
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-firstpage.svg" width="15" height="15">
+            }
+            else
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-firstpage-disabled.svg" width="15" height="15">
+            }
+        </button>
+        <button type="button" class="btnAction action @(PageIndex>1?"active":"disabled")" style="@(PageIndex==1?"color:lightgray":"")" :title="gofirst" @onclick="@(()=>SetPageIndex(PageIndex-1,PageIndex>1))">
+            @if (PageIndex > 1)
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-pre-page.svg" width="15" height="15">
+            }
+            else
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-pre-page-disabled.svg" width="15" height="15">
+            }
+        </button>
+        <input type="text" style="@(enterIndexError?"border:3px solid red;border-radius:5px;":"")" value="@PageIndex" @onchange="OnPageIndexChanged" />
+        <button type="button" class="btnAction action @(PageIndex < _lastIndex?"active":"disabled")" style="@(PageIndex==_lastIndex?"color:lightgray":"")" :title="gofirst" @onclick="@(()=>SetPageIndex(PageIndex+1,PageIndex < _lastIndex))">
+            @if (PageIndex < _lastIndex)
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-next-page.svg" width="15" height="15">
+            }
+            else
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-next-page-disabled.svg" width="15" height="15">
+            }
+        </button>
+        <button type="button" class="btnAction action @(PageIndex < _lastIndex?"active":"disabled")" style="@(PageIndex==_lastIndex?"color:lightgray":"")" :title="gofirst" @onclick="@(()=>SetPageIndex(_lastIndex,PageIndex < _lastIndex))">
+            @if (PageIndex < _lastIndex)
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-lastpage.svg" width="15" height="15">
+            }
+            else
+            {
+                <img src="@SvgHelper.GetSvgPath()pager-lastpage-disabled.svg" width="15" height="15">
+            }
+        </button>
+
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+    [Parameter]
+    public int PageIndex { get; set; } = 1;
+    [Parameter]
+    public EventCallback<int> PageIndexChanged { get; set; }
+    [Parameter]
+    public int TotalCount { get; set; }
+    [Parameter]
+    public RenderFragment? TextContent { get; set; }
+
+
+    private Theme Theme { get; set; }
+    private int _lastIndex
+    {
+        get
+        {
+            return (int)Math.Ceiling(((decimal)TotalCount) / PageSize);
+        }
+    }
+    private SvgHelper SvgHelper;
+    private bool enterIndexError { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        SvgHelper = new SvgHelper(Theme);
+    }
+
+    private string GetDefaultText()
+    {
+        var startIndex = TotalCount > 0 ? PageSize * (PageIndex - 1) + 1 : 0;
+        var endIndex = (PageSize * PageIndex) > TotalCount ? TotalCount : (PageSize * PageIndex);
+        return startIndex + "-" + endIndex + " of " + TotalCount;
+    }
+
+    private async Task SetPageIndex(int index, bool isValid = true)
+    {
+        if (!isValid)
+            return;
+        PageIndex = index;
+        await PageIndexChanged.InvokeAsync(index);
+    }
+
+    public async Task OnPageIndexChanged(ChangeEventArgs e)
+    {
+        try
+        {
+            var newPageindex = Convert.ToInt32(e.Value);
+            if (newPageindex > _lastIndex)
+            {
+                enterIndexError = true;
+                return;
+            }
+            enterIndexError = false;
+            PageIndex = newPageindex;
+            await PageIndexChanged.InvokeAsync(newPageindex);
+        }
+        catch
+        {
+            enterIndexError = true;
+        }
+    }
+}

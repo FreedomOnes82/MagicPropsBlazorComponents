@@ -10,10 +10,9 @@
 @using System.Text.Json.Serialization;
  @rendermode @(new InteractiveServerRenderMode(prerender:false) )
 
-<HeadContent>
-    <h3>This is header for pivot table</h3>
+<h3>Pivot Table Demo</h3>
+<hr />
 
-</HeadContent>
 <MPPivotTable Width="1200">
     <PivotTableDataSourceSettings @ref="@settings" DataSource="@AllGoods" CaseSensitive="false">
         <PivotColumnFields>

@@ -1,0 +1,74 @@
+﻿@page "/pagerdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+
+<h3>Pager Demo</h3>
+<hr />
+<div style="width:800px;height:440px;">
+    <div style="width:100%;height:40px;border-bottom:1px solid grey;display:flex;align-items:center">
+        <span style="width:20%;font-weight:bold">Name</span>
+        <span style="width:20%;font-weight:bold">Age</span>
+        <span style="width:30%;font-weight:bold">Join Time</span>
+        <span style="width:30%;font-weight:bold">Description</span>
+    </div>
+    @foreach (var item in GetPageDS())
+    {
+        <div style="width:100%;height:40px;border-bottom:1px solid grey;display:flex;align-items:center">
+            <div style="width:20%">@item.Name</div>
+            <div style="width:20%">@item.Age</div>
+            <div style="width:30%">@item.JoinTime</div>
+            <div style="width:30%">@item.Description</div>
+        </div>
+    }
+</div>
+<div style="width:800px;">
+    <MagicPropsComponents.Components.Pager.MPPager PageSize="10" @bind-PageIndex="pagerIndex" TotalCount="@DataSource.Count" >
+    </MagicPropsComponents.Components.Pager.MPPager>
+</div>
+
+
+@code {
+    public class TestData
+    {
+        public string Name { get; set; }
+        public Int64 Age { get; set; }
+        public DateTime JoinTime { get; set; }
+        public string Description { get; set; }
+        public bool IsAdult { get; set; } = false;
+        public Int64? Score { get; set; }
+        public decimal Salary { get; set; }
+    }
+    public List<TestData> DataSource = new List<TestData>();
+    protected override void OnInitialized()
+    {
+        var count = 50;
+        var lt = new List<TestData>() { };
+        for (var i = 0; i < count; i++)
+        {
+            lt.Add(new TestData()
+                {
+                    Name = "Name__" + i.ToString(),
+                    Age = 20 + i,
+                    IsAdult = (20 + i) > 35,
+                    JoinTime = DateTime.Now.AddDays(i),
+                    Description = "This is Description " + i,
+                    Salary = 1000000 + i * 1000 + i % 5,
+                    Score = i * 100 + i,
+                });
+        }
+        DataSource = lt;
+        FilteredDS = DataSource.Skip(0).Take(10).ToList();
+    }
+
+    private int pagerIndex = 1;
+    private List<TestData> GetPageDS()
+    {
+        return DataSource.Skip((pagerIndex - 1) * 10).Take(10).ToList();
+    }
+
+    private int pagerIndex2 = 1;
+    public List<TestData> FilteredDS = new List<TestData>();
+    private void OnFiltered(int newIndex)
+    {
+        FilteredDS = DataSource.Skip((newIndex - 1) * 10).Take(10).ToList();
+    }
+}
