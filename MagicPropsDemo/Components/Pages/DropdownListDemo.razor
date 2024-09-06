@@ -1,0 +1,154 @@
+﻿@page "/dropdownlistdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+@using System.ComponentModel.DataAnnotations;
+
+<head>
+    <style>
+        .my-custom-margin-bottom {
+            margin-bottom: 5px;
+        }
+
+        .my-custom-display-div {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+
+</head>
+
+<h3>Dropdown List Demo</h3>
+<hr />
+<div class="container">
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Student: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+            <MagicPropsComponents.Components.DropDownList.MPDropDownList Width="300"  Datasource="_studentDS" ValueBy="ID" TextBy="Name">
+            </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+        </div>
+    </div>
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <div class="col-sm-2">
+            <label>Country: </label>
+        </div>
+        <div class="col-sm-10 my-custom-display-div">
+            <MagicPropsComponents.Components.DropDownList.MPDropDownList Width="300" Datasource="_countyDS" @bind-Value=_countySelected  Clearable>
+            </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+        </div>
+    </div>
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.DropDownList.MPDropDownList Title="Sample for using option component" Width="600" Clearable Multiple @bind-Values="@_selecedOptionValue" ValueBy="ID" Searchable>
+            @foreach (var item in _studentDS)
+            {
+                 <MagicPropsComponents.Components.DropDownList.MPDropDownListOption Text="@item.Name" Value="@item.ID.ToString()" />
+            }
+        </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+    </div>
+
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <MagicPropsComponents.Components.DropDownList.MPDropDownList Multiple TValue="string" Title="Sample for buttons inside" Width="600" Clearable MaxHeight="200" Searchable>
+            <div class="d-flex justify-content-end py-2"><button class="btn btn-success w-75" @onclick="HandleAddDS">Add to Last</button></div>
+            <div class="d-flex justify-content-end py-2"><button class="btn btn-success w-75" @onclick="HandleRemoveDS">Remove Last One</button></div>
+            @foreach (var item in _DS)
+            {
+                <MagicPropsComponents.Components.DropDownList.MPDropDownListOption Text="@item" Value="@item" />
+            }
+        </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+    </div>
+</div>
+
+<hr />
+<h4>Validation</h4>
+<EditForm Model="student" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
+    <DataAnnotationsValidator />
+    <MagicPropsComponents.Components.Input.MPInput Title="Name" Width="280" @bind-Value=@student.Name FixedTitle  TitleFloat/>
+    <ValidationMessage For="@(() => student.Name)" />
+    <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="hobbys" Multiple Width="280" Title="Hobbies" ValidationFieldName="Hobby" @bind-Values=@student.Hobby Clearable FixedTitle />
+    <ValidationMessage For="@(() => student.Hobby)" />
+    <button class="btn btn-primary mt-2" type="submit">Submit</button>
+</EditForm>
+@if (_status != null)
+{
+    <span style="@(_status==true?"color:green;":"color:red;")">@(_status == true ? "Submit!!" : "Failed!!")</span>
+}
+
+
+@code {
+    public class StudentInfo
+    {
+        public int ID { get; set; }
+        [Required(ErrorMessage = "Name is required.")]
+        public string Name { get; set; } = string.Empty;
+        public char Gender { get; set; }
+        [Required(ErrorMessage = "Hobby is required.")]
+        [MinLength(2, ErrorMessage = "Please select at least two hobbies.")]
+        public List<string> Hobby { get; set; } = new List<string>();
+    }
+
+    public List<StudentInfo> _studentDS = new List<StudentInfo>() { };
+    public StudentInfo _monitor { get; set; } = new StudentInfo();
+    private List<string> _selecedOptionValue = new List<string>();
+ 
+    public List<string> _countyDS = new List<string>();
+    public string _countySelected = "China";
+
+    public List<string> _DS = new List<string>();
+
+    protected override void OnInitialized()
+    {
+        _studentDS.Add(new StudentInfo { ID = 1, Name = "TextA", Gender = 'M' });
+        _studentDS.Add(new StudentInfo { ID = 2, Name = "TextB", Gender = 'F' });
+        _studentDS.Add(new StudentInfo { ID = 3, Name = "TextC", Gender = 'M' });
+        _studentDS.Add(new StudentInfo { ID = 4, Name = "TextD", Gender = 'M' });
+        _studentDS.Add(new StudentInfo { ID = 5, Name = "TextE", Gender = 'M' });
+        _studentDS.Add(new StudentInfo { ID = 6, Name = "TextF", Gender = 'F' });
+        _studentDS.Add(new StudentInfo { ID = 7, Name = "TextG", Gender = 'M' });
+        _studentDS.Add(new StudentInfo { ID = 8, Name = "TextH", Gender = 'F' });
+     
+        _monitor = new StudentInfo { ID = 1, Name = "TextA", Gender = 'M' };
+        _selecedOptionValue.Add("6");
+
+        _countyDS.Add("China");
+        _countyDS.Add("USA");
+        _countyDS.Add("England");
+        _countyDS.Add("Germand");
+        _countyDS.Add("France");
+        _countyDS.Add("Australia");
+
+        _DS.Add("DescriptionA");
+        _DS.Add("DescriptionB");
+        _DS.Add("DescriptionC");
+        _DS.Add("DescriptionD");
+        _DS.Add("DescriptionE");
+        _DS.Add("DescriptionF");   
+    }
+
+    private int count = 1;
+    private void HandleAddDS()
+    {
+        _DS.Add("Description" + count);
+        count++;
+        StateHasChanged();
+    }
+    private void HandleRemoveDS()
+    {
+        var lastone = _DS.LastOrDefault();
+        if (lastone != null)
+            _DS.Remove(lastone);
+        StateHasChanged();
+    }
+
+    //---validation---
+    private StudentInfo student = new StudentInfo();
+    private List<string> hobbys = new List<string> { "Basketball", "Soccer", "Rugby", "Volleyball", "Badminton" };
+    private bool? _status = null;
+    private void HandleValidSubmit()
+    {
+        _status = true;
+    }
+    private void HandleInValidSubmit()
+    {
+        _status = false;
+    }
+}

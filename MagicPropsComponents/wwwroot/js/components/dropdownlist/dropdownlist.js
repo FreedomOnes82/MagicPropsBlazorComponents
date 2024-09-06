@@ -5,7 +5,7 @@
     var keydownFunc = [];
     var hideFunc = [];
     var options = [];
-    function show(triggerId, optionPopupEle, filterInputId) {
+    function show(triggerId, optionPopupEle, filterInputId, searchable) {
         const triggerEle = document.getElementById(triggerId);
         const triggerRect = triggerEle.getBoundingClientRect();
         const filterEle = document.getElementById(filterInputId);
@@ -15,20 +15,33 @@
         optionPopupEle.style.width = `${triggerRect.width}px`;
         optionPopupEle.style.left = `${triggerRect.x}px`;
 
-        const optionPopupEleRect = optionPopupEle.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
-        if (triggerRect.y + triggerRect.height + optionPopupEleRect.height > viewportHeight) {
-            //when list-popup overview
+        const optionPopupEleRect = optionPopupEle.getBoundingClientRect();
+        let popupHeight = 0;
+        if (optionPopupEleRect.height > 5) {//for custom options
+            popupHeight = optionPopupEleRect.height
+        } else {//for datasource, the options load slowly
+            const optionContainerEle = optionPopupEle.querySelector('.dropdown-options-container');
+            const optionContainerEleRect = optionContainerEle.getBoundingClientRect();
+            popupHeight = optionContainerEleRect.height + (searchable ? 54 : 0);//54 means search box occupying height
+        }
+        optionPopupEle.style.height = `${popupHeight}px`;
+
+        if (triggerRect.y + triggerRect.height + popupHeight > viewportHeight) {
+            //when list-popup overview(downward), make it upward
             optionPopupEle.style.bottom = `${viewportHeight - triggerRect.y + 15}px`;
         } else {
             optionPopupEle.style.top = `${triggerRect.y + triggerRect.height}px`;
         }
+        if (!isElementInView(optionPopupEle)) {//means the upper and lower areas are not enough to accommodate the popup
+            optionPopupEle.style.top = `${triggerRect.top - (popupHeight - triggerRect.height) / 2}px`
+        }
+
         optionPopupEle.style.visibility = '';
 
         const hideFuntion = async function (e) {
             if (isVisible[triggerId]) {
                 await window.getDotNetRef(triggerId).invokeMethodAsync('HideOptionList');
-                optionPopupEle.style.display = "none";
                 optionPopupEle.style.visibility = 'hidden';
                 isVisible[triggerId] = false;
                 if (clickLFunc[triggerId]) {
@@ -151,15 +164,26 @@
         window.addEventListener('resize', hideFuntion);
         window.addEventListener('wheel', clickFunction);
 
+
         keydownFunc[triggerId] = keydownFunction;
         clickLFunc[triggerId] = clickFunction;
         hideFunc[triggerId] = hideFuntion;
         isVisible[triggerId] = true;
     }
 
+    function isElementInView(element) {
+        var rect = element.getBoundingClientRect();
+
+        var inView = rect.top >= 0;
+        inView = inView && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+
+        inView = inView && rect.top <= (window.innerHeight || document.documentElement.clientHeight) + window.scrollY;
+        return inView;
+    }
+
     function hide(triggerId, optionPopupEle) {
         if (isVisible[triggerId]) {
-            optionPopupEle.style.display = "none";
+            //optionPopupEle.style.display = "none";
             optionPopupEle.style.visibility = 'hidden';
             isVisible[triggerId] = false;
             if (clickLFunc[triggerId]) {

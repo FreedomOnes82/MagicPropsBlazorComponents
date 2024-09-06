@@ -2,9 +2,11 @@
 @using MagicPropsComponents.Abstractions
 @using MagicPropsComponents.Utilities
 @using MagicPropsComponents.ViewModels.DropDownList
+@using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
+@implements IMPDropDownList
 @typeparam TValue
 @inject IJSRuntime JSRuntime;
-@implements IMPDropDownList
 <CascadingValue Value="this" Name="MPDropDownList">
     @if (Visible)
     {
@@ -30,11 +32,13 @@
             <div class="dropdownlist-popup" @ref="_optionListPopupEle">
                 @if (Searchable)
                 {
-                    <div style="padding:5px;">
-                        <MagicPropsComponents.Components.Input.MPInput InputID="@_filterInputId" Placeholder="Search..." Value="@_keyword" ValueChanged="SearchOptions" />
+                    <div style="padding:5px;z-index:inherit;">
+                        <div class="mp-input-outline">
+                            <input class="mp-within-input" value="@_keyword" placeholder="Search..." @oninput="HandleSearchBoxInput" />
+                        </div>
                     </div>
                 }
-                <div style="@(_widthString);max-height:@MaxHeight.ToString()px;overflow-y:auto">
+                <div class="dropdown-options-container" style="@(_widthString);max-height:@MaxHeight.ToString()px;overflow-y:auto;z-index:inherit;">
                     @if (ChildContent != null)
                     {
                         @ChildContent
@@ -74,11 +78,12 @@
 
             </div>
         </div>
-        <span class="mp-input-errmsg-hide @(ShowErrorMsg&&!CheckIsValid()?"mp-input-errmsg-show":"")">@RequiredErrorMsg </span>
     }
 </CascadingValue>
 
 @code {
+    [CascadingParameter]
+    private EditContext? CurrentEditContext { get; set; }
     [Parameter]
     public string Title { get; set; } = string.Empty;
     [Parameter]
@@ -100,7 +105,7 @@
     [Parameter]
     public bool Clearable { get; set; } = false;
     [Parameter]
-    public int MaxHeight { get; set; } = 300;
+    public int MaxHeight { get; set; } = 250;
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
     [Parameter]
@@ -137,36 +142,11 @@
     [Parameter]
     public EventCallback<List<TValue>?> ValuesChanged { get; set; }
     [Parameter]
-    public bool Required { get; set; }
-    [Parameter]
-    public bool ShowErrorMsg { get; set; }
-    [Parameter]
-    public string RequiredErrorMsg { get; set; } = string.Empty;
-    [Parameter]
     public string ClientID { get; set; } = string.Empty;
     [Parameter]
     public string InputID { get; set; } = string.Empty;
-    private bool _isValid = true;
     [Parameter]
-    public bool IsValid
-    {
-        get => _isValid;
-        set
-        {
-            if (_isValid != value)
-            {
-                _isValid = CheckIsValid();
-                if (IsValidChanged.HasDelegate)
-                    IsValidChanged.InvokeAsync(_isValid);
-                if (_afterFirstFocus && value != _isValid)
-                {
-                    Console.WriteLine("Component internal validation result is: " + _isValid);
-                }
-            }
-        }
-    }
-    [Parameter]
-    public EventCallback<bool> IsValidChanged { get; set; }
+    public string ValidationFieldName { get; set; } = string.Empty;//only used under EditForm
 
     #region Custom Option
     private List<DefaultOptionModel> _childDatasource { get; set; } = new List<DefaultOptionModel>();
@@ -219,7 +199,6 @@
             {
                 Values = _selectedChildValues.Select(x => (string)x.Value).Cast<TValue>().ToList();
                 ValuesChanged.InvokeAsync(Values);
-                ExcuteVerfied();
             }
         }
         else
@@ -229,28 +208,12 @@
             {
                 Value = (TValue)Convert.ChangeType(_selectedChildValue.Value, typeof(TValue));
                 ValueChanged.InvokeAsync(Value);
-                ExcuteVerfied();
             }
         }
         StateHasChanged();
     }
 
     #endregion
-
-    private void ExcuteVerfied()
-    {
-        if (IsValidChanged.HasDelegate)
-        {
-            if (CheckIsValid())
-            {
-                IsValidChanged.InvokeAsync(true);
-            }
-            else
-            {
-                IsValidChanged.InvokeAsync(false);
-            }
-        }
-    }
 
     private TValue? _selectedValue { get; set; }
     private List<TValue>? _selectedValues { get; set; }
@@ -262,7 +225,6 @@
     private string _placeholderText => string.IsNullOrEmpty(Title) ? Placeholder : (_showLists || FixedTitle) ? Placeholder : Title;
     private string _keyword = string.Empty;
     private string _filterInputId = string.Empty;
-    private bool _afterFirstFocus = false;
     private string _widthString => Width == null ? "width:auto;" : Width < 100 ? "width:100px;" : "width:" + Width + "px;";
     private string _titleWidthString => Width == null ? "width:auto;" : Width < 100 ? "max-width:90px;" : "max-width:" + (Width - 10) + "px;";
 
@@ -331,6 +293,35 @@
         _childDatasource = new List<DefaultOptionModel>();
     }
 
+    void IDisposable.Dispose()
+    {
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+        JSRuntime.InvokeVoidAsync("releaseDotNetRef", ClientID);
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private bool IsValidAfterFormValidation()//through class to verify
+    {
+        if (CurrentEditContext == null) return false;
+        var propertyName = string.IsNullOrEmpty(ValidationFieldName) ? Title : ValidationFieldName;
+        var property = CurrentEditContext.Model?.GetType().GetProperty(propertyName);
+        if (property == null)
+        {
+            Console.WriteLine($"Property '{propertyName}' does not exist in the model.");
+            return true;
+        }
+        var fieldIdentifier = CurrentEditContext.Field(propertyName);
+        var isValid = CurrentEditContext.IsValid(fieldIdentifier);
+        return isValid;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -343,14 +334,13 @@
                 if (Multiple && Values != null)
                 {
                     _selectedChildValues = _childDatasource.Where(item => Values.Select(x => x.ToString()).Contains(item.Value)).ToList();
-                    StateHasChanged();
                 }
                 else if (!Multiple && Value != null)
                 {
                     _selectedChildValue = _childDatasource.FirstOrDefault(item => Value.ToString() == item.Value) ?? new DefaultOptionModel();
-                    StateHasChanged();
                 }
             }
+            StateHasChanged();
         }
         //_childDatasource = new List<DefaultOptionModel>();
     }
@@ -362,32 +352,50 @@
             _selectedValues = new List<TValue>();
             _selectedChildValues = new List<DefaultOptionModel>();
             await ValuesChanged.InvokeAsync(_selectedValues);
-            ExcuteVerfied();
         }
         else
         {
             _selectedValue = Array.Empty<TValue>().FirstOrDefault();
             _selectedChildValue = new DefaultOptionModel();
             await ValueChanged.InvokeAsync(_selectedValue);
-            ExcuteVerfied();
         }
         await ShowOptionList();
         StateHasChanged();
     }
 
-    private void SearchOptions(string keywords)
+    private void HandleSearchBoxInput(ChangeEventArgs args)
     {
-        _keyword = keywords;
+        var keyword = args.Value.ToString();
+        if (!string.IsNullOrEmpty(keyword))
+        {
+            _keyword = keyword;
+        }
+        else
+        {
+            _keyword = string.Empty;
+        }
+        FilterOptions();
+    }
+
+    private void FilterOptions()
+    {
         if (ChildContent != null)
         {
-            if (Casesensive)
-                _filteredchildDatasource = _childDatasource.Where(x => x.Text.IndexOf(keywords) > -1).ToList();
+            if (string.IsNullOrEmpty(_keyword))
+            {
+                _filteredchildDatasource = _childDatasource.ToList();
+            }
             else
-                _filteredchildDatasource = _childDatasource.Where(x => x.Text.ToLower().IndexOf(keywords.ToLower()) > -1).ToList();
+            {
+                if (Casesensive)
+                    _filteredchildDatasource = _childDatasource.Where(x => x.Text.IndexOf(_keyword) > -1).ToList();
+                else
+                    _filteredchildDatasource = _childDatasource.Where(x => x.Text.ToLower().IndexOf(_keyword.ToLower()) > -1).ToList();
+            }
             StateHasChanged();
             return;
         }
-        if (string.IsNullOrEmpty(keywords))
+        if (string.IsNullOrEmpty(_keyword))
         {
             _options = Datasource.ToList();
             return;
@@ -397,8 +405,8 @@
             _options = Datasource.ToList().Where(obj =>
                 {
                     var text = obj.ToString();
-                    if (!string.IsNullOrEmpty(text) && !Casesensive && text.ToLower().Contains(keywords.ToLower())) return true;
-                    if (!string.IsNullOrEmpty(text) && Casesensive && text.Contains(keywords)) return true;
+                    if (!string.IsNullOrEmpty(text) && !Casesensive && text.ToLower().Contains(_keyword.ToLower())) return true;
+                    if (!string.IsNullOrEmpty(text) && Casesensive && text.Contains(_keyword)) return true;
                     return false;
                 }).ToList();
             return;
@@ -409,8 +417,8 @@
         _options = Datasource.ToList().Where(obj =>
         {
             var text = textProp?.GetValue(obj)?.ToString();
-            if (!string.IsNullOrEmpty(text) && !Casesensive && text.ToLower().Contains(keywords.ToLower())) return true;
-            if (!string.IsNullOrEmpty(text) && Casesensive && text.Contains(keywords)) return true;
+            if (!string.IsNullOrEmpty(text) && !Casesensive && text.ToLower().Contains(_keyword.ToLower())) return true;
+            if (!string.IsNullOrEmpty(text) && Casesensive && text.Contains(_keyword)) return true;
             return false;
         }).ToList();
         StateHasChanged();
@@ -449,14 +457,12 @@
                 }
             }
             await ValuesChanged.InvokeAsync(Values.ToList());
-            ExcuteVerfied();
             StateHasChanged();
         }
         else
         {
             Value = value;
             await ValueChanged.InvokeAsync(Value);
-            ExcuteVerfied();
             await HideOptionList();
         }
     }
@@ -501,27 +507,18 @@
 
     private bool CheckIsValid()
     {
-        if (!_afterFirstFocus) return true;
-        if (Required && string.IsNullOrEmpty(_displayText))
-        {
-            var _errmsg = (string.IsNullOrEmpty(Title) ? "This field" : Title) + " is required";
-            RequiredErrorMsg = string.IsNullOrEmpty(RequiredErrorMsg) ? _errmsg : RequiredErrorMsg;
-            return false;
-        }
+        if (CurrentEditContext != null) return IsValidAfterFormValidation();
         return true;
     }
 
     private async Task ShowOptionList()
     {
+        //StateHasChanged();
         if (Disabled) return;
         if (!_showLists)
         {
-            _keyword = string.Empty;
-            _options = Datasource.ToList();
-            if (!_afterFirstFocus) _afterFirstFocus = true;
             _showLists = true;
-            await JSRuntime.InvokeAsync<object>("MPDropdownlist.show", ClientID, _optionListPopupEle, _filterInputId);
-            StateHasChanged();
+            await JSRuntime.InvokeAsync<object>("MPDropdownlist.show", ClientID, _optionListPopupEle, _filterInputId, Searchable);
         }
     }
 
@@ -531,6 +528,8 @@
         if (Disabled) return;
         if (_showLists)
         {
+            _keyword = string.Empty;
+            FilterOptions();
             _showLists = false;
             await JSRuntime.InvokeAsync<object>("MPDropdownlist.hide", ClientID, _optionListPopupEle);
             StateHasChanged();

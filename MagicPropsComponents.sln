@@ -51,6 +51,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Accordion", "Accordion", "{
 		ReadMeDetails\Accordion\Accordion.md = ReadMeDetails\Accordion\Accordion.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DropdownList", "DropdownList", "{C57DCB51-397B-4288-8DB7-0F131E3E2056}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\DropdownList\DropdownList.md = ReadMeDetails\DropdownList\DropdownList.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -78,6 +83,7 @@ Global
 		{64E7D605-F2C2-4DF7-A524-D34C66833BCF} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{C0843BAA-8BEE-4A1A-BA42-B04F34F6A9B4} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{E9D0DB9E-3324-494C-AC21-EB8989080A06} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{C57DCB51-397B-4288-8DB7-0F131E3E2056} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}

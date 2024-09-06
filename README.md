@@ -8,6 +8,7 @@ The componnets inlcude but not limit to
 [Modal](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Modal/Modal.md), 
 [Popup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Popup/Popup.md), 
 Input, Number Input, Datepicker, Checkbox, Radio buttons,
+[DropdownList](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/DropdownList/DropdownList.md), 
 [TabGroup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/TabGroup/TabGroup.md), 
 [Timeline](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Timeline/Timeline.md), 
 [Pager](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Pager/Pager.md), 
