@@ -1,5 +1,6 @@
 ﻿@page "/numberinputdemo"
 @rendermode @(new InteractiveServerRenderMode(prerender:false) )
+@using System.ComponentModel.DataAnnotations;
 <head>
     <style>
         .my-custom-margin-bottom {
@@ -16,20 +17,13 @@
 <h3>Number Input Demo</h3>
 <hr />
 <div class="container">
-     <div class="row my-custom-margin-bottom d-flex align-items-center">
-         <div>
-            <input type="checkbox" @bind-value="_valueShowError" checked />
-            <lable>Show Error Message for inputs</lable>
-         </div>
-    </div>
-
     <div class="row  my-custom-margin-bottom d-flex align-items-center">
         <div class="col-sm-2">
             <label for="txtNumber">Number: </label>
         </div>
         <div class="col-sm-10 my-custom-display-div">
             <MagicPropsComponents.Components.NumberInput.MPNumberInput  Increment="3"  InputID="txtNumber"  Maximum="100" Minimum="10"
-                                         Width="220" ShowErrorMsg="@_valueShowError" Value="10" />
+                                         Width="220" Value="10" />
         </div>
      </div>
 
@@ -38,8 +32,8 @@
             <label>Number2: </label>
         </div>
         <div class="col-sm-10 my-custom-display-div">
-            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="1" Maximum="100" Required="true"
-                                                                       RequiredErrorMsg="this is required" Value="0"    Width="220" ShowErrorMsg="@_valueShowError"  />
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="1" Maximum="100" 
+                                      Value="0"    Width="220"   />
         </div>
     </div>
 
@@ -50,18 +44,48 @@
         </div>
         <div class="col-sm-10 my-custom-display-div">
             <MagicPropsComponents.Components.NumberInput.MPNumberInput Increment="3" Maximum="100" Visible="false"
-                                                                       Width="220" ShowErrorMsg="@_valueShowError" />
+                                                                       Width="220"  />
         </div>
     </div>
     <div class="row  my-custom-margin-bottom d-flex align-items-center">
         <MagicPropsComponents.Components.NumberInput.MPNumberInput Width="800" Title="Sample show up Title"
-                                                       ShowErrorMsg="@_valueShowError" Value="-5">
+                                                        Value="-5">
         </MagicPropsComponents.Components.NumberInput.MPNumberInput>
 
+    </div>
+    <div class="row  my-custom-margin-bottom d-flex align-items-center">
+        <EditForm Model="numberTest" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
+            <DataAnnotationsValidator />
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput Value="numberTest.Score" ValueChanged="(val)=>{ numberTest.Score=Convert.ToInt32(val);}" Title="Score" Width="200"/>
+            <ValidationMessage For="@(() => numberTest.Score)" />
+            <button class="btn btn-primary mt-2" type="submit">Submit</button>
+        </EditForm>
+        @if (_status != null)
+        {
+            <span style="@(_status==true?"color:green;":"color:red;")">@(_status == true ? "Submitted!!" : "Failed!")</span>
+        }
     </div>
 </div>
 
 
 @code {
-    private bool _valueShowError = true;
+    private TestClass numberTest = new TestClass();
+    private bool? _status = null;
+
+    private void HandleValidSubmit()
+    {
+        _status = true;
+    }
+    private void HandleInValidSubmit()
+    {
+        _status = false;
+    }
+
+
+    private class TestClass
+    {
+        [Required(ErrorMessage = "The score field is required.")]
+        [Range(60, 100, ErrorMessage = "The score should be between 60 and 100.")]
+        public int Score { get; set; } = 60;
+    }
 }

@@ -1,5 +1,6 @@
 ﻿var MPNumberInput = (function () {
     inputlistener = [];
+    keypressListener = [];
     function addListener(inputID, increment) {
         var inputEle = document.getElementById(inputID);
         if (inputEle) {
@@ -15,7 +16,19 @@
                 this.value = value;
             }
             inputlistener[inputID] = inputFunc;
+            const keydownFunc = function (event) {
+                if (event.key == "ArrowUp") {
+                    event.preventDefault()
+                    this.value = Number(this.value) + increment;
+                } else if (event.key == "ArrowDown") {
+                    event.preventDefault()
+                    this.value = Number(this.value) - increment;
+                }
+            }
+            keypressListener[inputID] = keydownFunc;
             inputEle.addEventListener('input', inputFunc);
+            inputEle.focus();
+            inputEle.addEventListener('keydown', keydownFunc);
         }
     }
     function removeListener(inputID) {
@@ -23,6 +36,8 @@
         if (inputEle) {
             if (inputlistener[inputID])
                 inputEle.removeEventListener('input', inputlistener[inputID])
+            if (keypressListener[inputID])
+                inputEle.removeEventListener('keydown', keypressListener[inputID]);
         }
     }
     return {

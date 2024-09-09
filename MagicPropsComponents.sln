@@ -66,6 +66,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Input", "Input", "{CC8D4946
 		ReadMeDetails\Input\Input.md = ReadMeDetails\Input\Input.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NumberInput", "NumberInput", "{7B1FF01F-1E84-4502-AC01-DEAD329A5AC2}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\NumberInput\NumberInput.md = ReadMeDetails\NumberInput\NumberInput.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +101,7 @@ Global
 		{C57DCB51-397B-4288-8DB7-0F131E3E2056} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{402FFF03-71EE-4DFC-A3D9-A0FFBE7B53B0} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{CC8D4946-6934-4A6A-AC40-21E80C6B5FDD} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{7B1FF01F-1E84-4502-AC01-DEAD329A5AC2} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}
