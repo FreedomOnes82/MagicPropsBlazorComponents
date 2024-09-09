@@ -1,0 +1,122 @@
+﻿@using MagicPropsComponents.ViewModels.Toast
+@using System.Text.RegularExpressions;
+@using Microsoft.JSInterop
+<div class="toast-container d-flex @GetPosition()" style="z-index:1000;" id="@ClientID">
+    <div class="toast border-0 m-2 fade hide" style="@(string.IsNullOrEmpty(Style)?"":Style)" @ref="@_toastItem">
+        <div class="toast-header border-0 @(IsWithoutBody()?"toast-header-withoutbody":"")" style="@GetThemeColor();@(!IsWithoutBody()&&string.IsNullOrEmpty(ThemeColor)&&_theme == ToastTheme.None?"border-bottom: 1px solid #E9E9E9 !important;;":"")">
+            @if (HeadTemplate != null)
+            {
+                @HeadTemplate
+            }
+            else
+            {
+                <strong class="me-auto">@_title</strong>
+            }
+        </div>
+        @if (BodyTemplate != null)
+        {
+            <div class="toast-body" style="@GetThemeColor()">
+                @BodyTemplate
+            </div>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div class="toast-body" style="@GetThemeColor()">@Message</div>
+            }
+        }
+    </div>
+</div>
+@code {
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+    [Parameter]
+    public RenderFragment? HeadTemplate { get; set; }
+    [Parameter]
+    public RenderFragment? BodyTemplate { get; set; }
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+    [Parameter]
+    public string? ThemeColor { get; set; }
+    [Parameter]
+    public string FontColor { get; set; } = "#ffffff";
+    [Parameter]
+    public bool Closable { get; set; } = false;
+    [Parameter]
+    public bool AutoHide { get; set; } = true;
+    [Parameter]
+    public string Style { get; set; } = string.Empty;
+    [Parameter]
+    public int Delay { get; set; } = 5000;
+    [Parameter]
+    public ToastPosition Position { get; set; } = ToastPosition.BottomRight;
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+
+    private ElementReference _toastItem { get; set; }
+
+    private string _title = "Notification";
+    private ToastTheme _theme = ToastTheme.Primary;
+
+    private bool IsWithoutBody()
+    {
+        if (string.IsNullOrEmpty(Message) && BodyTemplate == null) return true;
+        return false;
+    }
+
+    private string GetPosition()
+    {
+        switch (Position)
+        {
+            case ToastPosition.TopLeft: return "flex-column ";
+            case ToastPosition.TopRight: return "align-items-end flex-column ";
+            case ToastPosition.BottomLeft: return "flex-column-reverse";
+            case ToastPosition.BottomRight: return "flex-column-reverse align-items-end";
+            default: return "align-items-end";
+        }
+    }
+
+    private string GetThemeColor()
+    {
+        if (!string.IsNullOrEmpty(ThemeColor))
+        {
+            if (!string.IsNullOrEmpty(FontColor))
+            {
+                return "background-color:" + ThemeColor + ";color:" + FontColor + ";";
+            }
+            else
+            {
+                return "background-color:" + ThemeColor + ";color:#ffffff;";
+            }
+        }
+        else
+        {
+            switch (_theme)
+            {
+                case ToastTheme.None: return "background-color:#ffffff;color:#000000";
+                case ToastTheme.Primary: return "background-color:#0d6efd;color:#ffffff";
+                case ToastTheme.Success: return "background-color:#198754;color:#ffffff";
+                case ToastTheme.Danger: return "background-color:#dc3545;color:#ffffff";
+                case ToastTheme.Warning: return "background-color:#ffc107;color:#000000";
+                case ToastTheme.Secondary: return "background-color:#6c757d;color:#ffffff";
+                default: return "background-color:#ffffff;color:#000000";
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrEmpty(ClientID))
+            ClientID = "toast_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+
+    public async Task ShowToast(string? title = "Notification", ToastTheme? theme = null)
+    {
+        _title = string.IsNullOrEmpty(title) ? _title : title;
+        _theme = theme != null ? (ToastTheme)theme : _theme;
+        await Task.Yield();
+        StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("MPTOAST.show", ClientID, AutoHide, Delay, _toastItem, Closable);
+    }
+}

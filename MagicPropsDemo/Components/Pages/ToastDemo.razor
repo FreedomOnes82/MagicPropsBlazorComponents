@@ -1,0 +1,74 @@
+﻿@page "/toastdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<h3>Toast Demo</h3>
+<hr />
+
+<div>
+    <p>Click this button to show up a Toast including body and close button on the right top with Default(Primary) Theme.</p>
+    <button class="btn btn-primary" @onclick="ShowToast1">Click to Review</button>
+    <MagicPropsComponents.Components.Toast.MPToast @ref=_toast1 Closable=true Position="MagicPropsComponents.ViewModels.Toast.ToastPosition.TopRight"
+                                                   Message="This is message">
+    </MagicPropsComponents.Components.Toast.MPToast>
+</div>
+<br />
+<hr />
+<div>
+    <p>Click this button to show up a Toast without body and close button on the left top with Warning Theme.</p>
+    <button class="btn btn-primary" @onclick="ShowToast2">Click to Review</button>
+    <MagicPropsComponents.Components.Toast.MPToast @ref=_toast2 Position="MagicPropsComponents.ViewModels.Toast.ToastPosition.TopLeft">
+    </MagicPropsComponents.Components.Toast.MPToast>
+</div>
+<br />
+<hr />
+<div>
+    <p>Click this button to show up a Toast with icon with Success Theme.</p>
+    <button class="btn btn-primary" @onclick="ShowToast3">Click to Review</button>
+    <MagicPropsComponents.Components.Toast.MPToast @ref=_toast3 Position="MagicPropsComponents.ViewModels.Toast.ToastPosition.BottomLeft" 
+    Message="This is message">
+        <HeadTemplate>
+            <i class="fa fa-edit me-3" />
+            <strong class="me-auto">This is custom Title and Icon there</strong>
+        </HeadTemplate>
+    </MagicPropsComponents.Components.Toast.MPToast>
+</div>
+<br />
+<hr />
+<div>
+    <p>Click this button to show up a Toast with custom Theme Color.</p>
+    <button class="btn btn-primary" @onclick="ShowCostomToast">Click to Review</button>
+    <MagicPropsComponents.Components.Toast.MPToast @ref="_customToast" Message="test message" Delay="3000" Closable="true" ThemeColor="#9238FF" FontColor="#FCF5E7">
+        <BodyTemplate>
+            <span>This is for body template</span>
+        </BodyTemplate>
+    </MagicPropsComponents.Components.Toast.MPToast>
+</div>
+
+
+@code {
+    private MagicPropsComponents.Components.Toast.MPToast _customToast;
+    private async Task ShowCostomToast()
+    {
+        await _customToast.ShowToast("This is Toast with custom ThemeColor");
+    }
+
+    private MagicPropsComponents.Components.Toast.MPToast _toast1;
+
+    private async Task ShowToast1()
+    {
+        await _toast1.ShowToast("This is title");
+    }
+
+    private MagicPropsComponents.Components.Toast.MPToast _toast2;
+
+    private async Task ShowToast2()
+    {
+        await _toast2.ShowToast("This is title message for warning!", MagicPropsComponents.ViewModels.Toast.ToastTheme.Warning);
+    }
+
+    private MagicPropsComponents.Components.Toast.MPToast _toast3;
+
+    private async Task ShowToast3()
+    {
+        await _toast3.ShowToast("This is title message for Success!", MagicPropsComponents.ViewModels.Toast.ToastTheme.Success);
+    }
+}

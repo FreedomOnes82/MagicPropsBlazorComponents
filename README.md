@@ -7,6 +7,7 @@ This Demo project shows up the demos how we use the blazor components we develop
 The componnets inlcude but not limit to 
 [Modal](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Modal/Modal.md), 
 [Popup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Popup/Popup.md), 
+[Toast](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Toast/Toast.md), 
 Input, Number Input, Datepicker, Checkbox, Radio buttons,
 [DropdownList](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/DropdownList/DropdownList.md), 
 [TabGroup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/TabGroup/TabGroup.md), 
