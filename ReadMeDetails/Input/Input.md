@@ -3,10 +3,14 @@
 **Input**    
 **Demo Images**:  
 Here are a few demonstrative images that offer you a comprehensive overview of our input component.    
-![Input Sample1](InputSample1.png)  
-![Input Sample2](InputSample2.png)  
-![Input Validation Sample1](InputValidationSample1.png)  
-![Input Validation Sample2](InputValidationSample2.png)  
+![Input Sample1](InputSample1.png)    
+
+![Input Sample2](InputSample2.png)    
+
+![Input Validation Sample1](InputValidationSample1.png)    
+
+![Input Validation Sample2](InputValidationSample2.png)    
+
 ![Input Validation Sample3](InputValidationSample3.png)
 
 **Introduction**:  
