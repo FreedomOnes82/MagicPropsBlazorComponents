@@ -1,10 +1,12 @@
 ﻿@using System.Text.RegularExpressions
 @using MagicPropsComponents.ViewModels.Shared
 @using MagicPropsComponents.ViewModels.Input
+@using Microsoft.AspNetCore.Components.Forms
+@implements IDisposable
 @if (Visible)
 {
-    <div class="@(TitleFloat?"mp-input-container":"")" id="@_clientId">
-        <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" style="width:@(Width.ToString())px;@(TitleFloat?"margin-top: 15px;":"")">
+    <div class="@(!string.IsNullOrEmpty(Title)?"mp-input-container":"")" id="@ClientID">
+        <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" style="width:@(Width==null?"auto":Width<60?"60px":Width.ToString()+"px");margin-top: 15px">
             @if (LeftAppend != null)
             {
                 <div class="mp-input-btn">
@@ -13,22 +15,22 @@
             }
             @if (Readonly && Disabled)
             {
-                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText" readonly disabled
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@_placeholderText" readonly disabled
                        autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
             }
             else if (Readonly)
             {
-                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText" readonly
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@_placeholderText" readonly
                        autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
             }
             else if (Disabled)
             {
-                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText" disabled
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@_placeholderText" disabled
                        autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
             }
             else
             {
-                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@PlaceholderText"
+                <input class="mp-within-input" type="@GetInputType()" @bind-value="@Value" placeholder="@_placeholderText"
                        autofocus="@AutoFocus" @onfocus="HandleFocus" @onblur="HandleBlur" id="@InputID" title="@Title" />
             }
 
@@ -45,20 +47,20 @@
                 </div>
             }
         </div>
-        @if (TitleFloat && !string.IsNullOrEmpty(Title))
+        @if (!string.IsNullOrEmpty(Title))
         {
-            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide") @(Disabled?"disabled":"") " style="display:@(isFocused||!string.IsNullOrEmpty(_value)||FixedTitle?"flex":"none")">
+            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide") @(Disabled?"disabled":"") " style="display:@(_isFocused||!string.IsNullOrEmpty(_value)||FixedTitle?"flex":"none")">
                 <label for="@InputID">
                     @Title
                 </label>
             </div>
         }
     </div>
-    <span class="mp-input-errmsg-hide @(ShowErrorMsg&&!CheckIsValid()?"mp-input-errmsg-show":"")">@(string.IsNullOrEmpty(_errmsg) ? ("Your input does not comply with the rules.") : _errmsg) </span>
 }
 
-
 @code {
+    [CascadingParameter]
+    private EditContext? CurrentEditContext { get; set; }
     [Parameter]
     public RenderFragment LeftAppend { get; set; }
     [Parameter]
@@ -70,7 +72,7 @@
     [Parameter]
     public bool Readonly { get; set; } = false;
     [Parameter]
-    public int Width { get; set; } = 220;
+    public int? Width { get; set; }
     [Parameter]
     public bool AutoFocus { get; set; } = false;
     [Parameter]
@@ -101,45 +103,66 @@
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
     [Parameter]
-    public bool TitleFloat { get; set; }
-    [Parameter]
     public bool FixedTitle { get; set; }
-    [Parameter]
-    public bool Required { get; set; }
-    [Parameter]
-    public bool ShowErrorMsg { get; set; }
-    [Parameter]
-    public string RuleErrorMsg { get; set; } = string.Empty;
-    [Parameter]
-    public string RequireErrorMsg { get; set; } = string.Empty;
-    [Parameter]
-    public string Rules { get; set; } = string.Empty;
-
     [Parameter]
     public EventCallback OnFocus { get; set; }
     [Parameter]
     public EventCallback OnBlur { get; set; }
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+    [Parameter]
+    public string ValidationFieldName { get; set; } = string.Empty;//only used under EditForm
 
-    private string _clientId = string.Empty;
-    private string _errmsg = string.Empty;
     protected override void OnInitialized()
     {
-        if (Width < 60) Width = 60;
-        _clientId = "mpinput_" + Guid.NewGuid().ToString().Replace("-", "");
+        if (Width != null && Width < 60) Width = 60;
+        ClientID = "mpinput_" + Guid.NewGuid().ToString().Replace("-", "");
         if (string.IsNullOrEmpty(InputID))
         {
             InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
         }
-        _errmsg = RuleErrorMsg;
+
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
     }
 
-    private bool isFocused { get; set; }
-    private bool afterFisrtFocus = false;
-    private bool isFocustrigger = false;
+    void IDisposable.Dispose()
+    {
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private bool IsValidAfterFormValidation()//through class to verify
+    {
+        if (CurrentEditContext == null) return false;
+        var propertyName = string.IsNullOrEmpty(ValidationFieldName) ? Title : ValidationFieldName;
+        var property = CurrentEditContext.Model?.GetType().GetProperty(propertyName);
+        if (property == null)
+        {
+            Console.WriteLine($"Property '{propertyName}' does not exist in the model.");
+            return true;
+        }
+        var fieldIdentifier = CurrentEditContext.Field(propertyName);
+        _validationMsg = CurrentEditContext.GetValidationMessages(fieldIdentifier).ToList();
+        return !_validationMsg.Any();
+    }
+
+    private List<string> _validationMsg = new List<string>();
+    public List<string> ValidationMessage { get => _validationMsg; }
+
+    private bool _isFocused = false;
     private void HandleFocus(FocusEventArgs e)
     {
-        Console.WriteLine("focus");
-        isFocused = true;
+        _isFocused = true;
         if (OnFocus.HasDelegate)
         {
             OnFocus.InvokeAsync();
@@ -148,14 +171,12 @@
     }
     private void HandleBlur(FocusEventArgs e)
     {
-        Console.WriteLine("Blur");
-        afterFisrtFocus = true;
-        isFocused = false;
+        _isFocused = false;
         if (OnBlur.HasDelegate)
         {
             OnBlur.InvokeAsync();
         }
-       StateHasChanged();
+        StateHasChanged();
     }
     private string GetInputType()
     {
@@ -167,22 +188,12 @@
             default: return "text";
         }
     }
+
     private bool CheckIsValid()
     {
-        if (!afterFisrtFocus) return true;
-        if (Required && string.IsNullOrEmpty(Value))
-        {
-            _errmsg = !string.IsNullOrEmpty(RequireErrorMsg) ? RequireErrorMsg : (string.IsNullOrEmpty(Title) ? "This field" : Title) + " is required";
-            return false;
-        }
-        if (!string.IsNullOrEmpty(Rules) && !string.IsNullOrEmpty(Value))
-        {
-            _errmsg = RuleErrorMsg;
-            return Regex.IsMatch(Value, Rules);
-        }
+        if (CurrentEditContext != null) return IsValidAfterFormValidation();
         return true;
     }
 
-    private string PlaceholderText => FixedTitle ? Placeholder : (TitleFloat ? (isFocused ? Placeholder : Title) : Placeholder);
-
+    private string _placeholderText => string.IsNullOrEmpty(Title) ? Placeholder : (_isFocused || FixedTitle) ? Placeholder : Title;
 }
