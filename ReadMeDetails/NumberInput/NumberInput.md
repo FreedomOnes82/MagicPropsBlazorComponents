@@ -21,7 +21,7 @@ Here are a few demonstrative images that offer you a comprehensive overview of o
 * **Maximum**: Conversely, this represents the highest number that can be entered or displayed within the number input field. It establishes the upper boundary for the valid range of values.
 * **Format**: The formatting string settings can incorporate all the formatting options accessible within the ToString() method in C#, such as "C" for currency, "D" for decimals, and "P" for percentages, and so forth. Furthermore, you have the flexibility to specify precision, for instance, using "C2" to display currency values with two decimal places.
 * **CultureString**: Setting for culture string. Default value is "en-US".
-* * **OnFocus**: A function that executes when the input element gains focus. This can be used to perform actions such as displaying additional instructions or clearing the input's value.
+* **OnFocus**: A function that executes when the input element gains focus. This can be used to perform actions such as displaying additional instructions or clearing the input's value.
 * **OnBlur**: A function that executes when the input element loses focus. This is useful for validating the input's value, clearing temporary UI elements, or performing other cleanup tasks.
           
 Additionally, we can leverage Blazor EditForm for number input validation, utilizing a property specifically designed for this purpose:  
