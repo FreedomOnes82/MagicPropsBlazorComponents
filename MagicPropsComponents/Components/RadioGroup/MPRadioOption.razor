@@ -9,10 +9,10 @@
     }
     else
     {
-        <input class="@GetRadioCssClass()" type="radio" name="@RadioGroup.Name" id="@_id" @onclick="OnValueSelected">
+        <input class="@GetRadioCssClass()" type="radio" name="@RadioGroup.Name" id="@_id" @onclick="OnValueSelected" style="@(RadioGroup.CheckIsValid()?"":"border:1px solid #E50000;")">
     }
 
-    <label class="@GetLabelClass()" for="@_id">
+    <label class="@GetLabelClass()" for="@_id" style="@(RadioGroup.CheckIsValid()?"":"color:#E50000;")">
         @Description
     </label>
 </div>
@@ -23,10 +23,8 @@
     public string Value { get; set; } = string.Empty;
     [Parameter]
     public string Description { get; set; } = string.Empty;
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-    [CascadingParameter(Name = "DisplayMode")]
-    public DisplayModes DisplayMode { get; set; } = DisplayModes.DefaultButton;
+   // [Parameter]
+    //public RenderFragment? ChildContent { get; set; }
     [Parameter]
     public ToggoleButtonClasses ButtonClass { get; set; } = ToggoleButtonClasses.OutlineSuccess;
     private string _id = string.Empty;

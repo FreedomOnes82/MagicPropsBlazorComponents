@@ -1,6 +1,7 @@
 ﻿@page "/radiogroupdemo";
 @using MagicPropsComponents.Components.RadioGroup;
 @using MagicPropsComponents.ViewModels.SelectionGroup;
+@using System.ComponentModel.DataAnnotations;
 @rendermode @(new InteractiveServerRenderMode(prerender:false) )
 
 <h3>Radio Group Demo</h3>
@@ -33,9 +34,18 @@
 <hr />
     <span style="padding-right:10px;"> Radio group with datasource </span>
     <br/>
-    <MPRadioGroup @ref="_mPRBBindSource" DisplayInline="@(_strIsDisplayInline == "Inline")" Datasource="_options" DisplayMode="GetDisplayMode()" >
-
-    </MPRadioGroup>
+    <EditForm Model="opt" OnInvalidSubmit="HandleInValidSubmit" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <MPRadioGroup @ref="_mPRBBindSource" ValidationFieldName="Option" @bind-Value="opt.Option" DisplayInline="@(_strIsDisplayInline == "Inline")" Datasource="_options" DisplayMode="GetDisplayMode()">
+        </MPRadioGroup>
+        <ValidationMessage For="@(() => opt.Option)" />
+            <br />
+        <button class="btn btn-primary mt-2" type="submit">Submit</button>
+    </EditForm>
+    @if (_status != null)
+    {
+        <span style="@(_status==true?"color:green;":"color:red;")">@(_status == true ? "Submit!!" : "Failed!!")</span>
+    }
 </p>
 
 @code {
@@ -65,7 +75,22 @@
     }
 
     private string _value { get; set; } = "Test2";
-
+    //------validation
+    private OptionClass opt = new OptionClass();
+    private bool? _status = null;
+    private void HandleValidSubmit()
+    {
+        _status = true;
+    }
+    private void HandleInValidSubmit()
+    {
+        _status = false;
+    }
+    private class OptionClass
+    {
+        [Required(ErrorMessage = "This fields is required.")]
+        public string Option { get; set; }
+    }
 }
 
 
