@@ -46,6 +46,10 @@ Additionally, we can leverage Blazor EditForm for input validation, utilizing a 
 * **ValidationFieldName**: This property designates the field within a class that is bound to the EditForm for validation purposes. If the field's name coincides with the title of the input, this property can be omitted, and the title can be directly referenced for validation.
 
 
+In addition to the parameters mentioned, for this component, we require a List<string> named ValidationMessage. 
+This list captures and stores error messages encountered during validation, enabling you to utilize them and display them on the page as necessary.
+Here's how to use the ValidationMessage:
+![Validate Message Sample](validateMessageSample.png)
 
 
    
