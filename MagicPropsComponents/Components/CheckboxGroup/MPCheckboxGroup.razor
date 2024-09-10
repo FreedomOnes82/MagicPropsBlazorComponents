@@ -1,10 +1,8 @@
-﻿@*
-    This is MPCheckboxGroup used in conjunction with MPCheckboxOption for multiple options.
-*@
-@using MagicPropsComponents.Abstractions;
+﻿@using MagicPropsComponents.Abstractions;
 @using MagicPropsComponents.ViewModels.SelectionGroup
+@using Microsoft.AspNetCore.Components.Forms;
+@implements IDisposable;
 @implements IMPCheckboxGroup;
-<CascadingValue Value="DisplayMode" Name="DisplayMode">
     <CascadingValue Value="this" Name="CheckboxGroup">
         @if (ChildContent != null)
             @ChildContent
@@ -17,10 +15,12 @@
             }
 
     </CascadingValue>
-</CascadingValue>
-
 
 @code {
+    [CascadingParameter]
+    private EditContext? CurrentEditContext { get; set; }
+    [Parameter]
+    public string ValidationFieldName { get; set; } = string.Empty;//only used under EditForm
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
@@ -33,7 +33,7 @@
     [Parameter]
     public bool DisplayInline { get; set; } = false;
     [Parameter]
-    public DisplayModes DisplayMode { get; set; } = DisplayModes.ToggoleButton;
+    public DisplayModes DisplayMode { get; set; } = DisplayModes.DefaultButton;
     [Parameter]
     public Dictionary<string, string>? Datasource { get; set; }
     [Parameter]
@@ -80,10 +80,46 @@
             throw new Exception("We can only either specify Datasource or Content!");
         if (Value.IndexOf(',') > 0)
             _selectedValues = Value.Split(",").ToList();
+
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
     }
 
-    public string GetValue()
+    void IDisposable.Dispose()
     {
-        return this.Value;
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
     }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private bool IsValidAfterFormValidation()//through class to verify
+    {
+        if (CurrentEditContext == null) return false;
+        var property = CurrentEditContext.Model?.GetType().GetProperty(ValidationFieldName);
+        if (property == null)
+        {
+            Console.WriteLine($"Property '{ValidationFieldName}' does not exist in the model.");
+            return true;
+        }
+        var fieldIdentifier = CurrentEditContext.Field(ValidationFieldName);
+        _validationMsg = CurrentEditContext.GetValidationMessages(fieldIdentifier).ToList();
+        return !_validationMsg.Any();
+    }
+
+    private List<string> _validationMsg = new List<string>();
+    public List<string> ValidationMessage { get => _validationMsg; }
+    public bool CheckIsValid()
+    {
+        if (CurrentEditContext != null) return IsValidAfterFormValidation();
+        return true;
+    }
+
 }

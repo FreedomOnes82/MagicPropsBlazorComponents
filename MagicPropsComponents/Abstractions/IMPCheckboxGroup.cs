@@ -21,5 +21,7 @@ namespace MagicPropsComponents.Abstractions
         void HandleValueChange(string value, bool isSelected);
 
         public DisplayModes DisplayMode { get; set; }
+
+        bool CheckIsValid();
     }
 }

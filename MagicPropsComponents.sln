@@ -76,6 +76,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RadioGroup", "RadioGroup", 
 		ReadMeDetails\RadioGroup\RadioGroup.md = ReadMeDetails\RadioGroup\RadioGroup.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CheckboxGroup", "CheckboxGroup", "{9B241446-901E-4B34-BF6A-37CD9DB9F26E}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\CheckboxGroup\CheckboxGroup.md = ReadMeDetails\CheckboxGroup\CheckboxGroup.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +113,7 @@ Global
 		{CC8D4946-6934-4A6A-AC40-21E80C6B5FDD} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{7B1FF01F-1E84-4502-AC01-DEAD329A5AC2} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{900CA32B-7DC0-4DF9-8596-D131A198DDFB} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{9B241446-901E-4B34-BF6A-37CD9DB9F26E} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}

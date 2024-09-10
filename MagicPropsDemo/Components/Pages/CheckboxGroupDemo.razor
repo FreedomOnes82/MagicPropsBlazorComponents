@@ -2,7 +2,7 @@
 @rendermode @(new InteractiveServerRenderMode(prerender:false) )
 @using MagicPropsComponents.Components.CheckboxGroup;
 @using MagicPropsComponents.ViewModels.SelectionGroup;
-
+@using System.ComponentModel.DataAnnotations;
 
 <h3>Checkbox Group Demo</h3>
 <hr/>
@@ -61,6 +61,29 @@
     </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
 </div>
 <br />
+<hr />
+<h4>Validation with Blazor EditForm</h4>
+@* use blazor EditForm: Should declare ValidationFieldName,then MPCheckboxGroup will catch correct invalid field.*@
+<EditForm Model="test" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
+    <DataAnnotationsValidator />  
+    <MPCheckboxGroup Value="@(test.AgreeUserTerms?"True":"")" DisplayMode="DisplayModes.DefaultButton" ValidationFieldName="AgreeUserTerms" ValueChanged="@((val)=>{test.AgreeUserTerms=Convert.ToBoolean(string.IsNullOrEmpty(val)?"False":val); })">
+        <div class="d-flex">
+            <MPCheckboxOption Value="True"></MPCheckboxOption><a href="#">User Terms</a>
+        </div>
+    </MPCheckboxGroup>
+    <ValidationMessage For="@(() => test.AgreeUserTerms)" />
+    <MPCheckboxGroup DisplayInline DisplayMode="DisplayModes.DefaultButton" Datasource="tipds" Value="@string.Join(",",test.Tips)" ValidationFieldName="Tips" ValueChanged="@(val => HandleTipsChanges(val))" />
+    <ValidationMessage For="@(() => test.Tips)" />
+     <br />
+    <button class="btn btn-primary mt-2" type="submit">Submit</button>
+</EditForm>
+
+@if (_status != null)
+{
+    <span style="@(_status==true?"color:green;":"color:red;")">@(_status == true ? "Submit!!" : "Failed!!")</span>
+}
+<hr />
+
 @code {
     private MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup _checkboxGroup;
     private string _value1 { get; set; } = "Test1,Test2";
@@ -68,4 +91,56 @@
     private string _value3 { get; set; } = "Test1,Test2";
     private string _value4 { get; set; } = "Test1";
     private string _value5 { get; set; } = "Test1";
+
+    //validation Part
+    protected override void OnInitialized()
+    {
+        tipds.Add("aaa", "aaa");
+        tipds.Add("bbb", "bbb");
+        tipds.Add("ccc", "ccc");
+        tipds.Add("ddd", "ddd");
+    }
+    private TestClass test = new TestClass();
+    private Dictionary<string, string> tipds = new Dictionary<string, string>();
+    private bool? _status = null;
+    private void HandleValidSubmit()
+    {
+        _status = true;
+    }
+    private void HandleInValidSubmit()
+    {
+        _status = false;
+    }
+
+    private void HandleTipsChanges(string val)
+    {
+        if (!string.IsNullOrEmpty(val))
+        {
+            test.Tips = val.Split(",").ToList();
+        }
+        else
+        {
+            test.Tips = new List<string>();
+        }
+    }
+    private class TestClass
+    {
+        [MustBeTrue(ErrorMessage = "You must agree to the user terms.")]
+        public bool AgreeUserTerms { get; set; }
+
+        [MinLength(2, ErrorMessage = "Please select at least two options.")]
+        public List<string> Tips { get; set; } = new List<string>();
+    }
+
+    public class MustBeTrueAttribute : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value is bool boolValue && !boolValue)
+            {
+                return new ValidationResult(ErrorMessage ?? "This field must be true.", new[] { validationContext.MemberName });
+            }
+            return ValidationResult.Success;
+        }
+    }
 }

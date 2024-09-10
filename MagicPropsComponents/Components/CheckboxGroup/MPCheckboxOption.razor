@@ -9,9 +9,9 @@
     }
     else
     {
-        <input class="@GetInputCssClass()" type="checkbox" name="@CheckboxGroup.Name" id="@_id" @onchange="OnValueChanged" disabled="@Disabled">
+        <input class="@GetInputCssClass()" type="checkbox" name="@CheckboxGroup.Name" id="@_id" @onchange="OnValueChanged" disabled="@Disabled" style="@(CheckboxGroup.CheckIsValid()?"":"border:1px solid #E50000;")">
     }
-    <label class="@GetLabelClass()" for="@_id">
+    <label class="@GetLabelClass()" for="@_id" style="@(CheckboxGroup.CheckIsValid()?"":"color:#E50000;")">
         @Description
     </label>
 </div>
@@ -24,10 +24,10 @@
     public bool Disabled { get; set; }
     [Parameter]
     public string Description { get; set; } = string.Empty;
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-    [CascadingParameter(Name = "DisplayMode")]
-    public DisplayModes DisplayMode { get; set; } = DisplayModes.DefaultButton;
+    // [Parameter]
+    // public RenderFragment? ChildContent { get; set; }
+    // [CascadingParameter(Name = "DisplayMode")]
+    // public DisplayModes DisplayMode { get; set; } = DisplayModes.DefaultButton;
     [Parameter]
     public ToggoleButtonClasses ButtonClass { get; set; } = ToggoleButtonClasses.OutlineSuccess;
     private string _id = string.Empty;
