@@ -8,6 +8,7 @@ The componnets inlcude but not limit to
 [Modal](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Modal/Modal.md), 
 [Popup](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Popup/Popup.md), 
 [Toast](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Toast/Toast.md), 
+[Loader](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Loader/Loader.md), 
 [Input](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Input/Input.md), 
 [Number Input](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/NumberInput/NumberInput.md), 
  Datepicker, 

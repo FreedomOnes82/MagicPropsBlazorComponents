@@ -81,6 +81,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CheckboxGroup", "CheckboxGr
 		ReadMeDetails\CheckboxGroup\CheckboxGroup.md = ReadMeDetails\CheckboxGroup\CheckboxGroup.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Loader", "Loader", "{2F665F85-A1AF-435B-B354-93AB74199A7B}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\Loader\Loader.md = ReadMeDetails\Loader\Loader.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +119,7 @@ Global
 		{7B1FF01F-1E84-4502-AC01-DEAD329A5AC2} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{900CA32B-7DC0-4DF9-8596-D131A198DDFB} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{9B241446-901E-4B34-BF6A-37CD9DB9F26E} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{2F665F85-A1AF-435B-B354-93AB74199A7B} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}

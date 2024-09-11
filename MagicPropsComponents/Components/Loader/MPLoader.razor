@@ -1,0 +1,46 @@
+﻿@if (_visible)
+{
+    <div class="mp-loading-backdrop" @onclick="()=>{return;}" @onclick:stopPropagation="true">
+        <div class="mp-loader"></div>
+    </div>
+}
+@code {
+    [Parameter]
+    public int DelayMs { get; set; } = 500;//means a limitation on the duration of Task execution, if the duration exceeds this limit time(milli senconds), the loading style will be displayed.
+
+    private bool _visible = false;
+
+    public async Task AwaitFor(Task task)
+    {
+        try
+        {
+            var taskDelay = Task.Delay(DelayMs);
+            var completed = await Task.WhenAny(task, taskDelay);
+
+            if (completed.Id == task.Id)
+            {
+                // if execute time less than 0.5 second
+                _visible = false;
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                _visible = true;
+                await InvokeAsync(StateHasChanged);
+                await task;
+                _visible = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _visible = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        finally
+        {
+
+        }
+
+    }
+}

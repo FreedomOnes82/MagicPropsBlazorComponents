@@ -1,0 +1,37 @@
+﻿@page "/loaderdemo"
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+@using MagicPropsComponents.Components.Loader
+
+<h3>Toast Demo</h3>
+<hr />
+<button class="btn btn-primary" onclick="@(async()=>{ await _loader.AwaitFor(Task1());})">Click to execute Task1</button>
+<button class="btn btn-primary" onclick="@(async()=>{ await _loader.AwaitFor(Task2());})">Click to execute Task2</button>
+<MPLoader @ref=_loader DelayMs="1500" />
+<br />
+<br />
+<span style="color:green;font-size:large;font-weight:bold">@_message</span>
+@code {
+    private MPLoader _loader;
+    private string _message = String.Empty;
+
+    private async Task Task1()
+    {
+        _message = String.Empty;
+        var st = DateTime.Now;
+        await Task.Delay(5000);//delay 5000 millisecond, that is 5 seconds
+        var et = DateTime.Now;
+        Console.WriteLine("Task1 Spend: " + (et - st).Seconds + " second.");
+        _message = "Task1 Spend: " + (et - st).Seconds + " second.";
+    }
+
+    private async Task Task2()
+    {
+        _message = String.Empty;
+        //only delay 1 second, not exceeding 1.5 seconds that settings as Loder's wait time.
+        var st = DateTime.Now;
+        await Task.Delay(1000);
+        var et = DateTime.Now;
+        Console.WriteLine("Task2 Spend: " + (et - st).Seconds + " second.");
+        _message = "Task2 Spend: " + (et - st).Seconds + " second, since the time less than loader's delay threshold of 1.5 seconds, loader will not show up";
+    }
+}
