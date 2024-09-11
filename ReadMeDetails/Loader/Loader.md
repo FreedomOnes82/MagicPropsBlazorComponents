@@ -3,6 +3,7 @@
 **Loader**    
 **Demo Images**:  
 Here is a image which offer you a comprehensive overview of our loader component.    
+![Loader Sample](loaderSample.png)
 
 
 **Introduction**:  
