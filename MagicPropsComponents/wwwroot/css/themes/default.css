@@ -26,6 +26,7 @@
         .btn-theme.disabled i.fa {
             color: rgba(0,0,0,.5);
         }
+
 .text-overflow-replace-ellipsis {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -43,18 +44,23 @@
 
 .richeditor-toolbar {
     width: 100%;
-    background-color: lightgray;
+    background-color: #F3F2F1;
     padding: 5px;
 }
-
-    .richeditor-toolbar .btnAction:hover {
-        background-color: antiquewhite;
-        border: 1px solid lightgrey;
+    .richeditor-toolbar .btnAction {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
+
+        .richeditor-toolbar .btnAction:hover {
+            background-color: #FAF9F8;
+            border: 1px solid lightgrey;
+        }
 
 
     .richeditor-toolbar .statusActived {
-        background-color: antiquewhite;
+        background-color: #FFF;
         border: 1px solid lightgrey;
     }
 
@@ -523,18 +529,19 @@
 /**************Date picker end*****/
 
 /**************According*****/
-.accordition-list-container {
+.accordion-list-container {
     width: 100%;
 }
 
-.accordition-item-container {
+.accordion-item-container {
     text-align: left;
     vertical-align: middle;
 }
 
-.accordition-trigger-item {
+.accordion-trigger-item {
     margin-left: 10px;
     background-color: transparent;
+    cursor:pointer;
 }
 
 .dropdownlist-popup {
@@ -552,7 +559,7 @@
     line-height: 38px;
     text-align: left;
     align-content: center;
-    padding-left:5px;
+    padding-left: 5px;
 }
 
     .dropdown-option-container:hover {
@@ -575,6 +582,7 @@
     flex-grow: 1;
     min-width: 10px;
     background: inherit;
+    color:inherit;
 }
 
     .mp-within-input.disabled {
@@ -639,6 +647,7 @@
 }
 
 .mp-input-err {
+    color:#E50000;
     border: 1px solid #E50000;
 }
 
@@ -649,7 +658,7 @@
 
 .mp-input-btn {
     display: inline-flex;
-    color: #212529;
+    color: inherit;
     text-align: center;
     text-decoration: none;
     vertical-align: middle;
@@ -732,6 +741,18 @@
         border-width: 0 2px 2px 0;
     }
 
+.mp-check-input-error {
+    border: 1px solid #E50000;
+}
+    .mp-check-input-error:checked {
+        background-color: #E50000;
+    }
+
+    .mp-check-input-error:focus-within {
+        border: 1px solid #E50000;
+        box-shadow: 0px 0px 0px 4px rgba(220,53,69,.25);
+    }
+
 .mp-check-label {
     display: inline-block;
 }
@@ -809,12 +830,14 @@
     background-color: #f3f2f1;
     margin-top: 5px;
 }
+
 .row-header {
     display: block;
     text-wrap: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
 }
+
 .row-level2 {
     padding-left: 30px
 }
@@ -1234,6 +1257,7 @@
 .toast-header-withoutbody {
     border-end-start-radius: inherit;
     border-end-end-radius: inherit;
+    border: 0;
 }
 
 .toast-body {

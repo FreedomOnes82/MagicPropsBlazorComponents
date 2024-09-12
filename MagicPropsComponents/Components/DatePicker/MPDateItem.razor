@@ -17,18 +17,15 @@
     public int ShowingMonth { get; set; }
     [Parameter]
     public EventCallback<DateTime> SelectedDateChanging { get; set; }
-    [Parameter]
-    public bool ShowDisabledStyle { get; set; }
 
     private string CalculateCssClassesForDate()
     {
         string cssClass = "";
-       
         cssClass = ShowingDate.Year == ShowingYear && ShowingDate.Month == ShowingMonth ? "" : "datenotinthismonth";
 
         if (_selectedDate != null)
             cssClass += ShowingDate == _selectedDate.Value.Date ? " date-selected" : "";
-        if (ShowDisabledStyle)
+        if (DatePicker != null)
         {
             if (ShowingDate > DatePicker!.Maximum || ShowingDate < DatePicker!.Minimum)
             {
@@ -37,11 +34,9 @@
         }
         return cssClass;
     }
-
- 
     private void ChangeSelectDate()
     {
-        if (ShowDisabledStyle)
+        if (DatePicker != null)
         {
             if (ShowingDate > DatePicker!.Maximum || ShowingDate < DatePicker!.Minimum)
             {

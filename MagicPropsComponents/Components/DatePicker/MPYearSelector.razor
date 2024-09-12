@@ -16,9 +16,6 @@
     public int MaxDisplayYear { get; set; } = 2100;
     [Parameter]
     public int PageSize { get; set; } = 16;
-    private int _pageIndex = 0;
-    private int _pageCount = 0;
-    private int? _showingYear = default;
     [Parameter]
     public int? ShowingYear
     {
@@ -43,11 +40,11 @@
     public bool IsAllowGoPreYearPage { get; set; }
     [Parameter]
     public EventCallback<bool> IsAllowGoPreYearPageChanged { get; set; }
-
-    [Parameter]
-    public bool ShowDisabledStyle { get; set; }
-
     private List<int> _showingYears = new List<int>();
+
+    private int _pageIndex = 0;
+    private int _pageCount = 0;
+    private int? _showingYear = default;
 
     protected override void OnInitialized()
     {
@@ -72,7 +69,7 @@
 
     private string CalCssClassForMonth(int year)
     {
-        if (ShowDisabledStyle)
+        if (DatePicker != null)
         {
             if (new DateTime(year, 1, 1) > DatePicker!.Maximum || new DateTime(year, 12, 31, 23, 59, 59, 999) < DatePicker!.Minimum)
             {
@@ -89,7 +86,7 @@
 
     private void SelectYear(int year)
     {
-        if (ShowDisabledStyle)
+        if (DatePicker != null)
         {
             if (new DateTime(year, 1, 1) > DatePicker!.Maximum || new DateTime(year, 12, 31, 23, 59, 59, 999) < DatePicker!.Minimum)
             {

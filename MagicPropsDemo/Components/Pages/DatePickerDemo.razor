@@ -1,21 +1,59 @@
 ﻿@page "/datepickerdemo"
-@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+@rendermode @(new InteractiveServerRenderMode(prerender:false) );
+@using System.ComponentModel.DataAnnotations;
 <h3>Date Picker Demo</h3>
 <hr />
 
-<MagicPropsComponents.Components.DatePicker.MPDatePicker FixedTitle="true" TitleFloat="true" Title="Test Date" Width="580" ShowErrorMsg="true" Minimum="new DateTime(2024,7,1)" Maximum="new DateTime(2025,7,1)" @bind-Value="_date" DateFormatString="MM/dd/yyyy">
+<MagicPropsComponents.Components.DatePicker.MPDatePicker FixedTitle="true"  Title="Test Date with limidation" Width="580"  Minimum="new DateTime(2024,7,1)"  Maximum="new DateTime(2025,7,1)" @bind-Value="_date" DateFormatString="MM/dd/yyyy">
 </MagicPropsComponents.Components.DatePicker.MPDatePicker>
 
-<MagicPropsComponents.Components.DatePicker.MPDatePicker Title="Required Date" TitleFloat="true" Required="true" DateFormatString="dd/MM/yyyy" ShowErrorMsg="true">
-</MagicPropsComponents.Components.DatePicker.MPDatePicker>
-<div style="margin-top:300px;margin-left:950px">
-</div>
-<MagicPropsComponents.Components.DatePicker.MPDatePicker Title="Demo Date" TitleFloat="true"  DateFormatString="dd/MM/yyyy" ShowErrorMsg="true">
+<MagicPropsComponents.Components.DatePicker.MPDatePicker  Width="300" @bind-Value="@_date2" DateFormatString="MM/dd/yyyy" Disabled />
+
+<MagicPropsComponents.Components.DatePicker.MPDatePicker Title="Readonly Sample" FixedTitle @bind-Value="@_date" DateFormatString="MM/dd/yyyy" ReadOnly Minimum="new DateTime(2024,9,1)" />
+
+@* <div style="margin-top:300px;margin-left:950px">
+</div> *@
+<MagicPropsComponents.Components.DatePicker.MPDatePicker InputID="demoDatepivker" StartsWithMonday="true" TValue="DateTime?" Title="Demo Date" DateFormatString="MM-dd-yyyy">
 </MagicPropsComponents.Components.DatePicker.MPDatePicker>
 
-
+<hr />
+<h4>Validation with Blazor EditForm</h4>
+<EditForm Model="student" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
+    <DataAnnotationsValidator />
+    
+    <MagicPropsComponents.Components.DatePicker.MPDatePicker  DateFormatString="yyyy-MM-dd" Title="Brithday" Width="280" @bind-Value=@student.Brithday FixedTitle />
+    <ValidationMessage For="@(() => student.Brithday)" />
+    <button class="btn btn-primary mt-2" type="submit">Submit</button>
+</EditForm>
+@if (_status != null)
+{
+    <span style="@(_status==true?"color:green;":"color:red;")">@(_status == true ? "Submit!!" : "Failed!!")</span>
+}
+<hr/>
 
 @code {
     private DateTime _date = new DateTime(2024, 12, 10);
+    private DateTime? _date1;
+    private DateTime _date2 = new DateTime(2024, 1, 10);
+    public class StudentInfo
+    {
+        public int ID { get; set; }
 
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Birthday is required.")]
+        [Range(typeof(DateTime), "9/1/2006", "8/31/2008", ParseLimitsInInvariantCulture = true, ErrorMessage = "The date should be between 1 September 2006 and 31 August 2008.")]
+        public DateTime? Brithday { get; set; }
+    }
+
+    private StudentInfo student = new StudentInfo();
+    private bool? _status = null;
+    private void HandleValidSubmit()
+    {
+        _status = true;
+    }
+    private void HandleInValidSubmit()
+    {
+        _status = false;
+    }
 }

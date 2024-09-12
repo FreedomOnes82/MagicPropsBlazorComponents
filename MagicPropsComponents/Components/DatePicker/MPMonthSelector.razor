@@ -15,8 +15,6 @@
     [CascadingParameter(Name = "MPDatePicker")]
     public IMPDatePicker? DatePicker { get; set; }
     [Parameter]
-    public bool ShowDisabledStyle { get; set; }
-    [Parameter]
     public int ShowingYear { get; set; }
     [Parameter]
     public EventCallback<int> OnMonthSelected { get; set; }
@@ -37,10 +35,10 @@
 
     private void SelectMonth(int month)
     {
-        if (ShowDisabledStyle)
+        if (DatePicker != null)
         {
             int daysInMonth = DateTime.DaysInMonth(ShowingYear, month);
-            if (new DateTime(ShowingYear, month, daysInMonth, 23, 59, 59, 999) > DatePicker!.Maximum || new DateTime(ShowingYear, month, 1) < DatePicker!.Minimum)
+            if (new DateTime(ShowingYear, month, 1) > DatePicker!.Maximum || new DateTime(ShowingYear, month, daysInMonth, 23, 59, 59, 999) < DatePicker!.Minimum)
             {
                 return;
             }
@@ -51,10 +49,10 @@
 
     private string CalCssClassForMonth(int month)
     {
-        if (ShowDisabledStyle)
+        if (DatePicker != null)
         {
             int daysInMonth = DateTime.DaysInMonth(ShowingYear, month);
-            if (new DateTime(ShowingYear, month, daysInMonth, 23, 59, 59, 999) > DatePicker!.Maximum || new DateTime(ShowingYear, month, 1) < DatePicker!.Minimum)
+            if (new DateTime(ShowingYear, month, 1) > DatePicker!.Maximum || new DateTime(ShowingYear, month, daysInMonth, 23, 59, 59, 999) < DatePicker!.Minimum)
             {
                 return " month-disabled";
             }

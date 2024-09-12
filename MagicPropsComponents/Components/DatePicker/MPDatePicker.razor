@@ -1,30 +1,48 @@
-﻿@using System.Globalization
+﻿@using System.Globalization;
 @using MagicPropsComponents.Abstractions
-@using Microsoft.JSInterop
-@implements IMPDatePicker
+@using Microsoft.JSInterop;
+@using Microsoft.AspNetCore.Components.Forms;
+@using MagicPropsComponents.Utilities;
+@typeparam TValue;
+@implements IDisposable;
+@implements IMPDatePicker;
 @inject IJSRuntime JSRuntime;
 <CascadingValue Value="this" Name="MPDatePicker">
-    <div class="datePickerRoot" style="width:@Width.ToString()px">
-        <div class="@(TitleFloat?"mp-input-container":"")" id="@_datepickerTriggerId" @onfocusin="ShowCalendar">
-            <div class="mp-input-outline @(!CheckIsValid()?"mp-input-err":"")" style="width:@(Width==null?"auto":Width<80?"80px":Width.ToString()+"px");@(TitleFloat?"margin-top: 15px;":"")">
-                @if (ReadOnly)
+    <div class="datePickerRoot">
+        <div class="@(!string.IsNullOrEmpty(Title)?"mp-input-container":"")" id="@_datepickerTriggerId" @onfocusin="ShowCalendar" style="width:@(Width==null?"auto":Width<80?"80px":Width.ToString()+"px");">
+            <div class="mp-input-outline  @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" style="width:@(Width==null?"auto":Width<80?"80px":Width.ToString()+"px");margin-top: 15px;">
+                @if (ReadOnly && Disabled)
                 {
-                    <input @ref="_txtSelectedDateStr" type="text" class="mp-within-input" value="@GetSelectedDateStr()" readonly id="@InputID">
+                    <input @ref="_txtSelectedDateStr" type="text" class="mp-within-input" value="@GetSelectedDateStr()" id="@InputID" readonly disabled>
+                }
+                else if (ReadOnly)
+                {
+                    <input @ref="_txtSelectedDateStr" type="text" class="mp-within-input" value="@GetSelectedDateStr()" id="@InputID" readonly>
+                }
+                else if (Disabled)
+                {
+                    <input @ref="_txtSelectedDateStr" type="text" class="mp-within-input" value="@GetSelectedDateStr()" id="@InputID" disabled>
                 }
                 else
                 {
-                    <input @ref="_txtSelectedDateStr" type="text" class="mp-within-input" value="@GetSelectedDateStr()" @onchange="TextBoxSelectedDateChanged" id="@InputID">
+                    if (_showCalendar)
+                    {
+                        <input @ref="_txtSelectedDateStr" type="text" placeholder="@DateFormatString" class="mp-within-input" value="@GetSelectedDateStr()" @onchange="TextBoxSelectedDateChanged" id="@InputID">
+                    }
+                    else
+                    {
+                        <input @ref="_txtSelectedDateStr" type="text" placeholder="@DateFormatString" class="mp-within-input" value="@GetSelectedDateStr()" @onfocus="ShowCalendar" @onclick="ShowCalendar" id="@InputID">
+                    }
                 }
-                <div class="mp-input-btn" @onclick="SwicthCalendarPopupVisible" @onclick:stopPropagation=true>
+                <div class="mp-input-btn" @onclick="SwicthCalendarPopupVisible">
                     <span><i class="fa fa-calendar"></i></span>
                 </div>
             </div>
-            @if (TitleFloat && !string.IsNullOrEmpty(Title))
+            @if (!string.IsNullOrEmpty(Title))
             {
-                <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(FixedTitle||_showCalendar||!string.IsNullOrEmpty(GetSelectedDateStr())?"flex":"none")">@Title</div>
+                <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide") @(Disabled?"disabled":"")" style="display:@(FixedTitle||_showCalendar||!string.IsNullOrEmpty(GetSelectedDateStr())?"flex":"none")" for="@InputID">@Title</div>
             }
         </div>
-        <span class="mp-input-errmsg-hide @(ShowErrorMsg&&!CheckIsValid()?"mp-input-errmsg-show":"")" title="@_errorMsg">@_errorMsg </span>
         <div class="datepicker-popup" @ref="@_calendarModelEle">
             <div class="date-picker-container">
                 <table style="width:300px;">
@@ -88,8 +106,8 @@
                                     <tr>
                                         @for (int i = 0; i < 7; i++)
                                         {
-                                            <MPDateItem SelectedDate="Value" ShowingDate="_handlingDate!.Value" ShowingYear="_showingYear!.Value" ShowingMonth="_showingMonth!.Value" SelectedDateChanging="OnSelectedDateChanging" ShowDisabledStyle="@ShowDisabledStyle"></MPDateItem>
-                                            _handlingDate = _handlingDate.Value.AddDays(1);
+                                            <MPDateItem SelectedDate="_selectedDate" ShowingDate="_handlingDate" ShowingYear="_showingYear!.Value" ShowingMonth="_showingMonth!.Value" SelectedDateChanging="OnSelectedDateChanging"></MPDateItem>
+                                            _handlingDate = _handlingDate.AddDays(1);
                                         }
                                     </tr>
                                     if (AnyDateOfNextWeekInSelectedMonth(_showingYear!.Value, _showingMonth!.Value) == false)
@@ -102,12 +120,12 @@
 
                     @if (_currentSelectorView == SelectorViews.MonthSelector)
                     {
-                        <MPMonthSelector SelectedMonth="_showingMonth" ShowingYear="_showingYear!.Value" OnMonthSelected="MonthSelector_ChangeSelectedMonth" ShowDisabledStyle="@ShowDisabledStyle"></MPMonthSelector>
+                        <MPMonthSelector SelectedMonth="_showingMonth" ShowingYear="_showingYear!.Value" OnMonthSelected="MonthSelector_ChangeSelectedMonth"></MPMonthSelector>
                     }
                     @if (_currentSelectorView == SelectorViews.YearSelector)
                     {
                         <MPYearSelector @ref="_yearSelector" OnYearSelected="YearSelector_ChangeSelectedYear" ShowingYear="_showingYear" @bind-IsAllowGoNextYearPage="_isAllowGoNextYearPage" @bind-IsAllowGoPreYearPage="_isAllowGoPreYearPage"
-                                        MaxDisplayYear="@DefaultDisplayedMaxYear" MinDisplayYear="@DefaultDisplayedMinYear" PageSize="@DefaultYearPageSize" ShowDisabledStyle="@ShowDisabledStyle"></MPYearSelector>
+                                        MaxDisplayYear="@DefaultDisplayedMaxYear" MinDisplayYear="@DefaultDisplayedMinYear" PageSize="@DefaultYearPageSize"></MPYearSelector>
                     }
                     <div style="height:240px;line-height:240px;width:15px;">
                         <div class="date-picker-btn ms-2 @(CheckIsAllowNext()?"":"disabled")" @onclick="GoNext" @onclick:stopPropagation=true><i class="fa fa-chevron-right"></i></div>
@@ -119,16 +137,14 @@
 </CascadingValue>
 
 @code {
+    [CascadingParameter]
+    private EditContext? CurrentEditContext { get; set; }
     [Parameter]
     public bool StartsWithMonday { get; set; }
     [Parameter]
-    public DateTime Value { get { return _selectedDate ?? DateTime.Now; } set { _selectedDate = value; } }
+    public TValue Value { get; set; }
     [Parameter]
-    public EventCallback<DateTime> ValueChanged { get; set; }
-    [Parameter]
-    public EventCallback<bool> AfterVerified { get; set; }
-    [Parameter]
-    public bool TitleFloat { get; set; }
+    public EventCallback<TValue> ValueChanged { get; set; }
     [Parameter]
     public bool FixedTitle { get; set; }
     [Parameter]
@@ -136,18 +152,9 @@
     [Parameter]
     public string InputID { get; set; } = string.Empty;
     [Parameter]
-    public bool ShowErrorMsg { get; set; }
-    [Parameter]
-    public string ErrorMsg { get; set; } = string.Empty;
-    private string _errorMsg = string.Empty;
-    [Parameter]
-    public bool Required { get; set; }
-    [Parameter]
-    public string RequiredErrorMsg { get; set; } = string.Empty;
-    [Parameter]
     public bool ReadOnly { get; set; }
     [Parameter]
-    public bool ShowDisabledStyle { get; set; }
+    public bool Disabled { get; set; }
     [Parameter]
     public int? Width { get; set; }
     [Parameter]
@@ -167,24 +174,26 @@
         set { _dateFormatString = value; }
     }
     [Parameter]
-    public DateTime Maximum { get; set; } = new DateTime(2100, 12, 31);
+    public DateTime Maximum { get; set; } = new DateTime(2099, 12, 31);
     [Parameter]
     public DateTime Minimum { get; set; } = new DateTime(1900, 1, 1);
+    [Parameter]
+    public string ValidationFieldName { get; set; } = string.Empty;//only used under EditForm
 
-    private DateTime? _selectedDate = default;
-    private bool _showCalendar { get; set; }
+
     private int DefaultDisplayedMinYear { get; set; } = 1900;
     private int DefaultDisplayedMaxYear { get; set; } = 2099;
     private int DefaultYearPageSize { get; set; } = 16;
-
+    private DateTime _selectedDate = default;
+    private bool _showCalendar { get; set; }
     private string? _dateFormatString = default;
     private int i = 0;
-    private DateTime? _handlingDate = default;
+    private DateTime _handlingDate = default;
     private int? _showingYear = default;
     private int? _showingMonth = default;
     private ElementReference _txtSelectedDateStr;
     private MPYearSelector? _yearSelector = default;
-    private bool afterFirstFocus = false;
+    private bool _afterFirstFocus = false;
 
     private string _datepickerTriggerId { get; set; } = string.Empty;
     private SelectorViews _currentSelectorView = SelectorViews.DateSelector;
@@ -193,20 +202,19 @@
     {
         if (_showingYear == null || _showingMonth == null)
         {
-            if (_selectedDate != null)
-            {
-                _showingYear = _selectedDate!.Value.Year;
-                _showingMonth = _selectedDate!.Value.Month;
-            }
-            else
-            {
-                _showingYear = DateTime.Today.Year;
-                _showingMonth = DateTime.Today.Month;
-            }
+            _showingYear = _selectedDate.Year;
+            _showingMonth = _selectedDate.Month;
         }
         var firstDateOfMonth = new DateTime(_showingYear!.Value, _showingMonth!.Value, 1);
         var dayOfWeekOfFirstMonthDay = (int)firstDateOfMonth.DayOfWeek;
         DateTime destDate = default;
+        if (_showingYear!.Value == DateTime.MinValue.Year)
+        {
+            _showingYear = DefaultDisplayedMinYear;
+            firstDateOfMonth = new DateTime(_showingYear!.Value, _showingMonth!.Value, 1);
+            dayOfWeekOfFirstMonthDay = (int)firstDateOfMonth.DayOfWeek;
+        }
+
         if (!StartsWithMonday)
             destDate = firstDateOfMonth.AddDays(-1 * dayOfWeekOfFirstMonthDay);
         else
@@ -216,24 +224,56 @@
             else
                 destDate = firstDateOfMonth.AddDays(-1 * (dayOfWeekOfFirstMonthDay - 1));
         }
-
-
         _handlingDate = destDate;
     }
 
     private bool AnyDateOfNextWeekInSelectedMonth(int year, int month)
     {
-        return _handlingDate!.Value.Year == year && _handlingDate!.Value.Month == month;
+        return _handlingDate.Year == year && _handlingDate.Month == month;
     }
+
+    private void InitValue()
+    {
+        if (typeof(TValue) == typeof(DateTime) || typeof(TValue) == typeof(DateTime?))
+        {
+            if (Value != null)
+            {
+                _selectedDate = Convert.ToDateTime(Value);
+            }
+            else
+            {
+                _selectedDate = Minimum;
+            }
+            if (_selectedDate > Maximum || _selectedDate < Minimum)
+            {
+                _selectedDate = Minimum;
+            }
+        }
+        else
+        {
+            throw new Exception("Datepicker only accept types related to dates like 'DateTime?' or 'DateTime'.");
+        }
+        _showingYear = _selectedDate.Year;
+        _showingMonth = _selectedDate.Month;
+    }
+
     protected override void OnInitialized()
     {
         if (string.IsNullOrEmpty(InputID))
         {
             InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
         }
-        _showingYear = _selectedDate == null ? DateTime.Today.Year : _selectedDate!.Value.Year;
-        _showingMonth = _selectedDate == null ? DateTime.Today.Month : _selectedDate!.Value.Month;
-        InitDateViewOfMonth();
+        InitValue();
+
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged += HandleValidationStateChanged;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        InitValue();
     }
 
     protected override async Task OnInitializedAsync()
@@ -241,6 +281,38 @@
         if (string.IsNullOrEmpty(_datepickerTriggerId)) _datepickerTriggerId = "datepicker_" + Guid.NewGuid().ToString().Replace("-", "");
         await JSRuntime.InvokeVoidAsync("registerDotNetMethod", _datepickerTriggerId, DotNetObjectReference.Create(this));
     }
+
+    void IDisposable.Dispose()
+    {
+        if (CurrentEditContext != null)
+        {
+            CurrentEditContext.OnValidationStateChanged -= HandleValidationStateChanged;
+        }
+        JSRuntime.InvokeVoidAsync("releaseDotNetRef", _datepickerTriggerId);
+    }
+
+    private void HandleValidationStateChanged(object? sender, ValidationStateChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    private bool IsValidAfterFormValidation()//through class to verify
+    {
+        if (CurrentEditContext == null) return false;
+        var propertyName = string.IsNullOrEmpty(ValidationFieldName) ? Title : ValidationFieldName;
+        var property = CurrentEditContext.Model?.GetType().GetProperty(propertyName);
+        if (property == null)
+        {
+            Console.WriteLine($"Property '{propertyName}' does not exist in the model.");
+            return true;
+        }
+        var fieldIdentifier = CurrentEditContext.Field(propertyName);
+        _validationMsg = CurrentEditContext.GetValidationMessages(fieldIdentifier).ToList();
+        return !_validationMsg.Any();
+    }
+
+    private List<string> _validationMsg = new List<string>();
+    public List<string> ValidationMessage { get => _validationMsg; }
 
     private void GoPre()
     {
@@ -285,30 +357,28 @@
         _selectedDate = dtSelected;
         _showingYear = dtSelected.Year;
         _showingMonth = dtSelected.Month;
+        if (typeof(TValue) == typeof(DateTime) || typeof(TValue) == typeof(DateTime?))
+        {
+            Value = (TValue)(object)dtSelected;
+            await ValueChanged.InvokeAsync(Value);
+        }
+        else
+        {
+            throw new Exception("Datepicker only accepts types related to dates like 'DateTime?' or 'DateTime'.");
+        }
         await HideCalendar();
-        if (CheckIsValid() && AfterVerified.HasDelegate)
-        {
-            await AfterVerified.InvokeAsync(true);
-        }
-        else if (!CheckIsValid() && AfterVerified.HasDelegate)
-        {
-            await AfterVerified.InvokeAsync(false);
-        }
-        await ValueChanged.InvokeAsync(dtSelected);
-        InitDateViewOfMonth();
-        StateHasChanged();
     }
 
     private string GetSelectedDateStr()
     {
-        return _selectedDate == null ? "" : _selectedDate.Value.ToString(DateFormatString);
+        return Value == null ? "" : _selectedDate.ToString(DateFormatString);
     }
 
     private void SelectToday()
     {
         _selectedDate = DateTime.Today;
-        _showingYear = _selectedDate!.Value.Year;
-        _showingMonth = _selectedDate!.Value.Month;
+        _showingYear = _selectedDate.Year;
+        _showingMonth = _selectedDate.Month;
         _currentSelectorView = SelectorViews.DateSelector;
         InitDateViewOfMonth();
     }
@@ -318,7 +388,20 @@
         try
         {
             var dt = DateTime.ParseExact(e.Value.ToString(), DateFormatString, CultureInfo.InvariantCulture);
-            await OnSelectedDateChanging(dt);
+            if (dt < Minimum)
+            {
+                await OnSelectedDateChanging(Minimum);
+                return;
+            }
+            else if (dt > Maximum)
+            {
+                await OnSelectedDateChanging(Maximum);
+                return;
+            }
+            else
+            {
+                await OnSelectedDateChanging(dt);
+            }
         }
         catch (Exception ex)
         {
@@ -363,7 +446,7 @@
     private void YearSelector_ChangeSelectedYear(int year)
     {
         _showingYear = year;
-        _currentSelectorView = SelectorViews.DateSelector;
+        _currentSelectorView = SelectorViews.MonthSelector;
         InitDateViewOfMonth();
     }
 
@@ -380,7 +463,7 @@
             case 7: return "Jul";
             case 8: return "Aug";
             case 9: return "Sep";
-            case 10: return "Otc";
+            case 10: return "Oct";
             case 11: return "Nov";
             case 12: return "Dec";
             default: return "No Found";
@@ -402,7 +485,6 @@
             case SelectorViews.YearSelector:
                 {
                     if (!_isAllowGoPreYearPage) return false;
-                    //if(_yearSelector!._pageIndex==0) return false;
                 }
                 return true;
             default: return true;
@@ -425,22 +507,7 @@
 
     private bool CheckIsValid()
     {
-        if (!afterFirstFocus) return true;
-        if (Required && _selectedDate == null)
-        {
-            _errorMsg = !string.IsNullOrEmpty(RequiredErrorMsg) ? RequiredErrorMsg : (string.IsNullOrEmpty(Title) ? "This field" : Title) + " is reqiured.";
-            return false;
-        }
-        if (_selectedDate < Minimum)
-        {
-            _errorMsg = !string.IsNullOrEmpty(ErrorMsg) ? ErrorMsg : "Minimum date is " + Minimum.ToString(DateFormatString);
-            return false;
-        }
-        if (_selectedDate > Maximum)
-        {
-            _errorMsg = !string.IsNullOrEmpty(ErrorMsg) ? ErrorMsg : "Maximum date is " + Maximum.ToString(DateFormatString);
-            return false;
-        }
+        if (CurrentEditContext != null) return IsValidAfterFormValidation();
         return true;
     }
 
@@ -451,9 +518,10 @@
 
     public async Task ShowCalendar()
     {
+        if (Disabled || ReadOnly) return;
         if (!_showCalendar)
         {
-            if (!afterFirstFocus) afterFirstFocus = true;
+            if (!_afterFirstFocus) _afterFirstFocus = true;
             _showCalendar = true;
             await JSRuntime.InvokeAsync<object>("MPDATEPICKER.show", _datepickerTriggerId, _calendarModelEle);
         }
@@ -471,7 +539,7 @@
         }
     }
 
-    public async Task SwicthCalendarPopupVisible()
+    private async Task SwicthCalendarPopupVisible()
     {
         if (_showCalendar)
         {
@@ -486,19 +554,13 @@
     [JSInvokable]
     public async Task OnJumpSelectedDay(int day)
     {
-        Value = Value.AddDays(day);
-        if (CheckIsValid() && AfterVerified.HasDelegate)
-        {
-            await AfterVerified.InvokeAsync(true);
-        }
-        else if (!CheckIsValid() && AfterVerified.HasDelegate)
-        {
-            await AfterVerified.InvokeAsync(false);
-        }
+        _selectedDate = _selectedDate.AddDays(day);
+        _showingYear = _selectedDate.Year;
+        _showingMonth = _selectedDate.Month;
+        Value = (TValue)(object)_selectedDate;
         await ValueChanged.InvokeAsync(Value);
-        _showingYear = Value.Year;
-        _showingMonth = Value.Month;
         InitDateViewOfMonth();
         StateHasChanged();
     }
 }
+

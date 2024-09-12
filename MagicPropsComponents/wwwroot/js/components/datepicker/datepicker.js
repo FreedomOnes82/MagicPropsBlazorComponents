@@ -66,8 +66,8 @@
         calendarEle.style.visibility = '';
 
         const clickFunction = async function (event) {
-            event.stopPropagation();
-            if (event.target == triggerEle || triggerEle.contains(event.target) || event.target == calendarEle || calendarEle.contains(event.target)) {
+            event.stopPropagation();//triggerEle only two childNodes(title and input)
+            if (triggerEle.childNodes[0].contains(event.target) || triggerEle.childNodes[1].contains(event.target) || event.target == calendarEle || calendarEle.contains(event.target)) {
                 return;
             } else {
                 await hideFuntion(event);
@@ -75,7 +75,7 @@
         }
 
         const keydownFunction = async function (event) {
-            if (event.key == "Tab" || event.key == "Enter") {
+            if (event.code == "Tab" || event.code == "Enter" || event.code == "Space") {
                 await hideFuntion(event);
                 return;
             }
@@ -102,10 +102,8 @@
         keydownFunc[triggerId] = keydownFunction;
 
         var hideFuntion = async function (e) {
-
             if (isVisible[triggerId]) {
                 await window.getDotNetRef(triggerId).invokeMethodAsync('HideCalendar');
-                calendarEle.style.display = "none";
                 calendarEle.style.visibility = 'hidden';
                 isVisible[triggerId] = false;
                 if (blurFunc[triggerId]) {
@@ -126,7 +124,6 @@
     }
     function hide(triggerId, calendarEle) {
         if (isVisible[triggerId]) {
-            calendarEle.style.display = "none";
             calendarEle.style.visibility = 'hidden';
             if (isVisible[triggerId]) isVisible[triggerId] = false;
             if (blurFunc[triggerId]) {

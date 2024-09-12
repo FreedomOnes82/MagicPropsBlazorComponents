@@ -11,7 +11,7 @@ The componnets inlcude but not limit to
 [Loader](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Loader/Loader.md), 
 [Input](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/Input/Input.md), 
 [Number Input](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/NumberInput/NumberInput.md), 
- Datepicker, 
+[Date Picker](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/DatePicker/DatePicker.md), 
 [Checkbox Group](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/CheckboxGroup/CheckboxGroup.md), 
 [Radio Group](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/RadioGroup/RadioGroup.md), 
 [Dropdown List](https://github.com/FreedomOnes82/MagicPropsBlazorComponents/blob/main/ReadMeDetails/DropdownList/DropdownList.md), 
