@@ -23,5 +23,5 @@ Here are a few demonstrative images that offer you a comprehensive overview of o
  * **FooterVisible**:True or False, to control if the footer visible or not
  * **ClickOutsideToClose**: True or False, to control if the modal close when user click the outside place
  * **FooterBottons**: Setting for you to add a list of ModalButton there to show up in Footer of this modal
- * **OnDialogButtonClicked**:A function that can be assigned to this property. When related button click a serial event trigger and run.
+ * **OnModalButtonClicked**:A function that can be assigned to this property. When related button click a serial event trigger and run.
    

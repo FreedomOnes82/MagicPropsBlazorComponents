@@ -31,7 +31,7 @@ else
 }
 @if (IsNeedDeleteConfirm)
 {
-    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="@_showCloseModal" Title="Delete Tab" CloseBtnVisible="true" ClickOutsideToClose="false" FooterBottons="@closeModalBtns" OnDialogButtonClicked="OnCloseModalButtonClick">
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="@_showCloseModal" Title="Delete Tab" CloseBtnVisible="true" ClickOutsideToClose="false" FooterBottons="@closeModalBtns" OnModalButtonClicked="OnCloseModalButtonClick">
         <BodyTemplate>
             Are you sure you want close @Header?
         </BodyTemplate>

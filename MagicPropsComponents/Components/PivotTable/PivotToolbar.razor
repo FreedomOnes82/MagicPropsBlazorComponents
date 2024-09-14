@@ -21,7 +21,7 @@
         <div class="btn-theme ms-2 @(_btnEnable?"":"disabled")" id="@_filedChooserId" @onclick="ShowFieldChooserDailog">Field Chooser</div>
     </div>
 </div>
-<MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showFieldChooserModal" Title="Field Chooser" Size="ViewModels.Modal.ModalSettings.Large" FooterBottons="fieldChooserModalButtons" OnDialogButtonClicked="FieldChooserModalButtonClicked">
+<MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showFieldChooserModal" Title="Field Chooser" Size="ViewModels.Modal.ModalSettings.Large" FooterBottons="fieldChooserModalButtons" OnModalButtonClicked="FieldChooserModalButtonClicked">
     <BodyTemplate>
         <div class="row" @ref="_fieldChooserContainer">
             <div class="col-4 pe-1">
@@ -171,7 +171,7 @@
     </BodyTemplate>
 </MagicPropsComponents.Components.Modal.MPModal>
 
-<MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showImportSettingsModal" Title="Import Settings" Size="ViewModels.Modal.ModalSettings.Small" FooterBottons="importModalButtons" OnDialogButtonClicked="ImportModalButtonClicked">
+<MagicPropsComponents.Components.Modal.MPModal @bind-Visible="_showImportSettingsModal" Title="Import Settings" Size="ViewModels.Modal.ModalSettings.Small" FooterBottons="importModalButtons" OnModalButtonClicked="ImportModalButtonClicked">
 <BodyTemplate>
         <InputFile OnChange="HandleFileSelected"></InputFile>
     </BodyTemplate>
@@ -585,7 +585,7 @@
     }
 
     private Popup.MPPopup _aggregateFuncListPopup;
-    //anput value fields
+
     private string GetValueFieldDisplayTextPrefix(FieldDefinition field)
     {
         var prefix = string.Empty;

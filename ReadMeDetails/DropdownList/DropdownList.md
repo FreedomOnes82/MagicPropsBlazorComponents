@@ -45,3 +45,14 @@ Additionally, if your datasource comprises a class, it is imperative to define T
 **MPDropDownListOption**:  
 * **Text**: Configuration for text part for each dropdown list option.
 * **Value**: Configuration for value part for each dropdown list option.
+
+
+Additionally, we can leverage Blazor EditForm for validation, utilizing a property specifically designed for this purpose:  
+* **ValidationFieldName**: This property designates the field within a class that is bound to the EditForm for validation purposes. If the field's name coincides with the title of this component, this property can be omitted, and the title can be directly referenced for validation.
+
+
+In addition to the parameters mentioned, for this component, we require a List<string> named ValidationMessage. 
+This list captures and stores error messages encountered during validation, enabling you to utilize them and display them on the page as necessary.
+Here's how to use the ValidationMessage:
+![Validation Message Sample](ValidationMessageSample.png)
+

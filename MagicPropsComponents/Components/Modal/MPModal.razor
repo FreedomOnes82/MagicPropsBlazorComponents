@@ -99,7 +99,7 @@
     [Parameter]
     public List<ModalButton> FooterBottons { get; set; } = new List<ModalButton>();
     [Parameter]
-    public EventCallback<ModalButton> OnDialogButtonClicked { get; set; }
+    public EventCallback<ModalButton> OnModalButtonClicked { get; set; }
 
     private string GetModalSizeClass()
     {
@@ -119,7 +119,7 @@
         {
             await SwitchVisible();
         }
-        await OnDialogButtonClicked.InvokeAsync(btn);
+        await OnModalButtonClicked.InvokeAsync(btn);
     }
 
     [Parameter]

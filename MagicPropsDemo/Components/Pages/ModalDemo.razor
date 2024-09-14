@@ -16,7 +16,7 @@
 <hr />
 <div>
     <p>Click this button to show up a Modal in a Small size, featuring solely a footer section without header for your review.</p>
-    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show2" CloseBtnVisible=true Size="ModalSettings.Small" HeaderVisible=false FooterBottons="@dialogButtons2" OnDialogButtonClicked="ClickBtn2">
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show2" CloseBtnVisible=true Size="ModalSettings.Small" HeaderVisible=false FooterBottons="@dialogButtons2" OnModalButtonClicked="ClickBtn2">
         <BodyTemplate>
             <h5>Hide Header, Small Size Modal with buttons "Keep" and "Close", click "Close" to close modal</h5>
         </BodyTemplate>
@@ -28,7 +28,7 @@
 
 <div>
     <p>Click this button to show up a Modal in a Large size, featuring both header and footer sections but without close button in header for your review.</p>
-    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show3" FooterBottons="@dialogButtons3" Size="ModalSettings.Large" OnDialogButtonClicked="ClickBtn3" ClickOutsideToClose=true>
+    <MagicPropsComponents.Components.Modal.MPModal @bind-Visible="show3" FooterBottons="@dialogButtons3" Size="ModalSettings.Large" OnModalButtonClicked="ClickBtn3" ClickOutsideToClose=true>
         <BodyTemplate>
             <h3>Hide Close button in header, Close button in footer</h3>
             <h3 style="color:red">Allow clicking outside to hide modal</h3>

@@ -318,9 +318,11 @@
             return true;
         }
         var fieldIdentifier = CurrentEditContext.Field(propertyName);
-        var isValid = CurrentEditContext.IsValid(fieldIdentifier);
-        return isValid;
+        _validationMsg = CurrentEditContext.GetValidationMessages(fieldIdentifier).ToList();
+        return !_validationMsg.Any();
     }
+    private List<string> _validationMsg = new List<string>();
+    public List<string> ValidationMessage { get => _validationMsg; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

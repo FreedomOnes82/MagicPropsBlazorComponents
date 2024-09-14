@@ -62,7 +62,7 @@
 <h4>Validation</h4>
 <EditForm Model="student" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
     <DataAnnotationsValidator />
-    <MagicPropsComponents.Components.Input.MPInput Title="Name" Width="280" @bind-Value=@student.Name FixedTitle  TitleFloat/>
+    <MagicPropsComponents.Components.Input.MPInput Title="Name" Width="280" @bind-Value=@student.Name FixedTitle/>
     <ValidationMessage For="@(() => student.Name)" />
     <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="hobbys" Multiple Width="280" Title="Hobbies" ValidationFieldName="Hobby" @bind-Values=@student.Hobby Clearable FixedTitle />
     <ValidationMessage For="@(() => student.Hobby)" />
