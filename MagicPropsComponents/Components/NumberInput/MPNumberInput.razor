@@ -7,10 +7,18 @@
 @if (Visible)
 {
     <div class="@(!string.IsNullOrEmpty(Title)?"mp-input-container":"")" id="@ClientID">
-        <div class="mp-input-outline @(CheckIsValid()?"":"mp-input-err")" tabindex="0" style="width:@(Width==null?"auto":Width<100?"100px":Width.ToString()+"px");margin-top: 15px;">
-            @if (ReadOnly)
+        <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" tabindex="0" style="width:@(Width==null?"auto":Width<100?"100px":Width.ToString()+"px");margin-top: 15px;">
+            @if (ReadOnly && Disabled)
             {
-                <input class="mp-within-input" @bind-value="_inputValue" readonly id="@InputID" />
+                <input class="mp-within-input" value="@(GetFormatValue(Value))" readonly disabled id="@InputID" />
+            }
+            else if (ReadOnly)
+            {
+                <input class="mp-within-input" value="@(GetFormatValue(Value))" readonly id="@InputID" />
+            }
+            else if (Disabled)
+            {
+                <input class="mp-within-input" value="@(GetFormatValue(Value))" disabled id="@InputID" />
             }
             else
             {
@@ -32,7 +40,7 @@
         </div>
         @if (!string.IsNullOrEmpty(Title))
         {
-            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide")" style="display:@(!string.IsNullOrEmpty(Title)?"flex":"none")">
+            <div class="mp-input-text @(CheckIsValid()?"":"mp-input-errmsg-hide") @(Disabled?"disabled":"")" style="display:@(!string.IsNullOrEmpty(Title)?"flex":"none")">
                 <label for="@InputID">
                     @Title
                 </label>
@@ -76,6 +84,8 @@
     [Parameter]
     public bool ReadOnly { get; set; } = false;
     [Parameter]
+    public bool Disabled { get; set; } = false;
+    [Parameter]
     public int? Width { get; set; }
     [Parameter]
     public EventCallback OnFocus { get; set; }
@@ -101,6 +111,7 @@
             InputID = "input_" + Guid.NewGuid().ToString().Replace("-", "");
         }
         _inputValue = GetFormatValue(Value);
+        if (ReadOnly || Disabled) StateHasChanged();
 
         if (CurrentEditContext != null)
         {
@@ -140,6 +151,7 @@
 
     private void DataOperate(bool isIncrese)
     {
+        if (ReadOnly || Disabled) return;
         if (isIncrese)
         {
             if (Value + Increment > Maximum)

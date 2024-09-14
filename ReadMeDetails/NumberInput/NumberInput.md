@@ -9,6 +9,7 @@ Here are a few demonstrative images that offer you a comprehensive overview of o
 **Introduction**:  
  This compponent is very similar as the input with type of number but it will had more settings for number input using, the following are the properties for it:  
 * **Visible**: A boolean value (true or false) that controls whether this input element is visible on the interface. Setting it to false will hide the input from the user.
+* **Disabled**: A boolean value that determines whether this input is disabled or not. If set to true, the input becomes inactive and users cannot interact with it.
 * **Readonly**: A boolean flag that specifies whether the input is read-only. When set to true, users cannot modify the input's value but can still copy and select the text.
 * **Width**: Specifies the width of the input element. The minimum acceptable value is 60, allowing for flexible sizing to accommodate different design requirements.
 * **Title**: Defines the title attribute for the input element, which can be displayed as a tooltip when the user hovers over the input.
