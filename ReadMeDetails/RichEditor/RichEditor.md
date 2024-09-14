@@ -2,7 +2,7 @@
 
 **Rich Editor**    
 **Demo Images**:  
-Here is a few demonstrative image that offer you a comprehensive overview of our rich editor component.    
+Here is a demonstrative image that offer you a comprehensive overview of our rich editor component.    
 ![Rich Editor Sample](RichEditorSample.png)
 
 **Introduction**:  
