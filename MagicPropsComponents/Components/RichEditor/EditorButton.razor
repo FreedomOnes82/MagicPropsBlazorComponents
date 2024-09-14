@@ -1,0 +1,228 @@
+﻿@using MagicPropsComponents.ViewModels.RichEditor
+@using MagicPropsComponents.ViewModels.Modal
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@switch (DocButton)
+{
+    case DocumentButtons.Undo:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.Undo)" action="undo" type="button" class="btnAction action"><i class="fa fa-undo"></i></button>
+            break;
+        }
+    case DocumentButtons.Redo:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.Redo)" action="redo" type="button" class="btnAction action"><i class="fa fa-repeat"></i></button>
+            break;
+        }
+    case DocumentButtons.justifyLeft:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.justifyLeft)" action="alignleft" type="button" class="btnAction action"><i class="fa fa-align-left" aria-hidden="true"></i></button>
+            break;
+        }
+    case DocumentButtons.justifyRight:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.justifyRight)" action="alignright" type="button" class="btnAction action"><i class="fa fa-align-right" aria-hidden="true"></i></button>
+            break;
+        }
+    case DocumentButtons.justifyCenter:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.justifyCenter)" action="aligncenter" type="button" class="btnAction action"><i class="fa fa-align-center" aria-hidden="true"></i></button>
+            break;
+        }
+    case DocumentButtons.indent:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.indent)" action="indent" type="button" class="btnAction action"><i class="fa fa-indent" aria-hidden="true"></i></button>
+            break;
+        }
+    case DocumentButtons.outdent:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.outdent)" action="outdent" type="button" class="btnAction action"><i class="fa fa-outdent"></i></button>
+            break;
+        }
+    case DocumentButtons.Bold:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.Bold)" action="bold" type="button" class="btnAction action"><i class="fa fa-bold"></i></button>
+            break;
+        }
+    case DocumentButtons.Italic:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.Italic)" action="italic" type="button" class="btnAction action"><i class="fa fa-italic"></i></button>
+            break;
+        }
+    case DocumentButtons.underline:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.underline)" action="underline" type="button" class="btnAction action"><i class="fa fa-underline"></i></button>
+            break;
+        }
+    case DocumentButtons.strikeThrough:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.strikeThrough)" action="strikeThrough" type="button" class="btnAction action"><i class="fa fa-strikethrough"></i></button>
+            break;
+        }
+    case DocumentButtons.H1:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.fontSize,7)" action="h1" type="button" class="btnAction action"><i class="fa fa-header"></i></button>
+            break;
+        }
+    case DocumentButtons.H2:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.fontSize,6)" action="h2" type="button" class="btnAction action" style="font-weight:bold">H2</button>
+            break;
+        }
+    case DocumentButtons.H3:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.fontSize,5)" action="h3" type="button" class="btnAction action" style="font-weight:bold">H3</button>
+            break;
+        }
+    case DocumentButtons.insertOrderedList:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.insertOrderedList)" action="insertOrderedList" type="button" class="btnAction action"><i class="fa fa-list-ol"></i></button>
+            break;
+        }
+    case DocumentButtons.insertUnorderedList:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.insertUnorderedList)" action="insertUnorderedList" type="button" class="btnAction action"><i class="fa fa-list-ul"></i></button>
+            break;
+        }
+    case DocumentButtons.Createlink:
+        {
+            <button @onclick="ShowLinkEditor" action="Createlink" type="button" class="btnAction action"><i class="fa fa-link"></i></button>
+            <MagicPropsComponents.Components.Modal.MPModal Title="Insert/Edit Link" FooterBottons="EditorDialogButtons" @bind-Visible=_showLinkDialog
+                                                          OnModalButtonClicked="OnLinkDialogButtonClicked">
+                <BodyTemplate>
+                    <LinkEditor @ref="linkEditor" EditingLinkData="@_linkDataInfo" HasSelection="@_hasSelection">
+
+                    </LinkEditor>
+                </BodyTemplate>
+            </MagicPropsComponents.Components.Modal.MPModal>
+            break;
+        }
+    case DocumentButtons.ForeColor:
+        {
+            <button action="foreColor" type="button" class="btnAction action">
+                <img src="./_content/MagicPropsComponents/svgs/color-picker-svgrepo-com.svg" width="20" height="20" onclick="return RICHEDITOR.ShowColorPicker(event,@EditorClientID,'foreColor');">
+                @* <input style="display:none" action="foreColor" class='colorPicker  btnForeColor' /> *@
+            </button>
+            <div style=" width:0px;height:0px;display:inline-block;;">
+                <input style="width:0px;visibility:hidden" type="color" action="foreColor" class='colorPicker  btnForeColor' />
+            </div>
+
+            break;
+        }
+    case DocumentButtons.BackColor:
+        {
+            <button action="hiliteColor" type="button" class="btnAction action">
+                <img src="./_content/MagicPropsComponents/svgs/background-color-svgrepo-com.svg" width="20" height="20" onclick="return RICHEDITOR.ShowColorPicker(event,@EditorClientID,'hiliteColor');">
+                @*                 <input style="display:none" action='hiliteColor' class='colorPicker  btnHiliteColor' /> *@
+            </button>
+            <div style="width:0px;height:0px;display:inline-block;"><input style="width:0px;visibility:hidden" type="color" action="hiliteColor" class='colorPicker  btnHiliteColor' /></div>
+
+            break;
+        }
+    case DocumentButtons.InsertImage:
+        {
+            <button action="insertImage" class="btnAction action" @onclick="ShowImageEditor"><i class="fa fa-file-image-o"></i></button>
+            <MagicPropsComponents.Components.Modal.MPModal  Title="Insert/Edit Image" FooterBottons="EditorDialogButtons" @bind-Visible=_showImageDialog
+                                                          OnModalButtonClicked="OnImageDialogButtonClicked">
+                <BodyTemplate>
+                    <ImageEditor @ref="_imageEditor" onlineImageInfo="@_onlineImageInfo"></ImageEditor>
+                </BodyTemplate>
+            </MagicPropsComponents.Components.Modal.MPModal>
+            break;
+        }
+    case DocumentButtons.ClearFormat:
+        {
+            <button @onclick="()=>execCommandToSelection(DocumentCommands.removeFormat)" action="removeFormat" type="button" class="btnAction action"><i class="fa fa-eraser"></i></button>
+            break;
+        }
+    case DocumentButtons.SetFontSize:
+        {
+            <select value="@fs" @onchange="SetFontSize" class="selAction action" action="setFontSize" @onclick="GetCurrentFontSize">
+                <option value="10px">10px</option>
+                <option value="11px">11px</option>
+                <option value="12px">12px</option>
+                <option value="14px">14px</option>
+                <option value="16px">16px</option>
+                <option value="18px">18px</option>
+                <option value="20px">20px</option>
+                <option value="24px">24px</option>
+                <option value="36px">36px</option>
+            </select>
+            break;
+        }
+}
+
+@code {
+    [Parameter]
+    public string AwasomeIcon { get; set; } = string.Empty;
+    [Parameter]
+    public string EditorClientID { get; set; } = string.Empty;
+    [Parameter]
+    public DocumentButtons DocButton { get; set; }
+    private bool _hasSelection = false;
+
+    #region "Create Link "
+    private bool _showLinkDialog;
+    public List<ModalButton> EditorDialogButtons = new List<ModalButton>() {
+        new ModalButton() { Text="Ok", CssClass="btn-Primary" },
+        new ModalButton() { Text="Close", CssClass="btn-Secondary", DismissModal= true },
+    };
+    private LinkEditor? linkEditor;
+    private LinkData _linkDataInfo = new LinkData() { TargetBlank = false, Text = "", Url = "", Title = "" };
+    public async Task OnLinkDialogButtonClicked(ModalButton dialogButton)
+    {
+        await JSRuntime.InvokeVoidAsync("RICHEDITOR.insertLink", EditorClientID, _hasSelection, _linkDataInfo.Url, _linkDataInfo.Title, _linkDataInfo.Text, _linkDataInfo.TargetBlank);
+        _showLinkDialog = false;
+        //await _linkDialog!.CloseDialog();
+    }
+    public async Task ShowLinkEditor()
+    {
+        _hasSelection = await JSRuntime.InvokeAsync<bool>("RICHEDITOR.recordSelection");
+        _linkDataInfo = new LinkData();
+        _hasSelection = false;
+        _showLinkDialog = true;
+        //await _linkDialog!.OpenDialog();
+    }
+    #endregion
+
+
+    #region "Insert Image"
+    private ImageEditor? _imageEditor;
+    private bool _showImageDialog;
+    private OnlineImageInfo _onlineImageInfo = new OnlineImageInfo() { Width = 100, Height = 100 };
+    public async Task OnImageDialogButtonClicked(ModalButton dialogButton)
+    {
+        await JSRuntime.InvokeVoidAsync("RICHEDITOR.insertImage", EditorClientID, _onlineImageInfo.Source);
+        //eleId,description, width, height
+        await JSRuntime.InvokeVoidAsync("RICHEDITOR.initInsertedImage", EditorClientID, _onlineImageInfo.Description, _onlineImageInfo.Width, _onlineImageInfo.Height);
+        _onlineImageInfo = new OnlineImageInfo();
+        _showImageDialog = false;
+    }
+
+    public async Task ShowImageEditor()
+    {
+        await JSRuntime.InvokeVoidAsync("RICHEDITOR.recordSelection");
+        _showImageDialog = true;
+    }
+    #endregion
+
+    IJSObjectReference? jsModule;
+
+    async Task execCommandToSelection(DocumentCommands command, params object[] parameter)
+    {
+        await JSRuntime.InvokeVoidAsync("RICHEDITOR.execCommandToSelection", EditorClientID, command.ToString().ToLower(), parameter);
+    }
+
+    async Task SetFontSize(ChangeEventArgs e)
+    {
+        await JSRuntime.InvokeVoidAsync("RICHEDITOR.setFontSize", EditorClientID, e.Value);
+    }
+
+    string fs = "16px";
+    async Task GetCurrentFontSize()
+    {
+        fs = await JSRuntime.InvokeAsync<string>("RICHEDITOR.getCurrentFontSize", EditorClientID);
+        StateHasChanged();
+    }
+
+}

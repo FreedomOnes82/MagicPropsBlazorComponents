@@ -1,0 +1,36 @@
+﻿@using MagicPropsComponents.ViewModels.RichEditor
+<form>
+    <div class="mb-3">
+        <label for="text" class="col-form-label">text:</label>
+        @if (HasSelection)
+        {
+            <input type="text" class="form-control" id="text" @bind-value="@EditingLinkData.Text" disabled="true">
+        }
+        else
+        {
+            <input type="text" class="form-control" id="text" @bind-value="@EditingLinkData.Text">
+        }
+
+    </div>
+    <div class="mb-3">
+        <label for="url" class="col-form-label">url:</label>
+        <input type="text" class="form-control" id="url" @bind-value="@EditingLinkData.Url" />
+    </div>
+    <div class="mb-3">
+        <label for="title" class="col-form-label">title:</label>
+        <input type="text" class="form-control" id="title" @bind-value="@EditingLinkData.Title" />
+    </div>
+
+    <div class="mb-3">
+        <label for="targetBlank" class="col-form-label">open in new window:</label>
+        <input type="checkbox" id="targetBlank" @bind-value="@EditingLinkData.TargetBlank" />
+    </div>
+</form>
+
+@code {
+    [Parameter]
+    public bool HasSelection { get; set; } = false;
+
+    [Parameter]
+    public LinkData EditingLinkData { get; set; } = new LinkData();
+}

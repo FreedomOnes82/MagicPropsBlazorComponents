@@ -1,0 +1,25 @@
+﻿@using MagicPropsComponents.ViewModels.RichEditor
+<form>
+    <div class="mb-3">
+        <label for="source" class="col-form-label">Source:</label>
+        <input type="text" class="form-control" id="source" @bind-value="@onlineImageInfo.Source">
+    </div>
+    <div class="mb-3">
+        <label for="description" class="col-form-label">Description:</label>
+        <input type="text" class="form-control" id="description" @bind-value="@onlineImageInfo.Description" />
+    </div>
+    <div class="mb-3">
+        <label for="width" class="col-form-label">Width:</label>
+        <input type="text" class="form-control" id="width" @bind-value="@onlineImageInfo.Width" />
+    </div>
+
+    <div class="mb-3">
+        <label for="height" class="col-form-label">Height:</label>
+        <input type="text" class="form-control" id="height" @bind-value="@onlineImageInfo.Height" />
+    </div>
+</form>
+@code {
+    [Parameter]
+    public OnlineImageInfo onlineImageInfo { get; set; } = new OnlineImageInfo();
+
+}

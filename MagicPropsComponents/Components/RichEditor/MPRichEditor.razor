@@ -1,0 +1,87 @@
+﻿@using MagicPropsComponents.ViewModels.RichEditor
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime;
+
+<div class="richEditorRoot" style="width:@Width.ToString()px;" @ref="_rootDiv">
+
+    <Toolbar Buttons="@Buttons" EditorClientID="@ClientID"></Toolbar>
+    <div id="@ClientID.ToString()" @ref="_editorDiv" class="richeditor-container" contenteditable="true" style="width:100%;height:@Height.ToString()px" @onmouseup="TestButtonStatuses">
+        @content
+    </div>
+
+    <div style="display:none">
+        <input type="hidden" id="richEditorClientId" value="@ClientID" />
+    </div>
+</div>
+@code {
+    [Parameter]
+    public string ClientID { get; set; } = string.Empty;
+    [Parameter]
+    public int Width { get; set; } = 1000;
+    [Parameter]
+    public int Height { get; set; } = 700;
+    [Parameter]
+    public List<DocumentButtons> Buttons
+    {
+        get => _documentButtons;
+        set
+        {
+            _documentButtons = value;
+        }
+    }
+
+    private List<DocumentButtons> _documentButtons = new List<DocumentButtons>()
+    {
+        DocumentButtons.Redo,
+        DocumentButtons.Undo,
+        DocumentButtons.Bold,
+        DocumentButtons.Italic,
+        DocumentButtons.justifyLeft,
+        DocumentButtons.justifyRight,
+        DocumentButtons.justifyCenter,
+        DocumentButtons.indent,
+        DocumentButtons.outdent,
+        DocumentButtons.underline,
+        DocumentButtons.strikeThrough,
+        DocumentButtons.H1,
+        DocumentButtons.H2,
+        DocumentButtons.H3,
+        DocumentButtons.insertOrderedList,
+        DocumentButtons.insertUnorderedList,
+        DocumentButtons.removeFormat,
+        DocumentButtons.subscription,
+        DocumentButtons.superscription,
+        DocumentButtons.Createlink,
+        DocumentButtons.Unlink,
+        DocumentButtons.ForeColor,
+        DocumentButtons.BackColor,
+        DocumentButtons.InsertImage,
+        DocumentButtons.ClearFormat,
+        DocumentButtons.SetFontSize
+    };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (string.IsNullOrEmpty(ClientID))
+            ClientID = "richeditor_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+    public async Task<string> GetContent()
+    {
+        return await JSRuntime.InvokeAsync<string>("RICHEDITOR.GetContent", ClientID);
+    }
+
+    private ElementReference _editorDiv;
+    private ElementReference _rootDiv;
+    public async Task TestButtonStatuses(MouseEventArgs mouseEventArgs)
+    {
+        await JSRuntime.InvokeAsync<string>("RICHEDITOR.testSelectionStatus", _editorDiv);
+    }
+
+    private string content = string.Empty;
+
+    public async Task SetContent(string value)
+    {
+        await JSRuntime.InvokeAsync<string>("RICHEDITOR.SetContent", ClientID, value);
+    }
+}

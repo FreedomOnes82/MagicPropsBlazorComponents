@@ -1,0 +1,57 @@
+﻿@page "/richeditordemo"
+@using MagicPropsComponents.Components.RichEditor
+@using MagicPropsComponents.ViewModels.RichEditor
+@rendermode @(new InteractiveServerRenderMode(prerender:false) )
+<h3>Rich Editor Demo</h3>
+<hr />
+<p>Rich Editor Demo with default all buttons in it:</p>
+<MPRichEditor @ref="rEditor" Height="200" Width="600"></MPRichEditor>
+<br />
+<hr />
+<p>Rich Editor Demo with custom buttons in it:</p>
+<MPRichEditor Width="600" Height="400" Buttons="@documentButtons"></MPRichEditor>
+<hr />
+@code {
+    private MPRichEditor? rEditor;
+
+    protected override Task OnInitializedAsync()
+    {
+
+        return base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+       await  rEditor!.SetContent("<span>Test</span>");
+    }
+
+    public List<DocumentButtons> documentButtons = new List<DocumentButtons>()
+    {
+        DocumentButtons.Redo,
+        DocumentButtons.Undo,
+        DocumentButtons.Bold,
+        DocumentButtons.Italic,
+        DocumentButtons.justifyLeft,
+        DocumentButtons.justifyRight,
+        DocumentButtons.justifyCenter,
+        DocumentButtons.indent,
+        DocumentButtons.outdent,
+        DocumentButtons.underline,
+        DocumentButtons.strikeThrough,
+        // DocumentButtons.H1,
+        // DocumentButtons.H2,
+        // DocumentButtons.H3,
+        // DocumentButtons.insertOrderedList,
+        // DocumentButtons.insertUnorderedList,
+        // DocumentButtons.removeFormat,
+        // DocumentButtons.subscription,
+        // DocumentButtons.superscription,
+        // DocumentButtons.Createlink,
+        // DocumentButtons.Unlink,
+        // DocumentButtons.ForeColor,
+        // DocumentButtons.BackColor,
+        // DocumentButtons.InsertImage,
+        // DocumentButtons.ClearFormat,
+        // DocumentButtons.SetFontSize
+    };
+}

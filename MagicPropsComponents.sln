@@ -91,6 +91,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DatePicker", "DatePicker", 
 		ReadMeDetails\DatePicker\DatePicker.md = ReadMeDetails\DatePicker\DatePicker.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RichEditor", "RichEditor", "{6C6DC154-5534-45AE-864C-A283FAEEFDB5}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\RichEditor\RichEditor.md = ReadMeDetails\RichEditor\RichEditor.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +131,7 @@ Global
 		{9B241446-901E-4B34-BF6A-37CD9DB9F26E} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{2F665F85-A1AF-435B-B354-93AB74199A7B} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{215FB63E-1707-46E1-9AA9-9E17AB98B7DE} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{6C6DC154-5534-45AE-864C-A283FAEEFDB5} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}

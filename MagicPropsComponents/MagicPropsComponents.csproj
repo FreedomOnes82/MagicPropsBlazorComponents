@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\js\components\richeditor\" />
     <Folder Include="wwwroot\js\components\toast\" />
   </ItemGroup>
 

@@ -1,0 +1,16 @@
+﻿@using MagicPropsComponents.ViewModels.RichEditor
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime;
+<div class="richeditor-toolbar" style="">
+    @foreach (var button in Buttons)
+    {
+        <EditorButton DocButton="@button" EditorClientID="@EditorClientID"></EditorButton>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<DocumentButtons> Buttons { get; set; } = new List<DocumentButtons>();
+    [Parameter]
+    public string EditorClientID { get; set; } = string.Empty;
+}
