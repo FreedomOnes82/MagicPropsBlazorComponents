@@ -30,8 +30,8 @@ Here are the refined details for each property along with its respective functio
 * **FixedTitle**: A boolean property that ensures the title of the date picker is always displayed on the left side of the input box, regardless of whether the it has a value. This is useful for descriptive or instructional titles.
 * **ValueChanged**: A function that can be assigned to this property. When the value of the date picker changes, this function is automatically triggered, allowing for dynamic updates or validation checks.
 * **DateFormatString**: This property allows you to specify the format in which dates are displayed in the date picker. You can use any valid date format string, such as 'yyyy-MM-dd', 'MM/dd/yyyy', 'MM-dd-yyyy', among others. If you do not set this property, the date picker will default to the date format of your culture settings.
-* **Maximum**: The max date you can choose or enter for this date picker. Default date is 12/31/2099.
-* **Minimum**: The min date you can choose or enter for this date picker. Default date is 01/01/1900.
+* **Maximum**: The max date you can choose or enter for this date picker. Default date is 12/31/2099,this date is the max date our calendar can set.
+* **Minimum**: The min date you can choose or enter for this date picker. Default date is 01/01/1900, this date is the min date our calendar can set.
           
 Additionally, we can leverage Blazor EditForm for input validation, utilizing a property specifically designed for this purpose:  
 * **ValidationFieldName**: This property designates the field within a class that is bound to the EditForm for validation purposes. If the field's name coincides with the title of the input, this property can be omitted, and the title can be directly referenced for validation.
