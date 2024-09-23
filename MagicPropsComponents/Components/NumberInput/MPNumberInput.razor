@@ -63,7 +63,7 @@
             {
                 _value = value;
                 ValueChanged.InvokeAsync(value);
-                StateHasChanged();
+                _inputValue = GetFormatValue(value);
             }
         }
     }

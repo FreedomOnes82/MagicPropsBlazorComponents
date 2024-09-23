@@ -1,0 +1,171 @@
+﻿@using MagicPropsComponents.Abstractions.DataGrid
+@using MagicPropsComponents.ViewModels.DataGrid
+@using MagicPropsComponents.ViewModels.Modal
+@if (DataGridContainer!.ShowToolbar())
+{
+    <div class="grid-toolbar row" style="@_totalStyle">
+        <div class="col-6" style="display:flex;justify-content:start">
+            @if (OperationSettings.AllowAdding)
+            {
+                @if (DataGridContainer!.NewData != null)
+                {
+                    <div class="btn-theme disabled">Add<span class="ms-2"><i class="fa fa-plus"></i></span></div>
+                }
+                else
+                {
+                    <div class="btn-theme" @onclick="() => { OnClickAdd.InvokeAsync(); }">Add<span class="ms-2"><i class="fa fa-plus"></i></span></div>
+                }
+            }
+            @if ((DataGridContainer!.EditMode != EditMode.Dialog || OperationSettings.EditingTrigger != EditingTrigger.RowClick) && OperationSettings.AllowEditing)
+            {
+                if (DataGridContainer!.SelectedRow != null)
+                {
+                    <div class="btn-theme" @onclick="() => { OnClickEdit.InvokeAsync(); }">Edit<span class="ms-2"><i class="fa fa-edit"></i></span></div>
+                }
+                else
+                {
+                    <div class="btn-theme disabled">Edit<span class="ms-2"><i class="fa fa-edit"></i></span></div>
+                }
+            }
+            @if ((DataGridContainer!.EditMode != EditMode.Dialog || OperationSettings.EditingTrigger != EditingTrigger.RowClick) && OperationSettings.AllowDeleting)
+            {
+                if (DataGridContainer!.SelectedRow != null || DataGridContainer!.EditRowClone != null)
+                {
+                    <div class="btn-theme" @onclick="() => { OnClickDelete.InvokeAsync(); }">Delete<span class="ms-2"><i class="fa fa-trash-o"></i></span></div>
+                }
+                else
+                {
+                    <div class="btn-theme disabled">Delete<span class="ms-2"><i class="fa fa-trash-o"></i></span></div>
+                }
+            }
+            @if (DataGridContainer!.EditMode == EditMode.Default && (OperationSettings.AllowEditing || OperationSettings.AllowAdding))
+            {
+                @if (DataGridContainer!.NewData != null || DataGridContainer!.EditRowClone != null)
+                {
+                    <div class="btn-theme" @onclick="() => { OnClickUpdate.InvokeAsync(); }">Update<span class="ms-2"><i class="fa fa-edit"></i></span></div>
+                }
+                else
+                {
+                    <div class="btn-theme disabled">Update<span class="ms-2"><i class="fa fa-edit"></i></span></div>
+                }
+                @if (DataGridContainer!.NewData != null || DataGridContainer.EditRowClone != null)
+                {
+                    <div class="btn-theme" @onclick="() => { OnClickCancel.InvokeAsync(); }">Cancel<span class="ms-2"><i class="fa fa-close"></i></span></div>
+                }
+                else
+                {
+                    <div class="btn-theme disabled">Cancel<span class="ms-2"><i class="fa fa-close"></i></span></div>
+                }
+            }
+            @foreach (var customBtn in CustomToolBtns)
+            {
+                @if (customBtn != null)
+                {
+                    @if (customBtn.DisabledFun != null ? customBtn.DisabledFun.Invoke() : false)
+                    {
+                        <div class="btn-theme disabled">@customBtn.Text<span class="ms-2">@customBtn?.IconTemplate</span></div>
+                    }
+                    else
+                    {
+                        <div class="btn-theme" @onclick="()=>DoCustomAction(customBtn)">@customBtn.Text<span class="ms-2">@customBtn?.IconTemplate</span></div>
+                    }
+                }
+            }
+        </div>
+        <div class="col-6 enditem">
+            @if (OperationSettings.AllowGlobalSearch)
+            {
+                <div class="input-group" style="max-width:230px;">
+                    <input type="text" class="form-control" placeholder="Search..." @onchange="OnSearching">
+                </div>
+            }
+            @if (OperationSettings.ShowColumnChooser)
+            {
+                <div class="btn btn-theme ms-2" title="Column Chooser" id="@_columnChooserId"><span class=" text-overflow-replace-ellipsis">@(!string.IsNullOrEmpty(ColumnChooserText) ? ColumnChooserText : "Column Chooser")</span></div>
+                <MagicPropsComponents.Components.Popup.MPPopup TriggerEleID="@_columnChooserId" @ref="@_columnChooserPopup" AnchorPointType="ViewModels.Popup.AnchorPointType.TriggerRightBottom" Toward="ViewModels.Popup.PopupToward.BottomLeft" Spacing="0" Width="250" Height="GetPopupHeight()" PopupShadowSettings="0 16px 48px rgba(0,0,0,.175)" BorderRadius="3">
+                    <div class="fchooser-header">
+                        <h5 class="mb-0">@(!string.IsNullOrEmpty(ColumnChooserText) ? ColumnChooserText : "Column Chooser")</h5>
+                    </div>
+                    <div class="fchooser-content">
+                        @foreach (var col in _columns)
+                        {
+                            <div class="fchooser-content-item">
+                                <input type="checkbox" class="form-check-input" id="chk_@col.ColumnName" value="@col.ColumnName" @bind="col.Visible">
+                                <label class="form-check-label ms-2" for="chk_@col.ColumnName">@col.DisplayName</label>
+                            </div>
+                        }
+                    </div>
+                    <div class="fchooser-footer mx-3">
+                        <button type="button" class="btn btn-primary" @onclick="async() => { await OnChangeColumns.InvokeAsync(_columns);await _columnChooserPopup.Hide(); }">OK</button>
+                        <button type="button" class="btn btn-secondary ms-3" @onclick="async() => { await _columnChooserPopup.Hide();  }">Cancel</button>
+                    </div>
+                </MagicPropsComponents.Components.Popup.MPPopup>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [CascadingParameter(Name = "MPDataGrid")]
+    private IMPDataGrid? DataGridContainer { get; set; }
+    [Parameter]
+    public int? Width { get; set; }
+    [Parameter]
+    public OperationSettings OperationSettings { get; set; } = new OperationSettings();
+    [Parameter]
+    public List<ToolButton> CustomToolBtns { get; set; } = new List<ToolButton>();
+    [Parameter]
+    public EventCallback OnClickAdd { get; set; }
+    [Parameter]
+    public EventCallback OnClickEdit { get; set; }
+    [Parameter]
+    public EventCallback OnClickDelete { get; set; }
+    [Parameter]
+    public EventCallback OnClickUpdate { get; set; }
+    [Parameter]
+    public EventCallback OnClickCancel { get; set; }
+    [Parameter]
+    public EventCallback<string> OnSearch { get; set; }
+    [Parameter]
+    public string ColumnChooserText { get; set; } = string.Empty;
+    [Parameter]
+    public EventCallback<List<IMPGridColumn>> OnChangeColumns { get; set; }
+
+    private string _columnChooserId = string.Empty;
+    private List<IMPGridColumn> _columns = new List<IMPGridColumn>();
+    private string _totalStyle { get => Width != null ? "width:" + Width + "px;" : "width:auto;"; }
+    private MagicPropsComponents.Components.Popup.MPPopup _columnChooserPopup;
+
+    protected override void OnInitialized()
+    {
+        _columnChooserId = "columnChooser_" + Guid.NewGuid().ToString().Replace("-", "");
+    }
+
+    public void InitColumns(List<IMPGridColumn> columns)
+    {
+        _columns = columns;
+        StateHasChanged();
+    }
+
+    private int GetPopupHeight()
+    {
+        if (_columns.Count <= 10)
+            return _columns.Count * 30 + 150;
+        else
+            return 10 * 30 + 150;
+    }
+
+    private void OnSearching(ChangeEventArgs e)
+    {
+        var keywords = e.Value!.ToString();
+        OnSearch.InvokeAsync(keywords);
+    }
+
+    private async Task DoCustomAction(ToolButton? btn)
+    {
+        if (btn != null && btn.ActionAsync != null)
+        {
+            await btn.ActionAsync.Invoke();
+        }
+    }
+}

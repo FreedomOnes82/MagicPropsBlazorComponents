@@ -1,0 +1,364 @@
+﻿@using MagicPropsComponents.Abstractions.DataGrid
+@using MagicPropsComponents.Utilities
+@using MagicPropsComponents.ViewModels.DataGrid
+@using MagicPropsComponents.ViewModels.Shared
+@using System.Globalization;
+@using MagicPropsComponents.ViewModels.Modal
+@using System.ComponentModel;
+@using System.Reflection;
+
+@implements IMPGridColumn;
+
+
+@if (Displayed())
+{
+    @if (IsColGroup)
+    {
+        <col style="width:@_widthString" />
+    }
+    else if (IsHeaderRow)
+    {
+        <th class="@(StickyCol?"stiky_col":"header-container")">
+            @if (HeaderTemplate == null)
+            {
+                @(DisplayName)
+            }
+            else
+            {
+                @HeaderTemplate
+            }
+
+            @if (Sortable)
+            {
+                @if (_sortingStatus == SortType.Ascending)
+                {
+                    <button type="button" style="border:none; background-color:transparent" @onclick="OnSortingChanging">
+                        <img src="@SvgHelper.GetSvgPath()sort-asc.svg" width="15" height="15">
+                    </button>
+                }
+
+                @if (_sortingStatus == SortType.Descending)
+                {
+                    <button type="button" style="border:none; background-color:transparent" @onclick="OnSortingChanging">
+                        <img src="@SvgHelper.GetSvgPath()sort-desc.svg" width="15" height="15">
+                    </button>
+                }
+
+                @if (_sortingStatus == SortType.None)
+                {
+                    <button type="button" style="border:none; background-color:transparent" @onclick="OnSortingChanging">
+                        <img src="@SvgHelper.GetSvgPath()sort-unsorted.svg" width="15" height="15">
+                    </button>
+                }
+            }
+
+            @if (Filterable)
+            {
+                <img class="mx-1" src="@GetFilterIcon()" width="15" height="15" id="@("filterPopup_"+ColumnId)" />
+                <Filter PopupTriggerID="@("filterPopup_"+ColumnId)" ColumnName="@ColumnName" ColumnType="@ColumnType" FilterType="@FilterType" FilterTemplate="@FilterTemplate" MenuListDS="GetMenuList()" />
+            }
+
+        </th>
+    }
+    else
+    {
+        <td class="@(StickyCol?"stiky_col":"") @(IsSelected?"mp-datagrid-row-selected":"")">
+            @if (IsInserting)
+            {
+                @if (DataGridContainer!.EditMode == EditMode.Default)
+                {
+                    @if (DataGridContainer.NewData != null)
+                    {
+                        if (EditTemplate != null)
+                        {
+                            @EditTemplate(GetValue(DataGridContainer!.NewData))
+                        }
+                        else
+                        {
+                            <Editor EditorType="@EditorType" ColumnType="ColumnType" Format="@Format" Value="@GetValue(DataGridContainer!.NewData)" ValueChanged="(val)=>{SetData(val.ToString());}" EditorSetting="@EditorSetting"></Editor>
+                        }
+                    }
+                }
+                else
+                {
+                    @if (Template == null)
+                    {
+                        @GetDisplayText()
+                    }
+                    else
+                    {
+                        @Template(DataGridContainer.NewData)
+                    }
+                }
+            }
+            else if (IsEditing)
+            {
+                @if (DataGridContainer!.EditMode == EditMode.Default)
+                {
+                    @if (ColumnName != null && DataGridContainer.EditRowClone != null)
+                    {
+                        if (EditTemplate != null)
+                        {
+                            @EditTemplate(GetValue(DataGridContainer!.EditRowClone))
+                        }
+                        else
+                        {
+                            <Editor EditorType="@EditorType" ColumnType="ColumnType" Format="@Format" Value="@GetValue(DataGridContainer.EditRowClone)" ValueChanged="(val)=>{SetData(val.ToString());}" EditorSetting="@EditorSetting"></Editor>
+                        }                        
+                    }
+                }
+                else if (DataGridContainer!.EditMode == EditMode.Dialog)
+                {
+                    @if (Template == null)
+                    {
+                        @GetDisplayText()
+                    }
+                    else
+                    {
+                        @Template(DataGridContainer.EditRowClone)
+                    }
+                }
+            }
+            else
+            {
+                @if (Template == null)
+                {
+                    @GetDisplayText()
+                }
+                else
+                {
+                    @Template(RowData)
+                }
+            }
+        </td>
+    }
+}
+
+@code {
+    [CascadingParameter(Name = "MPDataGrid")]
+    public IMPDataGrid? DataGridContainer { get; set; }
+
+    [Parameter]
+    public FilterType FilterType { get; set; } = FilterType.DefaultFilter;
+    [Parameter]
+    public RenderFragment<object>? FilterTemplate { get; set; }
+    [CascadingParameter(Name = "RowData")]
+    public object? RowData { get; set; }
+    [CascadingParameter(Name = "IsHeaderRow")]
+    public bool IsHeaderRow { get; set; }
+    [CascadingParameter(Name = "IsColGroup")]
+    public bool IsColGroup { get; set; }
+    [CascadingParameter(Name = "IsInserting")]
+    public bool IsInserting { get; set; }
+    [CascadingParameter(Name = "IsEditing")]
+    public bool IsEditing { get; set; }
+    [CascadingParameter(Name = "IsSelected")]
+    public bool IsSelected { get; set; }
+    [Parameter]
+    public RenderFragment<object>? Template { get; set; }
+    [Parameter]
+    public RenderFragment? HeaderTemplate { get; set; }
+    [Parameter]
+    public RenderFragment<object>? EditTemplate { get; set; }
+    [Parameter]
+    public string ColumnName { get; set; }
+    [Parameter]
+    public string HeaderText { get; set; }
+    [Parameter]
+    public string? Format { get; set; }
+    [Parameter]
+    public bool StickyCol { get; set; } = false;
+    [Parameter]
+    public int? Width { get; set; }
+    [Parameter]
+    public bool Visible { get; set; } = true;
+    [Parameter]
+    public TextAlign TextAlign { get; set; } = TextAlign.Left;
+    [Parameter]
+    public ColumnType ColumnType { get; set; } = ColumnType.Default;
+    [Parameter]
+    public bool Sortable { get; set; } = false;
+    [Parameter]
+    public bool Filterable { get; set; } = false;
+    [Parameter]
+    public string ColumnId { get; set; } = string.Empty;
+    [Parameter]
+    public EditorType EditorType { get; set; }
+    [Parameter]
+    public EditorSetting? EditorSetting { get; set; }
+    [Parameter]
+    public List<object>? CustomMenuListFilterDatasource { get; set; }
+
+    private string _widthString => Width == null ? "auto" : Width.Value.ToString() + "px";
+    private string _keywords { get; set; } = string.Empty;
+    private PropertyByLambda? _prop = null;
+    private SortType _sortingStatus = SortType.None;
+
+    private List<object> GetMenuList()
+    {
+        if (FilterType == FilterType.MenuListFilter)
+        {
+            if (CustomMenuListFilterDatasource != null && CustomMenuListFilterDatasource.Count > 0)
+            {
+                return CustomMenuListFilterDatasource;
+            }
+            return DataGridContainer!.GetList(ColumnName);
+        }
+        return new List<object>();
+    }
+
+    public PropertyByLambda GetProp()
+    {
+        if (_prop == null)
+        {
+            var data = RowData ?? DataGridContainer!.NewData ?? DataGridContainer!.EditRowClone;
+            if (data != null)
+            {
+                var props = PropertyByLambda.GetProperties(data!.GetType());
+                _prop = props.First(x => x.Name == ColumnName);
+            }
+        }
+        return _prop;
+    }
+
+    private object GetValue(object? data)
+    {
+        if (data == null) return string.Empty;
+        var value = GetProp().GetValue(data!);
+        switch (ColumnType)
+        {
+            case ColumnType.Date:
+                return Convert.ToDateTime(value).ToString();
+            case ColumnType.Number:
+                return Convert.ToDecimal(value).ToString();
+        }
+        return value ?? string.Empty;
+    }
+
+    public object GetDisplayText()
+    {
+        var value = GetProp().GetValue(RowData!);
+        switch (ColumnType)
+        {
+            case ColumnType.Date:
+                return Convert.ToDateTime(value).ToString(Format);
+            case ColumnType.Number:
+                return Convert.ToDecimal(value).ToString(Format);
+        }
+        return value;
+    }
+
+    private object? GetDataToSet(string? val)
+    {
+        var prop = GetProp();
+        object? destVl;
+        if (prop.Info.PropertyType == typeof(System.DateTime))
+        {
+            destVl = Convert.ToDateTime(val);
+        }
+        else if (prop.Info.PropertyType == typeof(System.Decimal))
+        {
+            destVl = Convert.ToDecimal(val);
+        }
+        else
+            destVl = ValueConverter.GetValue(val, prop.Info.PropertyType);
+        return destVl;
+    }
+
+    public void SetData(string? obj)
+    {
+        object? destVl = GetDataToSet(obj);
+        if (GetProp().Info.PropertyType.BaseType == typeof(System.Enum))
+        {
+            destVl = Enum.Parse(GetProp().Info.PropertyType, destVl.ToString());
+        }
+        if (DataGridContainer!.NewData!=null)
+        {
+            GetProp().SetValue(DataGridContainer!.NewData, destVl);
+        }
+        else if (DataGridContainer!.EditRowClone != null)
+        {
+            GetProp().SetValue(DataGridContainer!.EditRowClone, destVl);
+        }
+    }
+
+    private bool Displayed()
+    {
+
+        if (DataGridContainer!.DisplayedColumns == null)
+            return Visible;
+        else
+            return DataGridContainer!.DisplayedColumns.Any(x => x.DisplayName == this.DisplayName);
+    }
+
+    public string DisplayName
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(HeaderText)) return HeaderText;
+            if (DataGridContainer?.SampleData != null)
+            {
+                var prop = DataGridContainer!.SampleData.GetType().GetProperties().First(x => x.Name == ColumnName);
+                if (prop != null)
+                {
+                    var propDisplayText = prop.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+                    if (!string.IsNullOrEmpty(propDisplayText)) return propDisplayText;
+                }
+            }
+            return string.IsNullOrEmpty(ColumnName) ? ColumnId : ColumnName;
+        }
+    }
+
+    private void OnSortingChanging()
+    {
+        switch (_sortingStatus)
+        {
+            case SortType.None:
+                _sortingStatus = SortType.Ascending;
+                break;
+            case SortType.Ascending:
+                _sortingStatus = SortType.Descending;
+                break;
+            case SortType.Descending:
+                _sortingStatus = SortType.None;
+                break;
+        }
+        DataGridContainer!.SortData(ColumnName, _sortingStatus);
+    }
+
+    private string GetFilterIcon()
+    {
+        if (DataGridContainer!.CheckIsFiltered(ColumnName))
+        {
+            return "./_content/MagicPropsComponents/svgs/filtered.svg";
+        }
+        else
+        {
+            return "./_content/MagicPropsComponents/svgs/filter.svg";
+        }
+    }
+ 
+    private SvgHelper SvgHelper;
+    protected override void OnInitialized()
+    {
+        SvgHelper = new SvgHelper(DataGridContainer!.Theme);
+
+        if (DataGridContainer != null && IsHeaderRow)
+        {
+            if (string.IsNullOrEmpty(ColumnId))
+                ColumnId = "gridCol_" + Guid.NewGuid().ToString().Replace("-", "");
+            DataGridContainer!.AddColumn(this);
+        }
+    }
+    protected override void OnParametersSet()
+    {
+        if (Filterable && FilterType == FilterType.MenuListFilter)
+        {
+            return;
+        }
+        else if (CustomMenuListFilterDatasource != null && CustomMenuListFilterDatasource.Count > 0)
+        {
+            Console.WriteLine("CustomMenuListFilterDatasource will only be useful in situation Filterable and FilterType is MenuListFilter");
+        }
+    }
+}

@@ -1,0 +1,156 @@
+﻿@using MagicPropsComponents.ViewModels.DataGrid
+@using MagicPropsComponents.ViewModels.Shared;
+@using Microsoft.AspNetCore.Components.Forms
+
+@switch (ColumnType)
+{
+    case ColumnType.Boolean:
+        if (EditorType == EditorType.Checkbox)
+        {
+            <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup @ref=_mpCheckboxgroup Value="@(Value.ToString())" ValidationFieldName="@ValidationFieldName" ValueChanged="@((val)=>{Value=Convert.ToBoolean(string.IsNullOrEmpty(val)?"False":val);ValueChanged.InvokeAsync(val);})">
+                <MagicPropsComponents.Components.CheckboxGroup.MPCheckboxOption Value="True" Description="@Title" />
+            </MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup>
+            @if (_mpCheckboxgroup != null && _mpCheckboxgroup.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpCheckboxgroup.ValidationMessage) </span>
+            }
+        }
+        else
+        {
+                @if (!string.IsNullOrEmpty(Title))
+                {
+                    <span class="me-3">@Title </span>
+                }
+                <MagicPropsComponents.Components.RadioGroup.MPRadioGroup @ref=_mpRadiogroup DisplayInline Value="@(Value.ToString())" ValidationFieldName="@ValidationFieldName" ValueChanged="@((val)=>{Value=Convert.ToBoolean(val);ValueChanged.InvokeAsync(val);})">
+                    <MagicPropsComponents.Components.RadioGroup.MPRadioOption Value="True" Description="True" />
+                    <MagicPropsComponents.Components.RadioGroup.MPRadioOption Value="False" Description="False" />
+                </MagicPropsComponents.Components.RadioGroup.MPRadioGroup>          
+                @if (_mpRadiogroup != null && _mpRadiogroup.ValidationMessage.Any())
+                {
+                    <span style="color:#E50000">@string.Join("; ", _mpRadiogroup.ValidationMessage) </span>
+                }
+        }
+        break;
+    case ColumnType.Number:
+        if (EditorType == EditorType.NumericInput)
+        {
+            <MagicPropsComponents.Components.NumberInput.MPNumberInput @ref=_mpNumberInput Width="Width" Value="Convert.ToDecimal(Value)" ValueChanged="(val)=>{Value=val;ValueChanged.InvokeAsync(val);}" Title="@Title" ValidationFieldName="@ValidationFieldName"
+                                                                       Increment="@(EditorSetting?.NumberInputSetting?.Increment??1)" CultureString="@(EditorSetting?.NumberInputSetting?.CultureString??"en-US")" Format="@(EditorSetting?.NumberInputSetting?.Format??string.Empty)" />
+            @if (_mpNumberInput != null && _mpNumberInput.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpNumberInput.ValidationMessage) </span>
+            }
+        }
+        else
+        {
+            <MagicPropsComponents.Components.Input.MPInput @ref=_mpinput Value="@Value.ToString()" ValueChanged="(val)=>{Value=val;ValueChanged.InvokeAsync(val);}" Title="@Title" FixedTitle="FixedTitle" Width="Width" ValidationFieldName="@ValidationFieldName" />
+            @if (_mpinput != null && _mpinput.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpinput.ValidationMessage) </span>
+            }
+        }
+        break;
+    case ColumnType.Date:
+        if (EditorType == EditorType.Datepicker)
+        {
+            <MagicPropsComponents.Components.DatePicker.MPDatePicker @ref=_mpDatepicker TValue="DateTime" Value="@Convert.ToDateTime(Value)" ValueChanged="(val)=>{Value=val;ValueChanged.InvokeAsync(val);}" DateFormatString="@Format"
+                                                                     Title="@Title" FixedTitle="FixedTitle" Width="Width" Maximum="EditorSetting?.DatepickerSetting?.MaxLimit??DateTime.MaxValue" ValidationFieldName="@ValidationFieldName"
+                                                                     Minimum="EditorSetting?.DatepickerSetting?.MaxLimit??DateTime.MinValue" />
+            @if (_mpDatepicker != null && _mpDatepicker.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpDatepicker.ValidationMessage) </span>
+            }
+
+        }
+        else
+        {
+            <MagicPropsComponents.Components.Input.MPInput @ref=_mpinput Value="@Value.ToString()" ValueChanged="(val)=>{Value=val;ValueChanged.InvokeAsync(val);}" Title="@Title" FixedTitle="FixedTitle" Width="Width" ValidationFieldName="@ValidationFieldName" />
+            @if (_mpinput != null && _mpinput.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpinput.ValidationMessage) </span>
+            }
+        }
+        break;
+    case ColumnType.Default:
+    default:
+        if (EditorType == EditorType.Dropdown)
+        {
+            <MagicPropsComponents.Components.DropDownList.MPDropDownList @ref=_mpDropdownList @bind-Value="_value" @bind-Values="_values" MaxHeight="250" Width="Width" 
+                                                                         Title="@Title" FixedTitle="FixedTitle" Datasource="EditorSetting?.DropDownListSettings?.OptionSource??new List<string>()" ValidationFieldName="@ValidationFieldName" />
+            @if (_mpDropdownList != null && _mpDropdownList.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpDropdownList.ValidationMessage) </span>
+            }
+
+        }
+        else
+        {
+            <MagicPropsComponents.Components.Input.MPInput @ref=_mpinput Value="@Value.ToString()" ValueChanged="(val)=>{Value=val;ValueChanged.InvokeAsync(val);}" Title="@Title" FixedTitle="FixedTitle" Width="Width" ValidationFieldName="@ValidationFieldName" />
+            @if (_mpinput != null && _mpinput.ValidationMessage.Any())
+            {
+                <span style="color:#E50000">@string.Join("; ", _mpinput.ValidationMessage) </span>
+            }
+        }
+        break;
+}
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+    [Parameter]
+    public string ValidationFieldName { get; set; } = string.Empty;
+    [Parameter]
+    public bool FixedTitle { get; set; }
+    [Parameter]
+    public ColumnType ColumnType { get; set; }
+    [Parameter]
+    public EditorType EditorType { get; set; }
+    [Parameter]
+    public string? Format { get; set; }
+    [Parameter]
+    public object Value { get; set; } = default;
+    [Parameter]
+    public EventCallback<object> ValueChanged { get; set; }
+    [Parameter]
+    public EditorSettings? EditorSetting { get; set; }
+    [Parameter]
+    public int? Width { get; set; }
+
+    private string _value
+    {
+        get => Value.ToString() ?? string.Empty;
+        set
+        {
+            if (Value.ToString() != value)
+            {
+                Value = value;
+                ValueChanged.InvokeAsync(Value);
+            }
+        }
+    }
+
+    private List<string> _values
+    {
+        get => Value?.ToString()?.Split(", ").ToList() ?? new List<string>();
+        set
+        {
+            if (Value?.ToString()?.Split(", ").ToList() != value)
+            {
+                Value = string.Join(", ", value);
+                ValueChanged.InvokeAsync(Value);
+            }
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private MagicPropsComponents.Components.CheckboxGroup.MPCheckboxGroup _mpCheckboxgroup;
+    private MagicPropsComponents.Components.RadioGroup.MPRadioGroup _mpRadiogroup;
+    private MagicPropsComponents.Components.Input.MPInput _mpinput;
+    private MagicPropsComponents.Components.DropDownList.MPDropDownList<string> _mpDropdownList;
+    private MagicPropsComponents.Components.NumberInput.MPNumberInput _mpNumberInput;
+    private MagicPropsComponents.Components.DatePicker.MPDatePicker<DateTime> _mpDatepicker;
+}

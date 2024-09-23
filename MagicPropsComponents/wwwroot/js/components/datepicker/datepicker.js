@@ -67,7 +67,7 @@
 
         const clickFunction = async function (event) {
             event.stopPropagation();//triggerEle only two childNodes(title and input)
-            if (triggerEle.childNodes[0].contains(event.target) || triggerEle.childNodes[1].contains(event.target) || event.target == calendarEle || calendarEle.contains(event.target)) {
+            if (triggerEle.childNodes[0].contains(event.target) || (triggerEle.childNodes[1] && triggerEle.childNodes[1].contains(event.target)) || event.target == calendarEle || calendarEle.contains(event.target)) {
                 return;
             } else {
                 await hideFuntion(event);

@@ -1,0 +1,272 @@
+﻿@using System.Text.RegularExpressions;
+@using MagicPropsComponents.Utilities;
+@using MagicPropsComponents.Abstractions.DataGrid;
+@using MagicPropsComponents.ViewModels.Shared;
+
+<MagicPropsComponents.Components.Popup.MPPopup @ref="_filterPopup" TriggerEleID="@PopupTriggerID" Toward="ViewModels.Popup.PopupToward.TriggerBottomCenter">
+    <div class="mt-3">
+        @if (FilterTemplate != null)
+        {
+            @FilterTemplate(ColumnName)
+        }
+        else
+        {
+            @switch (FilterType)
+            {
+                case FilterType.ConditionFilter:
+                    {
+                        if (ColumnType == ColumnType.Default)
+                        {
+                            GetStringTypeFilterBy();
+                            if (string.IsNullOrEmpty(_filterBy))
+                                _filterBy = FilterByDS.First();
+                        }
+                        else
+                        {
+                            GetOtherTypeFilterBy();
+                            if (string.IsNullOrEmpty(_filterBy))
+                                _filterBy = FilterByDS.First();
+                        }
+                        switch (ColumnType)
+                        {
+                            case ColumnType.Boolean:
+                                <div style="padding: 10px; justify-content: center;display: flex;">
+                                    <MagicPropsComponents.Components.RadioGroup.MPRadioGroup DisplayInline="true" DisplayMode="MagicPropsComponents.ViewModels.SelectionGroup.DisplayModes.DefaultButton" @bind-Value="_keyword">
+                                        <MagicPropsComponents.Components.RadioGroup.MPRadioOption Value="True" Description="True"></MagicPropsComponents.Components.RadioGroup.MPRadioOption>
+                                        <MagicPropsComponents.Components.RadioGroup.MPRadioOption Value="False" Description="False"></MagicPropsComponents.Components.RadioGroup.MPRadioOption>
+                                    </MagicPropsComponents.Components.RadioGroup.MPRadioGroup>
+                                </div>
+                                break;
+                            case ColumnType.Date:
+                                <div class="mb-3">
+                                    <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
+                                    </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+                                </div>
+                                <MagicPropsComponents.Components.DatePicker.MPDatePicker @bind-Value="@_keyDate" Width="300" />
+                                break;
+                            case ColumnType.Number:
+                                //StateHasChanged();
+                                <div class="mb-3">
+                                    <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
+                                    </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+                                </div>
+                                <MagicPropsComponents.Components.NumberInput.MPNumberInput Width="300" Value=@_keynumber ValueChanged="(val)=>{_keynumber=val;}" />
+                                break;
+                            case ColumnType.Default:
+                            default:
+                                <div class="mb-3">
+                                    <MagicPropsComponents.Components.DropDownList.MPDropDownList Datasource="FilterByDS" @bind-Value="_filterBy" Width="300">
+                                    </MagicPropsComponents.Components.DropDownList.MPDropDownList>
+                                </div>
+                                <MagicPropsComponents.Components.Input.MPInput Width="300" Value=@_keyword ValueChanged="async (val)=>{_keyword=val;await SubmitFilterCondition();}" />
+                                break;
+                        }
+                    }
+                    break;
+                case FilterType.MenuListFilter:
+                    {
+                        _menuListObjectDS = MenuListDS.Distinct().Where(x => x != null).ToList();
+                        <MagicPropsComponents.Components.Input.MPInput @bind-Value="@_menuListKeyword" Placeholder="Search..." Width="300">
+                            <LeftAppend>
+                                <i class="fa fa-search"></i>
+                            </LeftAppend>
+                        </MagicPropsComponents.Components.Input.MPInput>
+                        <div style="max-height:200px;overflow-y:auto;max-width:350px;overflow-x:auto;margin-top:10px;">
+                            @if (string.IsNullOrEmpty(_menuListKeyword))
+                            {
+                                <div class="form-check d-flex align-items-center" @onclick="SwitchSelectAllStatus">
+                                    <input class="form-check-input" type="checkbox" checked="@(_selectedObjects.Count == _menuListObjectDS.Count)">
+                                    <label class="ms-2 text-overflow-replace-ellipsis">
+                                        Select All
+                                    </label>
+                                </div>
+                            }
+                            @foreach (var data in _menuListObjectDS)
+                            {
+                                <div class="form-check d-flex align-items-center" @onclick="()=>UpdateSelectedObject(data)">
+                                    <input class="form-check-input" type="checkbox" checked="@(_selectedObjects.Contains(data))">
+                                    <label class="ms-2 text-overflow-replace-ellipsis">
+                                        @switch (ColumnType)
+                                        {
+                                            case ColumnType.Date:
+                                                @Convert.ToDateTime(data.ToString()).ToString(Format)
+                                                break;
+                                            case ColumnType.Number:
+                                                @Convert.ToDecimal(data.ToString()).ToString(Format)
+                                                break;
+                                            default:
+                                                @data.ToString()
+                                                break;
+                                        }
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                    }
+                    break;
+                case FilterType.DefaultFilter:
+                default:
+                    {
+                        <input type="text" class="form-control" style="width:300px;" placeholder="Search..." value="@_keyword" @onchange="async (val)=>{_keyword=val?.Value?.ToString()??string.Empty;await SubmitFilterCondition();}" />
+                    }
+                    break;
+            }
+            <div class="fchooser-footer pe-0 pb-0">
+                <button type="button" class="btn btn-secondary" @onclick="RemoveFilter">Clear</button>
+                <button type="button" class="btn btn-primary ms-3" @onclick="SubmitFilterCondition">Submit</button>
+            </div>
+        }
+    </div>
+</MagicPropsComponents.Components.Popup.MPPopup>
+
+
+@code {
+    [CascadingParameter(Name = "MPDataGrid")]
+    private IMPDataGrid? DataGridContainer { get; set; }
+    [Parameter]
+    public RenderFragment<object>? FilterTemplate { get; set; }
+    [Parameter]
+    public string ColumnName { get; set; } = string.Empty;
+    [Parameter]
+    public string PopupTriggerID { get; set; } = string.Empty;
+    [Parameter]
+    public FilterType FilterType { get; set; }
+    [Parameter]
+    public ColumnType ColumnType { get; set; }
+    [Parameter]
+    public List<object> MenuListDS { get; set; } = new List<object>();
+    [Parameter]
+    public string? Format { get; set; }
+
+    private List<string> FilterByDS { get; set; } = new List<string>();
+    private string _filterBy { get; set; } = string.Empty;
+
+    private string _keyword = string.Empty;
+    private decimal _keynumber;
+    private DateTime _keyDate = DateTime.Today;
+
+    private string _menuListKeyword { get; set; } = string.Empty;
+    private List<object> _menuListObjectDS = new List<object>();
+    private List<object> _selectedObjects { get; set; } = new List<object>();
+    private MagicPropsComponents.Components.Popup.MPPopup _filterPopup;
+
+    private void SwitchSelectAllStatus()
+    {
+        if (_selectedObjects.Count == _menuListObjectDS.Count)
+        {
+            _selectedObjects = new List<object>();
+        }
+        else
+        {
+            _selectedObjects = _menuListObjectDS.ToList();
+        }
+    }
+
+    private void UpdateSelectedObject(object data)
+    {
+        if (_selectedObjects.Contains(data))
+        {
+            _selectedObjects.Remove(data);
+        }
+        else
+        {
+            _selectedObjects.Add(data);
+        }
+    }
+
+    private async Task RemoveFilter()
+    {
+        _keyword = string.Empty;
+        _keynumber = 0m;
+        _keyDate = DateTime.Today;
+        _selectedObjects = new List<object>();
+
+        DataGridContainer!.RemoveFilter(ColumnName);
+        await _filterPopup.Hide();
+    }
+
+    private async Task SubmitFilterCondition()
+    {
+        var newFilterOption = new FilterOption();
+        newFilterOption.ColumnType = ColumnType;
+        newFilterOption.FilterType = FilterType;
+        var conditionFilterSettings = new ConditionFilterSettings();
+        switch (FilterType)
+        {
+            case FilterType.DefaultFilter: newFilterOption.Keywords = _keyword; break;
+            case FilterType.ConditionFilter:
+                {
+                    switch (ColumnType)
+                    {
+                        case ColumnType.Default: if (string.IsNullOrEmpty(_keyword)) { await RemoveFilter(); break; } conditionFilterSettings.StingFilterBy = StringTypeFilterByMap[_filterBy]; conditionFilterSettings.Keywords = _keyword; break;
+                        case ColumnType.Number: conditionFilterSettings.OtherFilterBy = OtherTypeFilterByMap[_filterBy]; conditionFilterSettings.KeyValue = _keynumber; break;
+                        case ColumnType.Date: conditionFilterSettings.OtherFilterBy = OtherTypeFilterByMap[_filterBy]; conditionFilterSettings.KeyValue = _keyDate; break;
+                        case ColumnType.Boolean: conditionFilterSettings.KeyValue = _keyword; break;
+                    }
+                }
+                newFilterOption.ConditionFilterSettings = conditionFilterSettings;
+                break;
+            case FilterType.MenuListFilter:
+                newFilterOption.MenuList = _selectedObjects;
+                break;
+        }
+        DataGridContainer!.AddFilter(ColumnName, newFilterOption);
+        await _filterPopup.Hide();
+        _menuListKeyword = string.Empty;
+    }
+
+
+    private void GetStringTypeFilterBy()
+    {
+        FilterByDS.Clear();
+        FilterByDS.Add("Starts With");
+        FilterByDS.Add("Does Not Start With");
+        FilterByDS.Add("Ends With");
+        FilterByDS.Add("Does Not End With");
+        FilterByDS.Add("Contains");
+        FilterByDS.Add("Does Not Contain");
+        FilterByDS.Add("Equal");
+        FilterByDS.Add("Not Equal");
+        FilterByDS.Add("Empty");
+        FilterByDS.Add("Not Empty");
+        FilterByDS.Add("Regular Matching");
+    }
+    public static Dictionary<string, StringColumnTypeFilterBy> StringTypeFilterByMap = new Dictionary<string, StringColumnTypeFilterBy>
+    {
+        {"Starts With", StringColumnTypeFilterBy.StartsWith},
+        {"Does Not Start With", StringColumnTypeFilterBy.DoesNotStartWith},
+        {"Ends With", StringColumnTypeFilterBy.EndsWith},
+        {"Does Not End With", StringColumnTypeFilterBy.DoesNotEndWith},
+        {"Contains", StringColumnTypeFilterBy.Contains},
+        {"Does Not Contain", StringColumnTypeFilterBy.DoesNotContain},
+        {"Equal", StringColumnTypeFilterBy.Equal},
+        {"Not Equal", StringColumnTypeFilterBy.NotEqual},
+        {"Empty", StringColumnTypeFilterBy.Empty},
+        {"Not Empty", StringColumnTypeFilterBy.NotEmpty},
+        {"Regular Matching", StringColumnTypeFilterBy.RegularMatching}
+    };
+
+    private void GetOtherTypeFilterBy()
+    {
+        FilterByDS.Clear();
+        FilterByDS.Add("Equal");
+        FilterByDS.Add("Not Equal");
+        FilterByDS.Add("Greater Than");
+        FilterByDS.Add("Greater Than Or Equal");
+        FilterByDS.Add("Less Than");
+        FilterByDS.Add("Less Than Or Equal");
+        FilterByDS.Add("Null");
+        FilterByDS.Add("Not Null");
+    }
+    public static Dictionary<string, OtherColumnTypeFilterBy> OtherTypeFilterByMap = new Dictionary<string, OtherColumnTypeFilterBy>
+    {
+        {"Equal", OtherColumnTypeFilterBy.Equal},
+        {"Not Equal", OtherColumnTypeFilterBy.NotEqual},
+        {"Greater Than", OtherColumnTypeFilterBy.GreaterThan},
+        {"Greater Than Or Equal", OtherColumnTypeFilterBy.GreaterThanOrEqual},
+        {"Less Than", OtherColumnTypeFilterBy.LessThan},
+        {"Less Than Or Equal", OtherColumnTypeFilterBy.LessThanOrEqual},
+        {"Null", OtherColumnTypeFilterBy.Null},
+        {"Not Null", OtherColumnTypeFilterBy.NotNull}
+    };
+}

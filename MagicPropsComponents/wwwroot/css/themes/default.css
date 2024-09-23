@@ -64,36 +64,6 @@
         border: 1px solid lightgrey;
     }
 
-    .btnAction {
-        width: 40px;
-        height: 40px;
-        text-align: center;
-        vertical-align: middle;
-        line-height: 40px;
-        display: inline-block;
-        background-color: transparent;
-        border: 0px;
-    }
-
-    .selAction {
-        line-height: 40px;
-        display: inline-block;
-        border: 0px;
-    }
-
-    .selAction {
-        line-height: 40px;
-        display: inline-block;
-        border: 0px;
-    }
-
-    .evo-pointer {
-        width: 0px !important;
-        height: 0px !important;
-    }
-
-
-
 /***************Data grid********************/
 .grid-toolbar {
     position: relative;
@@ -303,6 +273,7 @@
 }
 
 .mp-datagrid-header-wrapper {
+    height:47px;
     overflow: hidden;
 }
 
@@ -693,7 +664,6 @@
     text-decoration: none;
     vertical-align: middle;
     cursor: pointer;
-    padding: .2rem .75rem;
     font-size: 1rem;
     padding-right: .5rem !important;
     padding-left: .5rem !important;

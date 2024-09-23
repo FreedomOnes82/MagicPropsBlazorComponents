@@ -1,0 +1,186 @@
+﻿@page "/datagriddemo";
+
+@using MagicPropsComponents.ViewModels.DataGrid
+@using MagicPropsComponents.Utilities
+@using MagicPropsComponents.ViewModels.Shared
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel;
+@using System.Collections.Generic;
+ @rendermode @(new InteractiveServerRenderMode(prerender:false) )
+
+<h3>Data Grid Demo</h3>
+<hr />
+
+<MagicPropsComponents.Components.DataGrid.MPDataGrid CaseSensitive="true" ColumnChooserText="Columns" SelectedRow="@_selectedStu" NoDataText="No Data Found!" @ref=@_datagrid Datasource="_stus" OperationSettings="@GetEditingSetting()" EditMode="@(_editor=="DialogEditor"?EditMode.Dialog:EditMode.Default)" OnDeleteRowData="DBChanged" OnAddRowData="Add" OnUpdateRowData="Update">
+   @*  <EditDialogTemplate>
+        @{
+            _editStu = context as StudentInfo;
+            if (_editStu == null) _editStu = new StudentInfo();
+            if (_datagrid.NewData != null)//means on add
+                _editStu.ID = _stus.Last().ID + 1;
+        }
+        <div class="m-3">
+            <input type="text" class="form-control" disabled value="@_editStu.ID" style="width:100%;height:50px; border: 1px solid #ccc; background-color:lightgray;" />
+        </div>
+        <div class="m-3">
+            <input type="text" class="form-control" @bind-value="@_editStu.Name" style="width:100%;height:50px; border: 1px solid #ccc;" />
+        </div>
+        <div class="m-3">
+            <input type="date" class="form-control" @bind-value="@_editStu.Birthdate" style="width:100%;height:50px; border: 1px solid #ccc;" />
+        </div>
+        <div class="m-3">
+            <input type="text" class="form-control" @bind-value="@_editStu.Gender" style="width:100%;height:50px; border: 1px solid #ccc;" />
+        </div>
+    </EditDialogTemplate> *@
+    <DeleteDialogTemplate>
+    @{
+            _editStu = context as StudentInfo;
+            if (_editStu == null) _editStu = new StudentInfo();
+            <span>Are you sure you wan to delete <font color="red">@(_editStu.Name ?? "this record")</font> ?</span>
+        }
+    </DeleteDialogTemplate>
+    <ChildContent>
+        <MagicPropsComponents.Components.DataGrid.MPGridColumn @ref=_idColumn ColumnName="ID" HeaderText="ID" ColumnType="ColumnType.Number" EditorType="EditorType.NumericInput" Filterable FilterType="FilterType.DefaultFilter">
+            <EditTemplate>
+                @{
+                    var newId = Convert.ToInt32(context);
+                    if (_datagrid.NewData != null)
+                    {
+                        newId = _stus.Last().ID + 1;
+                        _idColumn.SetData(newId.ToString());
+                    }
+                    <MagicPropsComponents.Components.NumberInput.MPNumberInput Disabled Value="@newId"  />
+                }
+        </EditTemplate>
+        </MagicPropsComponents.Components.DataGrid.MPGridColumn>
+        <MagicPropsComponents.Components.DataGrid.MPGridColumn ColumnName="Name" HeaderText="Name" Filterable FilterType="FilterType.DefaultFilter" />
+        <MagicPropsComponents.Components.DataGrid.MPGridColumn TextAlign="TextAlign.Center" ColumnName="Birthdate" Format="MM/dd/yyyy" ColumnType="ColumnType.Date" EditorType="EditorType.Datepicker" Filterable FilterType="FilterType.MenuListFilter">
+         
+        </MagicPropsComponents.Components.DataGrid.MPGridColumn>
+        <MagicPropsComponents.Components.DataGrid.MPGridColumn ColumnName="Gender" ColumnType="ColumnType.Default" EditorType="EditorType.Dropdown" Filterable FilterType="FilterType.MenuListFilter" EditorSetting="@(new EditorSettings{DropDownListSettings=new DropDownListSettings{OptionSource=new List<string>{"Female","Male","Secret"}}})" />
+    </ChildContent>
+</MagicPropsComponents.Components.DataGrid.MPDataGrid>
+
+
+
+@code {
+    private List<StudentInfo> _stus = new List<StudentInfo>();
+    StudentInfo _selectedStu = new StudentInfo();
+    private string _editor = "DialogEditor1";
+    private string _trigger = "DbClick";
+    private MagicPropsComponents.Components.DataGrid.MPDataGrid _datagrid;
+    private MagicPropsComponents.Components.DataGrid.MPGridColumn _idColumn;
+
+    private StudentInfo _editStu = new StudentInfo();
+
+    List<ToolButton> _customToolBtns = new List<ToolButton>();
+
+    ToolButton testButton = new ToolButton()
+    {
+            Text = "custom button",
+
+           // IconClass = "fa fa-plus"
+    };
+
+    private OperationSettings GetEditingSetting()
+    {
+        var trigger = new EditingTrigger();
+        trigger = EditingTrigger.RowClick;
+        // if (_trigger == "DbClick")
+        // {
+        //     triggers.Add(EditingTrigger.RowDblClick);
+        // }
+        // else
+        // {
+        //     triggers.Add(EditingTrigger.RowClick);
+        // }
+        return new OperationSettings()
+            {
+                AllowAdding = true,
+                AllowEditing = true,
+                AllowDeleting = true,
+                ShowColumnChooser = true,
+                AllowGlobalSearch = true,
+                EditingTrigger = trigger
+            };
+    }
+
+    private void DBChanged()
+    {
+        Console.WriteLine("This is trigger by DBChanged");
+        Console.WriteLine("This is trigger by DBChanged -----second line");
+    }
+
+    private void Add(object newData)
+    {
+        if (_editor == "DialogEditor")//use custom dialogTemplate
+            _stus.Add(_editStu);
+        else
+        {//use default line editor
+            var newStu = newData as StudentInfo;
+            if (newStu != null)
+                _stus.Add(newStu);
+        }
+        StateHasChanged();
+    }
+    private void Update(object newData)
+    {
+        if (_editor == "DialogEditor")
+        {//use custom dialogTemplate
+            var target = _stus.FirstOrDefault(x => x.ID == _editStu.ID);
+            if (target != null)
+            {
+                target.Name = _editStu.Name;
+                target.Birthdate = _editStu.Birthdate;
+                target.Gender = _editStu.Gender;
+            }
+        }
+        else
+        {//use default line editor
+            var newStu = newData as StudentInfo;
+            if (newStu != null)
+            {
+                var target = _stus.FirstOrDefault(x => x.ID == newStu.ID);
+                if (target != null)
+                {
+                    target.Name = newStu.Name;
+                    target.Birthdate = newStu.Birthdate;
+                    target.Gender = newStu.Gender;
+                }
+            }
+        }
+        //StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        //var stu = new StudentInfo { ID = 6, Name = "Jully", Birthdate = new DateTime(2007, 3, 29), Gender = "Male" };
+        _stus.Add(new StudentInfo { ID = 1, Name = "Michael", Birthdate = new DateTime(2007, 4, 27) });
+        _stus.Add(new StudentInfo { ID = 2, Name = "Mary", Birthdate = new DateTime(2007, 6, 30), Gender = "Male" });
+        _stus.Add(new StudentInfo { ID = 3, Name = "John", Birthdate = new DateTime(2007, 4, 27) });
+        _stus.Add(new StudentInfo { ID = 4, Name = "Mike", Birthdate = new DateTime(2006, 9, 23) });
+        _stus.Add(new StudentInfo { ID = 5, Name = "Jane", Birthdate = new DateTime(2008, 4, 7), Gender = "Male" });
+        _stus.Add(new StudentInfo { ID = 6, Name = "Jully", Birthdate = new DateTime(2007, 3, 29), Gender = "Male" });
+        _stus.Add(new StudentInfo { ID = 7, Name = "Brown", Birthdate = new DateTime(2006, 11, 5) });
+        _selectedStu = new StudentInfo { ID = 6, Name = "Jully", Birthdate = new DateTime(2007, 3, 29), Gender = "Male" };
+        _customToolBtns.Add(testButton);
+    }
+
+    public class StudentInfo
+    {
+        public int ID { get; set; }
+
+        [Required(ErrorMessage = "Name is required.")]
+        [RegularExpression(@"^[a-zA-Z_  ]{3,50}$", ErrorMessage = "Name is composed of numbers, letters, spaces and underscores with 3-50 byte.")]
+        public string Name { get; set; } = string.Empty;
+
+        [DisplayName("Birth Date")]
+        [Required(ErrorMessage = "Birthdate is required.")]
+        [Range(typeof(DateTime), "9/1/2006", "8/31/2008", ParseLimitsInInvariantCulture = true, ErrorMessage = "The date should be between 1 September 2006 and 31 August 2008.")]
+        public DateTime Birthdate { get; set; } = new DateTime(2007, 1, 1);
+
+        [Required(ErrorMessage = "Gender is required.")]
+        public string Gender { get; set; } = "Female";
+    }
+}

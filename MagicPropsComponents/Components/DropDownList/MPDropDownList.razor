@@ -11,7 +11,7 @@
     @if (Visible)
     {
         <div class="@(!string.IsNullOrEmpty(Title)?"mp-input-container":"")">
-            <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" id="@ClientID" @onfocusin="ShowOptionList" style="@(_widthString);@(!string.IsNullOrEmpty(Title)?"margin-top: 15px;":"")">
+            <div class="mp-input-outline @(Disabled?"disabled":"") @(!Disabled&&!CheckIsValid()?"mp-input-err":"")" id="@ClientID" @onfocusin="ShowOptionList" style="@(_widthString);margin-top: 15px;">
                 <input type="text" class="mp-within-input text-overflow-replace-ellipsis" value="@_displayText" id="@InputID" placeholder="@(_placeholderText)" readonly>
                 @if (Clearable)
                 {

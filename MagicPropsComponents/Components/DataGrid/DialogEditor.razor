@@ -1,0 +1,152 @@
+﻿@using MagicPropsComponents.Abstractions.DataGrid
+@using MagicPropsComponents.Components.DataGrid
+@using MagicPropsComponents.ViewModels.Shared
+@using MagicPropsComponents.Utilities
+@using MagicPropsComponents.ViewModels.Modal
+@using Microsoft.AspNetCore.Components.Forms
+<MagicPropsComponents.Components.Modal.MPModal FooterVisible="false" Title="@Title" @bind-Visible="@_showModal" ClickOutsideToClose="false">
+    <BodyTemplate>
+        @if (_editData != null && EditDialogTemplate != null)
+        {
+            <EditForm @ref=_form Model="_editData" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
+                <DataAnnotationsValidator />
+                @EditDialogTemplate(_editData)
+                <div class="mx-4 d-flex">
+                    <button class="btn btn-primary ms-auto" type="submit">Submit</button>
+                    <button class="btn btn-secondary ms-2" @onclick="HandleCancel">Cancel</button>
+                </div>
+            </EditForm>
+        }
+        else if (_editData != null)
+        {
+            <EditForm @ref=_form Model="_editData" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInValidSubmit">
+                <DataAnnotationsValidator />
+                @foreach (var item in Columns)
+                {
+                    <div class="m-3 mx-4">
+                        @if (item.EditTemplate != null)
+                        {
+                            @item.EditTemplate(GetValue(item))
+                        }
+                        else
+                        {
+                            <GridEditor ColumnType="@item.ColumnType" EditorType="@item.EditorType" Format="@item.Format" Title="@item.DisplayName" FixedTitle Width="415"
+                                    Value="@GetValue(item)" ValueChanged="(val)=>{SetData(item.ColumnName,val.ToString());}" EditorSetting="@item.EditorSetting" ValidationFieldName="@item.ColumnName" />
+                        }
+                    </div>
+                }
+                <div class="mx-4 d-flex">
+                    <button class="btn btn-primary ms-auto" type="submit">Submit</button>
+                    <button class="btn btn-secondary ms-2" @onclick="HandleCancel">Cancel</button>
+                </div>
+            </EditForm>
+        }
+    </BodyTemplate>
+</MagicPropsComponents.Components.Modal.MPModal>
+
+
+@code {
+    [Parameter]
+    public List<IMPGridColumn> Columns { get; set; } = new List<IMPGridColumn>();
+    [Parameter]
+    public string Title { get; set; } = "New Record";
+    [Parameter]
+    public EventCallback<object> OnSave { get; set; }
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+    [Parameter]
+    public RenderFragment<object>? EditDialogTemplate { get; set; }
+
+    private List<ModalButton> _dialogButtons = new List<ModalButton>()
+    {
+        new ModalButton() { CssClass = "btn btn-primary", DismissModal = false, Text = "Save" },
+        new ModalButton(){CssClass = "btn btn-secondary", DismissModal = true, Text = "Cancel" }
+    };
+    private PropertyByLambda[]? _props = null;
+    private bool _showModal;
+    private object _editData { get; set; } = default;
+
+    public void ShowDialog(object data)
+    {
+        if (data == null) return;
+        _editData = data;
+        _props = PropertyByLambda.GetProperties(data!.GetType());
+        _showModal = true;
+    }
+
+    public void HideDialog()
+    {
+        _showModal = false;
+        _editData = null;
+    }
+
+    private object GetValidationVal(object data, IMPGridColumn col)
+    {
+        var prop = _props.First(x => x.Name == col.ColumnName);
+        return prop.GetValue(data!);
+    }
+
+    private object GetValue(IMPGridColumn col)
+    {
+        var prop = _props.First(x => x.Name == col.ColumnName);
+        var value = prop.GetValue(_editData!);
+        switch (col.ColumnType)
+        {
+            case ColumnType.Date:
+                return Convert.ToDateTime(value).ToString();
+            case ColumnType.Number:
+                return Convert.ToDecimal(value).ToString();
+        }
+        return value ?? string.Empty;
+    }
+
+    private void SetData(string columnName, string? value)
+    {
+        var prop = _props.First(x => x.Name == columnName);
+        object? destVl;
+        if (prop.Info.PropertyType == typeof(System.DateTime))
+        {
+            destVl = Convert.ToDateTime(value);
+        }
+        else if (prop.Info.PropertyType == typeof(System.Decimal))
+        {
+            destVl = Convert.ToDecimal(value);
+        }
+        else
+            destVl = ValueConverter.GetValue(value, prop.Info.PropertyType);
+        prop.SetValue(_editData, destVl);
+    }
+
+    private void OnButtonClick(ModalButton button)
+    {
+        if (button.Text == "Save" && OnSave.HasDelegate)
+        {
+            OnSave.InvokeAsync(_editData);
+        }
+        else if (button.Text == "Cancel" && OnCancel.HasDelegate)
+        {
+            OnCancel.InvokeAsync();
+        }
+    }
+
+    private void HandleCancel()
+    {
+        OnCancel.InvokeAsync();
+        _editData = default;
+        _showModal = false;
+    }
+
+    private void HandleValidSubmit()
+    {
+        OnSave.InvokeAsync(_editData);
+        _editData = default;
+        _showModal = false;
+    }
+
+    private EditForm _form;
+    private void HandleInValidSubmit()
+    {
+        if (_form != null && _form.EditContext != null)
+            Console.WriteLine(string.Join("; ", _form.EditContext.GetValidationMessages()));
+    }
+}
