@@ -8,7 +8,7 @@
 @implements IMPDataGrid;
 @inject IJSRuntime JSRuntime;
 <CascadingValue Value="this" Name="MPDataGrid">
-    <GridToolbar Width="Width" OnClickAdd="BeginAdd" OperationSettings="@OperationSettings" OnClickUpdate="HandleClickUpdate" OnClickEdit="BeginEdit" OnClickDelete="BeginDelete" OnClickCancel="HandleCancel" OnSearch="Search" @ref="@_toolbar" CustomToolBtns="@CustomToolBtns" ColumnChooserText="@ColumnChooserText" OnChangeColumns="OnColumnVisibleChanged" />
+    <GridToolbar Width="Width" OnClickAdd="BeginAdd"  OperationSettings="@OperationSettings" OnClickUpdate="HandleClickUpdate" OnClickEdit="BeginEdit" OnClickDelete="BeginDelete" OnClickCancel="HandleCancel" OnSearch="Search" @ref="@_toolbar" CustomToolBtns="@CustomToolBtns" ColumnChooserText="@ColumnChooserText" OnChangeColumns="OnColumnVisibleChanged" />
     <div class="row p-0" style="@_widthStyle">
         <div class="col-12 data-grid_wrapper p-0">
             <div @ref="_headerDiv">
@@ -97,7 +97,6 @@
                 </table>
 
             </div>
-            @*   <div class="mp-datagrid-without-pager"></div>*@
             @if (PaginationSettings.EnablePagination)
             {
                 <div class="mp-datagrid-pager">

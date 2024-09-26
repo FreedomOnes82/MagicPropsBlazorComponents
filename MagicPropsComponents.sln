@@ -96,6 +96,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RichEditor", "RichEditor", 
 		ReadMeDetails\RichEditor\RichEditor.md = ReadMeDetails\RichEditor\RichEditor.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataGrid", "DataGrid", "{5F4CA23C-0F4B-4870-9239-6623FA42D705}"
+	ProjectSection(SolutionItems) = preProject
+		ReadMeDetails\DataGrid\DataGrid.md = ReadMeDetails\DataGrid\DataGrid.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +137,7 @@ Global
 		{2F665F85-A1AF-435B-B354-93AB74199A7B} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{215FB63E-1707-46E1-9AA9-9E17AB98B7DE} = {B0A92394-045E-4227-B282-A13B00F58375}
 		{6C6DC154-5534-45AE-864C-A283FAEEFDB5} = {B0A92394-045E-4227-B282-A13B00F58375}
+		{5F4CA23C-0F4B-4870-9239-6623FA42D705} = {B0A92394-045E-4227-B282-A13B00F58375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C813B0B-E067-4DD3-99E9-891B48CAD303}

@@ -12,7 +12,7 @@
 <h3>Data Grid Demo</h3>
 <hr />
 
-<MagicPropsComponents.Components.DataGrid.MPDataGrid CaseSensitive="true" ColumnChooserText="Columns" SelectedRow="@_selectedStu" NoDataText="No Data Found!" @ref=@_datagrid Datasource="_stus" OperationSettings="@GetEditingSetting()" EditMode="@(_editor=="DialogEditor"?EditMode.Dialog:EditMode.Default)" OnDeleteRowData="DBChanged" OnAddRowData="Add" OnUpdateRowData="Update">
+<MagicPropsComponents.Components.DataGrid.MPDataGrid CaseSensitive="true" ColumnChooserText="Columns" SelectedRow="@_selectedStu" NoDataText="No Data Found!" @ref=@_datagrid Datasource="_stus" OperationSettings="@GetEditingSetting()" EditMode="@(_editor=="DialogEditor"?EditMode.Dialog:EditMode.Default)" OnAddRowData="Add" OnUpdateRowData="Update">
    @*  <EditDialogTemplate>
         @{
             _editStu = context as StudentInfo;
@@ -41,7 +41,7 @@
         }
     </DeleteDialogTemplate>
     <ChildContent>
-        <MagicPropsComponents.Components.DataGrid.MPGridColumn @ref=_idColumn ColumnName="ID" HeaderText="ID" ColumnType="ColumnType.Number" EditorType="EditorType.NumericInput" Filterable FilterType="FilterType.DefaultFilter">
+        <MagicPropsComponents.Components.DataGrid.MPGridColumn PrimaryColumn @ref=_idColumn ColumnName="ID" HeaderText="ID" ColumnType="ColumnType.Number" EditorType="EditorType.NumericInput" Filterable FilterType="FilterType.DefaultFilter">
             <EditTemplate>
                 @{
                     var newId = Convert.ToInt32(context);
@@ -67,7 +67,7 @@
 @code {
     private List<StudentInfo> _stus = new List<StudentInfo>();
     StudentInfo _selectedStu = new StudentInfo();
-    private string _editor = "DialogEditor1";
+    private string _editor = "DialogEditor";
     private string _trigger = "DbClick";
     private MagicPropsComponents.Components.DataGrid.MPDataGrid _datagrid;
     private MagicPropsComponents.Components.DataGrid.MPGridColumn _idColumn;
@@ -79,22 +79,12 @@
     ToolButton testButton = new ToolButton()
     {
             Text = "custom button",
-
-           // IconClass = "fa fa-plus"
     };
 
     private OperationSettings GetEditingSetting()
     {
         var trigger = new EditingTrigger();
         trigger = EditingTrigger.RowClick;
-        // if (_trigger == "DbClick")
-        // {
-        //     triggers.Add(EditingTrigger.RowDblClick);
-        // }
-        // else
-        // {
-        //     triggers.Add(EditingTrigger.RowClick);
-        // }
         return new OperationSettings()
             {
                 AllowAdding = true,
@@ -104,12 +94,6 @@
                 AllowGlobalSearch = true,
                 EditingTrigger = trigger
             };
-    }
-
-    private void DBChanged()
-    {
-        Console.WriteLine("This is trigger by DBChanged");
-        Console.WriteLine("This is trigger by DBChanged -----second line");
     }
 
     private void Add(object newData)
@@ -150,12 +134,10 @@
                 }
             }
         }
-        //StateHasChanged();
     }
 
     protected override void OnInitialized()
     {
-        //var stu = new StudentInfo { ID = 6, Name = "Jully", Birthdate = new DateTime(2007, 3, 29), Gender = "Male" };
         _stus.Add(new StudentInfo { ID = 1, Name = "Michael", Birthdate = new DateTime(2007, 4, 27) });
         _stus.Add(new StudentInfo { ID = 2, Name = "Mary", Birthdate = new DateTime(2007, 6, 30), Gender = "Male" });
         _stus.Add(new StudentInfo { ID = 3, Name = "John", Birthdate = new DateTime(2007, 4, 27) });

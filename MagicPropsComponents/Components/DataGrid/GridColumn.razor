@@ -18,7 +18,7 @@
     }
     else if (IsHeaderRow)
     {
-        <th class="@(StickyCol?"stiky_col":"header-container")">
+        <th class="header-container" style="@GetTextAlignStyle()">
             @if (HeaderTemplate == null)
             {
                 @(DisplayName)
@@ -54,15 +54,15 @@
 
             @if (Filterable)
             {
-                <img class="mx-1" src="@GetFilterIcon()" width="15" height="15" id="@("filterPopup_"+ColumnId)" />
-                <Filter PopupTriggerID="@("filterPopup_"+ColumnId)" ColumnName="@ColumnName" ColumnType="@ColumnType" FilterType="@FilterType" FilterTemplate="@FilterTemplate" MenuListDS="GetMenuList()" />
+                <img class="mx-1" src="@GetFilterIcon()" width="15" height="15" id="@("filterPopup_"+ColumnName)" />
+                <GridFilter PopupTriggerID="@("filterPopup_"+ColumnName)" ColumnName="@ColumnName" ColumnType="@ColumnType" Format="@Format" FilterType="@FilterType" FilterTemplate="@FilterTemplate" MenuListDS="GetMenuList()" />
             }
 
         </th>
     }
     else
     {
-        <td class="@(StickyCol?"stiky_col":"") @(IsSelected?"mp-datagrid-row-selected":"")">
+        <td class="@(IsSelected?"mp-datagrid-row-selected":"")" style="@GetTextAlignStyle()">
             @if (IsInserting)
             {
                 @if (DataGridContainer!.EditMode == EditMode.Default)
@@ -75,7 +75,7 @@
                         }
                         else
                         {
-                            <Editor EditorType="@EditorType" ColumnType="ColumnType" Format="@Format" Value="@GetValue(DataGridContainer!.NewData)" ValueChanged="(val)=>{SetData(val.ToString());}" EditorSetting="@EditorSetting"></Editor>
+                            <GridEditor EditorType="@EditorType" ColumnType="ColumnType" Format="@Format" Value="@GetValue(DataGridContainer!.NewData)" ValueChanged="(val)=>{SetData(val.ToString());}" EditorSetting="@EditorSetting"></GridEditor>
                         }
                     }
                 }
@@ -103,8 +103,8 @@
                         }
                         else
                         {
-                            <Editor EditorType="@EditorType" ColumnType="ColumnType" Format="@Format" Value="@GetValue(DataGridContainer.EditRowClone)" ValueChanged="(val)=>{SetData(val.ToString());}" EditorSetting="@EditorSetting"></Editor>
-                        }                        
+                            <GridEditor EditorType="@EditorType" ColumnType="ColumnType" Format="@Format" Value="@GetValue(DataGridContainer.EditRowClone)" ValueChanged="(val)=>{SetData(val.ToString());}" EditorSetting="@EditorSetting"></GridEditor>
+                        }
                     }
                 }
                 else if (DataGridContainer!.EditMode == EditMode.Dialog)
@@ -136,24 +136,24 @@
 
 @code {
     [CascadingParameter(Name = "MPDataGrid")]
-    public IMPDataGrid? DataGridContainer { get; set; }
+    private IMPDataGrid? DataGridContainer { get; set; }
+    [CascadingParameter(Name = "RowData")]
+    private object? RowData { get; set; }
+    [CascadingParameter(Name = "IsHeaderRow")]
+    private bool IsHeaderRow { get; set; }
+    [CascadingParameter(Name = "IsColGroup")]
+    private bool IsColGroup { get; set; }
+    [CascadingParameter(Name = "IsInserting")]
+    private bool IsInserting { get; set; }
+    [CascadingParameter(Name = "IsEditing")]
+    private bool IsEditing { get; set; }
+    [CascadingParameter(Name = "IsSelected")]
+    private bool IsSelected { get; set; }
 
     [Parameter]
     public FilterType FilterType { get; set; } = FilterType.DefaultFilter;
     [Parameter]
     public RenderFragment<object>? FilterTemplate { get; set; }
-    [CascadingParameter(Name = "RowData")]
-    public object? RowData { get; set; }
-    [CascadingParameter(Name = "IsHeaderRow")]
-    public bool IsHeaderRow { get; set; }
-    [CascadingParameter(Name = "IsColGroup")]
-    public bool IsColGroup { get; set; }
-    [CascadingParameter(Name = "IsInserting")]
-    public bool IsInserting { get; set; }
-    [CascadingParameter(Name = "IsEditing")]
-    public bool IsEditing { get; set; }
-    [CascadingParameter(Name = "IsSelected")]
-    public bool IsSelected { get; set; }
     [Parameter]
     public RenderFragment<object>? Template { get; set; }
     [Parameter]
@@ -167,13 +167,12 @@
     [Parameter]
     public string? Format { get; set; }
     [Parameter]
-    public bool StickyCol { get; set; } = false;
-    [Parameter]
     public int? Width { get; set; }
     [Parameter]
     public bool Visible { get; set; } = true;
     [Parameter]
     public TextAlign TextAlign { get; set; } = TextAlign.Left;
+    private string GetTextAlignStyle() => TextAlign == TextAlign.Left ? "text-align: left;" : TextAlign == TextAlign.Right ? "text-align: right;" : "text-align: center;";
     [Parameter]
     public ColumnType ColumnType { get; set; } = ColumnType.Default;
     [Parameter]
@@ -181,13 +180,13 @@
     [Parameter]
     public bool Filterable { get; set; } = false;
     [Parameter]
-    public string ColumnId { get; set; } = string.Empty;
-    [Parameter]
     public EditorType EditorType { get; set; }
     [Parameter]
-    public EditorSetting? EditorSetting { get; set; }
+    public EditorSettings? EditorSetting { get; set; }
     [Parameter]
     public List<object>? CustomMenuListFilterDatasource { get; set; }
+    [Parameter]
+    public bool PrimaryColumn { get; set; }
 
     private string _widthString => Width == null ? "auto" : Width.Value.ToString() + "px";
     private string _keywords { get; set; } = string.Empty;
@@ -202,12 +201,12 @@
             {
                 return CustomMenuListFilterDatasource;
             }
-            return DataGridContainer!.GetList(ColumnName);
+            return DataGridContainer!.GetDefaultMenuList(ColumnName);
         }
         return new List<object>();
     }
 
-    public PropertyByLambda GetProp()
+    private PropertyByLambda GetProp()
     {
         if (_prop == null)
         {
@@ -235,7 +234,7 @@
         return value ?? string.Empty;
     }
 
-    public object GetDisplayText()
+    private object GetDisplayText()
     {
         var value = GetProp().GetValue(RowData!);
         switch (ColumnType)
@@ -265,6 +264,7 @@
         return destVl;
     }
 
+    //This method is necessary in custom editor
     public void SetData(string? obj)
     {
         object? destVl = GetDataToSet(obj);
@@ -272,7 +272,7 @@
         {
             destVl = Enum.Parse(GetProp().Info.PropertyType, destVl.ToString());
         }
-        if (DataGridContainer!.NewData!=null)
+        if (DataGridContainer!.NewData != null)
         {
             GetProp().SetValue(DataGridContainer!.NewData, destVl);
         }
@@ -305,7 +305,7 @@
                     if (!string.IsNullOrEmpty(propDisplayText)) return propDisplayText;
                 }
             }
-            return string.IsNullOrEmpty(ColumnName) ? ColumnId : ColumnName;
+            return ColumnName;
         }
     }
 
@@ -337,16 +337,16 @@
             return "./_content/MagicPropsComponents/svgs/filter.svg";
         }
     }
- 
+
     private SvgHelper SvgHelper;
     protected override void OnInitialized()
     {
-        SvgHelper = new SvgHelper(DataGridContainer!.Theme);
+        SvgHelper = new SvgHelper(Theme.Default);
 
         if (DataGridContainer != null && IsHeaderRow)
         {
-            if (string.IsNullOrEmpty(ColumnId))
-                ColumnId = "gridCol_" + Guid.NewGuid().ToString().Replace("-", "");
+            if (string.IsNullOrEmpty(ColumnName))
+                ColumnName = "gridCol_" + Guid.NewGuid().ToString().Replace("-", "");
             DataGridContainer!.AddColumn(this);
         }
     }
